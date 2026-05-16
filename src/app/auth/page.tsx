@@ -5,13 +5,31 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock } from "lucide-react";
+import { ArrowRight, Phone, Lock, ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const COUNTRIES = [
+  { name: "United States", code: "+1", flag: "🇺🇸", length: 10 },
+  { name: "India", code: "+91", flag: "🇮🇳", length: 10 },
+  { name: "United Kingdom", code: "+44", flag: "🇬🇧", length: 10 },
+  { name: "Brazil", code: "+55", flag: "🇧🇷", length: 11 },
+  { name: "Germany", code: "+49", flag: "🇩🇪", length: 11 },
+  { name: "France", code: "+33", flag: "🇫🇷", length: 9 },
+  { name: "Australia", code: "+61", flag: "🇦🇺", length: 9 },
+];
 
 export default function AuthPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const router = useRouter();
 
   const handleNext = () => {
@@ -22,6 +40,15 @@ export default function AuthPage() {
       else router.push("/onboarding");
     }, 1200);
   };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "");
+    if (val.length <= selectedCountry.length) {
+      setPhone(val);
+    }
+  };
+
+  const isPhoneValid = phone.length >= 7; // Basic sanity check
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden">
@@ -34,7 +61,7 @@ export default function AuthPage() {
         <p className="text-muted-foreground font-light leading-relaxed">
           {step === "phone" 
             ? "Enter your number to continue. We'll send a quick verification." 
-            : `Sent to ${phone}. Enter the 6-digit code.`}
+            : `Sent to ${selectedCountry.code} ${phone}. Enter the 6-digit code.`}
         </p>
       </div>
 
@@ -47,22 +74,71 @@ export default function AuthPage() {
           transition={{ duration: 0.4, ease: "circOut" }}
           className="space-y-6"
         >
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-              {step === "phone" ? <Phone size={18} /> : <Lock size={18} />}
+          {step === "phone" ? (
+            <div className="flex gap-2">
+              <div className="w-32">
+                <Select
+                  defaultValue={selectedCountry.code}
+                  onValueChange={(val) => {
+                    const country = COUNTRIES.find((c) => c.code === val);
+                    if (country) {
+                      setSelectedCountry(country);
+                      setPhone(""); // Reset phone when country changes to avoid length mismatches
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary">
+                    <SelectValue>
+                      <span className="flex items-center gap-2">
+                        <span>{selectedCountry.flag}</span>
+                        <span className="text-sm font-medium">{selectedCountry.code}</span>
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1A181C] border-white/10 text-white">
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code} className="focus:bg-primary/20 focus:text-white">
+                        <span className="flex items-center gap-3">
+                          <span>{c.flag}</span>
+                          <span>{c.name}</span>
+                          <span className="text-muted-foreground ml-auto">{c.code}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative group flex-1">
+                <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Phone size={18} />
+                </div>
+                <Input
+                  type="tel"
+                  placeholder="Phone number"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
+                />
+              </div>
             </div>
-            <Input
-              type={step === "phone" ? "tel" : "number"}
-              placeholder={step === "phone" ? "+1 (555) 000-0000" : "000000"}
-              value={step === "phone" ? phone : otp}
-              onChange={(e) => step === "phone" ? setPhone(e.target.value) : setOtp(e.target.value)}
-              className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
-            />
-          </div>
+          ) : (
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                <Lock size={18} />
+              </div>
+              <Input
+                type="number"
+                placeholder="000000"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+                className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
+              />
+            </div>
+          )}
 
           <Button 
             onClick={handleNext}
-            disabled={isLoading || (step === "phone" ? !phone : !otp)}
+            disabled={isLoading || (step === "phone" ? !isPhoneValid : otp.length < 6)}
             className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
