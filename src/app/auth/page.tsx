@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/select";
 
 const COUNTRIES = [
-  { name: "United States", code: "+1", flag: "🇺🇸", length: 10 },
   { name: "India", code: "+91", flag: "🇮🇳", length: 10 },
+  { name: "United States", code: "+1", flag: "🇺🇸", length: 10 },
   { name: "United Kingdom", code: "+44", flag: "🇬🇧", length: 10 },
   { name: "Brazil", code: "+55", flag: "🇧🇷", length: 11 },
   { name: "Germany", code: "+49", flag: "🇩🇪", length: 11 },
@@ -48,7 +48,7 @@ export default function AuthPage() {
     }
   };
 
-  const isPhoneValid = phone.length >= 7; // Basic sanity check
+  const isPhoneValid = phone.length === selectedCountry.length;
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden">
@@ -114,7 +114,7 @@ export default function AuthPage() {
                 </div>
                 <Input
                   type="tel"
-                  placeholder="Phone number"
+                  placeholder={`${selectedCountry.length} digits`}
                   value={phone}
                   onChange={handlePhoneChange}
                   className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
