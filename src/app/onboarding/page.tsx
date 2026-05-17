@@ -166,7 +166,7 @@ export default function Onboarding() {
                 <p className="text-muted-foreground">Share your vibe. Keep it simple and real.</p>
               </div>
               <Textarea
-                placeholder="I love sunsets and high-end minimalism..."
+                placeholder="Describe your desires to know more about you"
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 className="min-h-[160px] bg-white/5 border-white/10 rounded-2xl p-4 text-lg resize-none"
