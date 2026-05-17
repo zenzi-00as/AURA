@@ -1,13 +1,14 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { BadgeCheck, Search, Edit3 } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 
-const MOCK_CHATS = [
+const INITIAL_CHATS = [
   { id: "1", name: "Aarav", age: 22, lastMsg: "Maybe we can grab a coffee sometime?", time: "2:44 PM", verified: true, unread: true },
   { id: "2", name: "Riyan", age: 24, lastMsg: "Hey! How's your week going?", time: "Yesterday", verified: true, unread: false },
   { id: "3", name: "Leo", age: 26, lastMsg: "I loved that playlist you shared.", time: "Tuesday", verified: false, unread: false },
@@ -16,6 +17,29 @@ const MOCK_CHATS = [
 export default function ChatList() {
   const router = useRouter();
   const { t } = useTranslation();
+  const [chats, setChats] = useState(INITIAL_CHATS);
+
+  useEffect(() => {
+    // Load read status from localStorage
+    const readChats = JSON.parse(localStorage.getItem('aura_read_chats') || '[]');
+    setChats(prev => prev.map(chat => ({
+      ...chat,
+      unread: readChats.includes(chat.id) ? false : chat.unread
+    })));
+  }, []);
+
+  const handleChatClick = (id: string) => {
+    // Mark as read in state
+    setChats(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
+    
+    // Persist read status
+    const readChats = JSON.parse(localStorage.getItem('aura_read_chats') || '[]');
+    if (!readChats.includes(id)) {
+      localStorage.setItem('aura_read_chats', JSON.stringify([...readChats, id]));
+    }
+
+    router.push(`/chat/${id}`);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
@@ -37,13 +61,13 @@ export default function ChatList() {
       </header>
 
       <div className="px-6 space-y-2 mt-4">
-        {MOCK_CHATS.map((chat, idx) => (
+        {chats.map((chat, idx) => (
           <motion.div
             key={chat.id}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.05 }}
-            onClick={() => router.push(`/chat/${chat.id}`)}
+            onClick={() => handleChatClick(chat.id)}
             className="group flex items-center gap-4 p-4 rounded-3xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/5"
           >
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center relative">
