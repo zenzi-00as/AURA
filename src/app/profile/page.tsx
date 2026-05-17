@@ -112,19 +112,15 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gender</Label>
-                        <Input 
-                          value={tempProfile.gender}
-                          onChange={(e) => setTempProfile({ ...tempProfile, gender: e.target.value })}
-                          className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus:ring-primary"
-                        />
+                        <div className="bg-white/5 border border-white/10 rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                          {profile.gender}
+                        </div>
                       </div>
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Orientation</Label>
-                        <Input 
-                          value={tempProfile.orientation}
-                          onChange={(e) => setTempProfile({ ...tempProfile, orientation: e.target.value })}
-                          className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus:ring-primary"
-                        />
+                        <div className="bg-white/5 border border-white/10 rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                          {profile.orientation}
+                        </div>
                       </div>
                     </div>
                   </div>
