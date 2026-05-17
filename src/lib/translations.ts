@@ -88,7 +88,7 @@ export const translations = {
     stateless_title: "Stateless Connection",
     stateless_desc: "Our unique infrastructure ensures that your data presence is ephemeral and secure, no matter where your journey takes you.",
     our_promise: "Our Commitment to You",
-    promise_desc: "Your privacy is not for sale. We pledge to never sell your personal data to third parties, use invasive ad-tracking, or compromise your digital footprint. Aura is a safe haven built on community trust, ensuring that your connections remain private, secure, and entirely yours.",
+    promise_desc: "Aura is built on the belief that meaningful connections start with a foundation of trust and empowerment. We are committed to maintaining a space where authenticity is celebrated and your journey is protected by rigorous safety standards, allowing you to connect as your most genuine self.",
   },
   hi: {
     discovery: "खोजें",
@@ -168,7 +168,7 @@ export const translations = {
     stateless_title: "स्टेटलेस कनेक्शन",
     stateless_desc: "हमारी अनूठी संरचना सुनिश्चित करती है कि आपका डेटा सुरक्षित रहे, चाहे आपकी यात्रा कहीं भी ले जाए।",
     our_promise: "आपके प्रति हमारी प्रतिबद्धता",
-    promise_desc: "आपकी गोपनीयता बिकाऊ नहीं है। हम आपके व्यक्तिगत डेटा को कभी भी तीसरे पक्ष को नहीं बेचने, आक्रामक विज्ञापन-ट्रैकिंग का उपयोग नहीं करने का संकल्प लेते हैं। Aura सामुदायिक विश्वास पर बना एक सुरक्षित आश्रय है।",
+    promise_desc: "Aura इस विश्वास पर बनी है कि सार्थक संबंध विश्वास और सशक्तिकरण की नींव से शुरू होते हैं। हम एक ऐसा स्थान बनाए रखने के लिए प्रतिबद्ध हैं जहाँ प्रामाणिकता का जश्न मनाया जाता है और आपकी यात्रा कठोर सुरक्षा मानकों द्वारा संरक्षित है, जिससे आप अपने सबसे वास्तविक स्वरूप में जुड़ सकते हैं।",
   },
   es: {
     discovery: "Descubrimiento",
@@ -248,7 +248,7 @@ export const translations = {
     stateless_title: "Conexión Sin Estado",
     stateless_desc: "Nuestra infraestructura garantiza que tu presencia de datos sea efímera y segura en cualquier lugar.",
     our_promise: "Nuestro Compromiso con Usted",
-    promise_desc: "Su privacidad no está a la venta. Nos comprometemos a no vender nunca sus datos personales a terceros, ni a utilizar rastreo publicitario invasivo. Aura es un refugio seguro basado en la confianza comunitaria.",
+    promise_desc: "Aura se basa en la creencia de que las conexiones significativas comienzan con una base de confianza y empoderamiento. Estamos comprometidos a mantener un espacio donde se celebre la autenticidad y su viaje esté protegido por rigurosos estándares de seguridad, lo que le permitirá conectarse como su ser más genuino.",
   },
   pt: {
     discovery: "Descoberta",
@@ -328,7 +328,7 @@ export const translations = {
     stateless_title: "Conexão Sem Estado",
     stateless_desc: "Nossa infraestrutura garante que sua presença de dados seja efêmera e segura em qualquer lugar.",
     our_promise: "Nosso Compromisso com Você",
-    promise_desc: "Sua privacidade não está à venda. Comprometemo-nos a nunca vender seus dados pessoais a terceiros, nem utilizar rastreio publicitário invasivo. A Aura é um refúgio seguro baseado na confiança da comunidade.",
+    promise_desc: "A Aura baseia-se na crença de que conexões significativas começam com uma base de confiança e capacitação. Estamos empenhados em manter um espaço onde a autenticidade é celebrada e a sua jornada é protegida por padrões de segurança rigorosos, permitindo que você se conecte como o seu eu mais genuíno.",
   },
   fr: {
     discovery: "Découverte",
@@ -408,7 +408,7 @@ export const translations = {
     stateless_title: "Connexion Sans État",
     stateless_desc: "Notre infrastructure garantit que vos données sont éphémères et sécurisées partout.",
     our_promise: "Notre Engagement envers Vous",
-    promise_desc: "Votre vie privée n'est pas à vendre. Nous nous engageons à ne jamais vendre vos données personnelles à des tiers, ni à utiliser de suivi publicitaire invasif. Aura est un havre de paix fondé sur la confiance communautaire.",
+    promise_desc: "Aura repose sur la conviction que des liens significatifs commencent par une base de confiance et d'autonomisation. Nous nous engageons à maintenir un espace où l'authenticité est célébrée et où votre parcours est protégé par des normes de sécurité rigoureuses, vous permettant de vous connecter en tant que votre moi le plus authentique.",
   },
   de: {
     discovery: "Entdeckung",
@@ -488,6 +488,6 @@ export const translations = {
     stateless_title: "Stateless Connection",
     stateless_desc: "Unsere Infrastruktur stellt sicher, dass Ihre Datenpräsenz überall flüchtig und sicher ist.",
     our_promise: "Unser Versprechen an Sie",
-    promise_desc: "Ihre Privatsphäre steht nicht zum Verkauf. Wir versprechen, Ihre persönlichen Daten niemals an Dritte zu verkaufen oder invasives Ad-Tracking zu nutzen. Aura ist ein sicherer Hafen, der auf dem Vertrauen der Community basiert.",
+    promise_desc: "Aura basiert auf der Überzeugung, dass bedeutungsvolle Verbindungen auf einer Grundlage von Vertrauen und Empowerment beginnen. Wir setzen uns dafür ein, einen Raum zu erhalten, in dem Authentizität gefeiert wird und Ihre Reise durch strenge Sicherheitsstandards geschützt ist, sodass Sie sich als Ihr wahrhaftigstes Selbst verbinden können.",
   }
 };
