@@ -2,13 +2,14 @@
 
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, MapPin, Heart } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, MapPin, Heart, Pencil, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
       <header className="px-8 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
-        <h1 className="text-xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-white">Profile</h1>
         <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
           <Settings size={18} />
         </button>
@@ -40,7 +41,12 @@ export default function ProfilePage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
           
           <div className="space-y-4 relative">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">About Me</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">About Me</h3>
+              <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors">
+                <Pencil size={14} />
+              </button>
+            </div>
             <p className="text-lg leading-relaxed text-white font-light">
               Designing spaces and digital experiences. Looking for genuine connections in the city.
             </p>
@@ -91,26 +97,4 @@ export default function ProfilePage() {
       <BottomNav />
     </div>
   );
-}
-
-function Sparkles({ size, className }: { size?: number, className?: string }) {
-  return (
-    <svg 
-      width={size || 24} 
-      height={size || 24} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-      <path d="M5 3v4" />
-      <path d="M19 17v4" />
-      <path d="M3 5h4" />
-      <path d="M17 19h4" />
-    </svg>
-  )
 }
