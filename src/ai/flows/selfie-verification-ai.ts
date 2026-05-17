@@ -24,9 +24,9 @@ export type SelfieVerificationInput = z.infer<typeof SelfieVerificationInputSche
 
 const SelfieVerificationOutputSchema = z.object({
   verificationStatus: z.enum(['Verified', 'Pending', 'Rejected']).describe("The AI's assessment of the verification status."),
-  reason: z.string().describe("Explanation for the verification status, especially if 'Pending' or 'Rejected'."),
-  isRealPerson: z.boolean().describe("True if the AI believes the image is of a real person and not a fake or bot."),
-  matchesProfile: z.boolean().describe("True if the AI believes the person in the photo is consistent with the provided profile name and description."),
+  reason: z.string().describe("Explanation for the verification status."),
+  isRealPerson: z.boolean().describe("True if the AI believes the image is of a real person."),
+  matchesProfile: z.boolean().describe("True if the AI believes the person in the photo matches the profile description."),
 });
 export type SelfieVerificationOutput = z.infer<typeof SelfieVerificationOutputSchema>;
 
@@ -38,48 +38,22 @@ const selfieVerificationPrompt = ai.definePrompt({
   name: 'selfieVerificationPrompt',
   input: { schema: SelfieVerificationInputSchema },
   output: { schema: SelfieVerificationOutputSchema },
-  model: 'googleai/gemini-1.5-flash', // Use a stable model for vision-based verification
-  prompt: `You are an expert identity verification system for a minimalist LGBTQ+ social app named Aura. Your primary goal is to ensure authenticity and prevent bots or fake profiles.
+  prompt: `You are an expert identity verification system for Aura. 
 
-Analyze the provided live selfie and compare it against the user's profile information.
+Analyze the provided selfie and profile data. 
 
-Perform the following checks:
-1. **Authenticity Check (isRealPerson):** Does the image appear to be a genuine live capture of a human face? Look for signs of artificiality, deepfakes, re-photographed images, or non-human entities. If it looks like a bot or a fake image, set 'isRealPerson' to false.
-2. **Profile Consistency Check (matchesProfile):** Does the person in the selfie seem consistent with the provided profile name and description? While you cannot confirm exact identity, assess for general consistency in age, gender presentation (if mentioned), or other descriptive elements. Flag obvious inconsistencies.
+Checks:
+1. Real person check: Ensure it's not a bot, fake, or re-photographed image.
+2. Profile match: Does the photo generally align with the name "{{userName}}" and bio "{{userDescription}}"?
 
-Based on these checks, determine the 'verificationStatus' and provide a 'reason'.
-
-**Verification Status Guidelines:**
-- 'Verified': Both 'isRealPerson' is true AND 'matchesProfile' is true, with no significant concerns.
-- 'Rejected': If 'isRealPerson' is false (e.g., bot, fake image) OR if there are severe inconsistencies with 'matchesProfile'. Provide a clear reason.
-- 'Pending': If 'isRealPerson' is true but there are minor or ambiguous inconsistencies with 'matchesProfile', or if further human review seems necessary. Provide a reason for the pending status.
+Provide verificationStatus ('Verified', 'Pending', or 'Rejected') and details.
 
 User Profile:
-- Name: {{{userName}}}
-- Bio/Description: {{{userDescription}}}
+Name: {{{userName}}}
+Bio: {{{userDescription}}}
 
-Selfie Photo:
+Selfie:
 {{media url=photoDataUri}}`,
-  config: {
-    safetySettings: [
-      {
-        category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_NONE',
-      },
-    ],
-  },
 });
 
 const selfieVerificationFlow = ai.defineFlow(
@@ -89,7 +63,17 @@ const selfieVerificationFlow = ai.defineFlow(
     outputSchema: SelfieVerificationOutputSchema,
   },
   async (input) => {
-    const { output } = await selfieVerificationPrompt(input);
-    return output!;
+    try {
+      const { output } = await selfieVerificationPrompt(input);
+      return output!;
+    } catch (error) {
+      console.error('AI Verification Error:', error);
+      return {
+        verificationStatus: 'Pending',
+        reason: 'Automated check failed. Profile pending manual review.',
+        isRealPerson: true,
+        matchesProfile: true,
+      };
+    }
   }
 );

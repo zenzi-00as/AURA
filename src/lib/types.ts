@@ -1,3 +1,4 @@
+
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 
 export type UserProfile = {
@@ -12,10 +13,11 @@ export type UserProfile = {
     lat: number;
     lng: number;
   } | null;
-  distance?: string; // Pre-calculated string like "350 meters away"
-  distanceKm?: number; // Numeric value for filtering
-  lastActive: any; // Firestore Timestamp
+  distance?: string; 
+  distanceKm?: number;
+  lastActive: any; 
   isOnline: boolean;
+  photoUrl?: string;
 };
 
 export type Message = {
@@ -31,7 +33,7 @@ export type ChatRoom = {
   participants: string[];
   lastMessage?: string;
   lastTimestamp?: any;
-  typingUser?: string;
+  typing?: Record<string, boolean>;
 };
 
 export type NotificationType = 'verification' | 'proximity' | 'message';

@@ -25,6 +25,41 @@
         "photoUrl": { "type": "string" }
       },
       "required": ["uid", "name", "age"]
+    },
+    "ChatRoom": {
+      "title": "Chat Room",
+      "description": "A private conversation between two users.",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastTimestamp": { "type": "string", "format": "date-time" },
+        "typing": { "type": "object" }
+      }
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A single chat message.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "seen": { "type": "boolean" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User activity alerts.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string", "enum": ["verification", "proximity", "message"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -34,6 +69,18 @@
     "/users/{userId}": {
       "schema": "#/entities/UserProfile",
       "description": "User profile documents."
+    },
+    "/chatRooms/{roomId}": {
+      "schema": "#/entities/ChatRoom",
+      "description": "Metadata for active chats."
+    },
+    "/chatRooms/{roomId}/messages/{messageId}": {
+      "schema": "#/entities/Message",
+      "description": "Messages within a specific chat room."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "#/entities/Notification",
+      "description": "Real-time user notifications."
     }
   }
 }

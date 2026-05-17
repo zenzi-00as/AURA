@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock, ChevronDown } from "lucide-react";
+import { ArrowRight, Phone, Lock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/firebase";
+import { signInAnonymously } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const COUNTRIES = [
   { name: "India", code: "+91", flag: "🇮🇳", length: 10 },
@@ -31,14 +35,33 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const router = useRouter();
+  const auth = useAuth();
+  const { toast } = useToast();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      if (step === "phone") {
+        // In a real production app, use RecaptchaVerifier and signInWithPhoneNumber
+        // For this prototype, we simulate the OTP step and use anonymous login
+        // to get the user into the onboarding flow immediately.
+        setTimeout(() => {
+          setIsLoading(false);
+          setStep("otp");
+        }, 800);
+      } else {
+        // Simulate OTP verification
+        await signInAnonymously(auth);
+        router.push("/onboarding");
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Auth Error",
+        description: error.message,
+      });
       setIsLoading(false);
-      if (step === "phone") setStep("otp");
-      else router.push("/onboarding");
-    }, 1200);
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
