@@ -4,11 +4,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Compass, MessageCircle, User, Bell } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
+import { useState, useEffect } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
+  
+  // Simulated real-time update state to demonstrate the glowing indicators
+  const [activeUpdates, setActiveUpdates] = useState<Record<string, boolean>>({
+    "/chat": true,
+    "/notifications": false,
+  });
+
+  // Simulate receiving a new notification after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setActiveUpdates(prev => ({ ...prev, "/notifications": true }));
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const navItems = [
     { icon: Compass, path: "/dashboard", label: t('discovery') },
@@ -22,6 +37,8 @@ export function BottomNav() {
       <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-[#0C0B0D]/80 backdrop-blur-2xl border border-white/10 shadow-2xl aura-glow">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
+          const hasUpdate = activeUpdates[item.path];
+
           return (
             <button
               key={item.path}
@@ -36,7 +53,18 @@ export function BottomNav() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
-              <item.icon size={22} className="relative z-10" />
+              <div className="relative z-10 flex items-center justify-center">
+                <item.icon size={22} className="relative z-10" />
+                
+                {/* Real-time update indicator */}
+                {hasUpdate && !isActive && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-[#0C0B0D] z-20"
+                  />
+                )}
+              </div>
             </button>
           );
         })}
