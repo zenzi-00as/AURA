@@ -2,7 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Sparkles, Shield, Heart, Fingerprint, Globe, ChevronRight } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Sparkles, 
+  Shield, 
+  Heart, 
+  Fingerprint, 
+  Globe, 
+  ChevronRight, 
+  ShieldCheck, 
+  Cpu, 
+  Map, 
+  Handshake, 
+  Lock 
+} from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 
 export default function AboutPage() {
@@ -30,6 +43,19 @@ export default function AboutPage() {
     }
   ];
 
+  const features = [
+    {
+      title: t('ai_guard'),
+      desc: t('ai_guard_desc'),
+      icon: Cpu,
+    },
+    {
+      title: t('stateless_title'),
+      desc: t('stateless_desc'),
+      icon: Map,
+    }
+  ];
+
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
       <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
@@ -39,7 +65,7 @@ export default function AboutPage() {
         <h1 className="text-xl font-semibold text-white">{t('about')}</h1>
       </header>
 
-      <div className="p-8 space-y-12">
+      <div className="p-8 space-y-16">
         {/* Hero Section */}
         <div className="text-center space-y-6 pt-4">
           <motion.div 
@@ -67,6 +93,35 @@ export default function AboutPage() {
           </p>
         </motion.section>
 
+        {/* Beyond the Surface - Features */}
+        <section className="space-y-8">
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t('how_it_works')}</h3>
+            <p className="text-sm text-muted-foreground font-light px-1">{t('how_it_works_desc')}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {features.map((feature, idx) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass-card p-6 rounded-[32px] space-y-4 border border-white/5 bg-white/[0.01]"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <feature.icon size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-white">{feature.title}</h4>
+                  <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                    {feature.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
         {/* Core Values */}
         <section className="space-y-6">
           <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t('core_values')}</h3>
@@ -90,6 +145,21 @@ export default function AboutPage() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </section>
+
+        {/* Our Promise Section */}
+        <section className="glass-card p-8 rounded-[40px] border border-white/5 space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
+          <div className="flex items-center gap-3 text-emerald-500">
+            <Handshake size={24} />
+            <h3 className="text-sm font-semibold text-white">{t('our_promise')}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground font-light leading-relaxed">
+            {t('promise_desc')}
+          </p>
+          <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
+            <Lock size={12} />
+            <span>Encrypted • No Ads • No Selling</span>
           </div>
         </section>
 
@@ -125,7 +195,7 @@ export default function AboutPage() {
             <button className="hover:text-white transition-colors">Cookies</button>
           </div>
           <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
-            <Shield size={10} />
+            <ShieldCheck size={10} />
             <span>Encrypted Infrastructure</span>
           </div>
         </div>
