@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -53,12 +54,23 @@ export default function ChatRoom() {
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Simulate real-time status changes occasionally
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (Math.random() > 0.95) {
+        setIsOnline(prev => !prev);
+      }
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -121,7 +133,12 @@ export default function ChatRoom() {
               <span className="font-semibold text-white">Aarav</span>
               <BadgeCheck size={16} className="text-primary" />
             </div>
-            <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Active Now</span>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]"}`} />
+              <span className={`text-[9px] font-bold uppercase tracking-[0.1em] ${isOnline ? "text-emerald-500" : "text-rose-500"}`}>
+                {isOnline ? "Active Now" : "Offline"}
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
