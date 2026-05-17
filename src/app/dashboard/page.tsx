@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -19,8 +18,8 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
-import { useCollection, useFirestore, useUser } from "@/firebase";
-import { collection, query, where, limit } from "firebase/firestore";
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { collection, query, limit } from "firebase/firestore";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -54,7 +53,7 @@ export default function Dashboard() {
   }, []);
 
   // Fetch real-time users from Firestore
-  const usersQuery = useMemo(() => {
+  const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
       collection(db, "users"),
@@ -76,10 +75,16 @@ export default function Dashboard() {
       // Basic distance filter if locations are available
       let withinDistance = true;
       if (currentLocation && user.location) {
+        // Crude km approximation
+        const lat1 = currentLocation.lat;
+        const lon1 = currentLocation.lng;
+        const lat2 = (user as any).location.lat;
+        const lon2 = (user as any).location.lng;
+        
         const d = Math.sqrt(
-          Math.pow(user.location.lat - currentLocation.lat, 2) + 
-          Math.pow(user.location.lng - currentLocation.lng, 2)
-        ) * 111; // Crude km approximation
+          Math.pow(lat2 - lat1, 2) + 
+          Math.pow(lon2 - lon1, 2)
+        ) * 111; 
         withinDistance = d <= activeFilters.distance;
       }
 
