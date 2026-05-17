@@ -12,12 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 
 const GENDER_OPTIONS = [
   "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
-  "Genderfluid", "Agender", "Queer", "Prefer not to say"
+  "Genderfluid", "Agender", "Queer"
 ];
 
 const ORIENTATION_OPTIONS = [
   "Gay", "Lesbian", "Bisexual", "Pansexual", "Queer", 
-  "Asexual", "Straight", "Prefer not to say"
+  "Asexual", "Straight"
 ];
 
 export default function Onboarding() {
