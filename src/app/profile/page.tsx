@@ -172,7 +172,7 @@ export default function ProfilePage() {
 
         <div className="space-y-3">
           <button 
-            onClick={() => router.push('/settings')}
+            onClick={() => router.push('/privacy-safety')}
             className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
           >
             <div className="flex items-center gap-4">
