@@ -1,8 +1,10 @@
+
 "use client";
 
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { Bell, ShieldCheck, MapPin, MessageCircle } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 const NOTIFS = [
   { id: 1, title: "Account Verified", body: "Identity check complete. Welcome to Aura.", icon: ShieldCheck, time: "2h ago", color: "text-primary" },
@@ -11,16 +13,18 @@ const NOTIFS = [
 ];
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
-        <h1 className="text-xl font-semibold tracking-tight">Activity</h1>
+      <header className="px-8 pt-10 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
+        <h1 className="text-xl font-semibold tracking-tight">{t('activity')}</h1>
         <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
           <Bell size={18} />
         </button>
       </header>
 
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 mt-4">
         {NOTIFS.map((notif, idx) => (
           <motion.div
             key={notif.id}
