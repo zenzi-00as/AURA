@@ -100,7 +100,7 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Maximum Distance</Label>
-                  <span className="text-primary font-semibold text-sm">{distance} km</span>
+                  <span className="text-primary font-semibold text-sm">{distance[0]} km</span>
                 </div>
                 <Slider 
                   value={distance} 
