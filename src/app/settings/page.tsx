@@ -2,19 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
   Shield, 
   Bell, 
-  EyeOff, 
   UserX, 
   LogOut, 
   Trash2, 
   Globe, 
   Smartphone,
   ChevronRight,
-  AlertTriangle
+  AlertTriangle,
+  X,
+  User
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+
+const MOCK_BLOCKED_USERS = [
+  { id: "b1", name: "Stranger12", date: "2 days ago" },
+  { id: "b2", name: "SpamBot99", date: "1 week ago" },
+];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -39,13 +53,22 @@ export default function SettingsPage() {
     marketing: false,
     privateProfile: false,
   });
+  const [blockedUsers, setBlockedUsers] = useState(MOCK_BLOCKED_USERS);
+  const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
 
   const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleUnblock = (id: string, name: string) => {
+    setBlockedUsers(prev => prev.filter(u => u.id !== id));
+    toast({
+      title: "User Unblocked",
+      description: `${name} can now find and message you again.`,
+    });
+  };
+
   const handleDeleteAccount = () => {
-    // Simulate account deletion
     toast({
       variant: "destructive",
       title: "Account Deleted",
@@ -71,18 +94,81 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Privacy & Safety</h2>
           </div>
           <div className="space-y-2">
-            <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
-                  <UserX size={18} />
+            <Dialog open={isBlockedListOpen} onOpenChange={setIsBlockedListOpen}>
+              <DialogTrigger asChild>
+                <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                      <UserX size={18} />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-medium text-white">Blocked Users</h3>
+                      <p className="text-xs text-muted-foreground font-light">Manage who can't contact you.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-muted-foreground" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+                <DialogHeader className="space-y-3">
+                  <DialogTitle className="text-2xl font-semibold">Blocked Users</DialogTitle>
+                  <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
+                    People in this list won't be able to message you or see your profile on Aura.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
+                  <AnimatePresence mode="popLayout">
+                    {blockedUsers.length > 0 ? (
+                      blockedUsers.map((user) => (
+                        <motion.div
+                          key={user.id}
+                          layout
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                              <User size={18} />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{user.name}</span>
+                              <span className="text-[10px] text-muted-foreground">Blocked {user.date}</span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnblock(user.id, user.name)}
+                            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-xl px-4"
+                          >
+                            Unblock
+                          </Button>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12 space-y-3">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-muted-foreground">
+                          <Shield size={24} />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-light">Your blocked list is clear.</p>
+                      </div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium text-white">Blocked Users</h3>
-                  <p className="text-xs text-muted-foreground font-light">Manage who can't contact you.</p>
+
+                <div className="pt-2">
+                  <Button 
+                    onClick={() => setIsBlockedListOpen(false)}
+                    className="w-full h-14 rounded-2xl bg-white/5 text-white font-medium text-lg hover:bg-white/10 transition-colors"
+                  >
+                    Close
+                  </Button>
                 </div>
-              </div>
-              <ChevronRight size={16} className="text-muted-foreground" />
-            </button>
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
 
@@ -160,7 +246,7 @@ export default function SettingsPage() {
                     </AlertDialogDescription>
                   </div>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col pt-4">
+                <AlertDialogFooter className="flex flex-col gap-3 pt-4 sm:flex-col">
                   <AlertDialogAction 
                     onClick={handleDeleteAccount}
                     className="w-full h-14 rounded-2xl bg-destructive text-destructive-foreground font-medium text-lg hover:bg-destructive/90 transition-colors"
