@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check } from "lucide-react";
@@ -20,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -48,7 +50,10 @@ export default function ProfilePage() {
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
       <header className="px-8 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
         <h1 className="text-xl font-semibold tracking-tight text-white">Profile</h1>
-        <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
+        <button 
+          onClick={() => router.push('/settings')}
+          className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
+        >
           <Settings size={18} />
         </button>
       </header>
@@ -169,7 +174,10 @@ export default function ProfilePage() {
 
         {/* Actions */}
         <div className="space-y-3">
-          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => router.push('/settings')}
+            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
+          >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <Shield size={18} />
