@@ -6,7 +6,6 @@ import {
   onSnapshot,
   QuerySnapshot,
   DocumentData,
-  query,
 } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
@@ -19,6 +18,7 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
   useEffect(() => {
     if (!initialQuery) {
       setLoading(false);
+      setData([]);
       return;
     }
 
@@ -27,7 +27,7 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
       initialQuery,
       (snapshot: QuerySnapshot<T>) => {
         const items = snapshot.docs.map((doc) => ({
-          ...doc.data(),
+          ...(doc.data() as any),
           id: doc.id,
         }));
         setData(items);

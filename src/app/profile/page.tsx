@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
@@ -30,31 +30,90 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { UserProfile } from "@/lib/types";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const db = useFirestore();
+  const { user: authUser, loading: authLoading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   
-  const [profile, setProfile] = useState({
-    name: "Alex",
-    age: 25,
-    bio: "Designing spaces and digital experiences. Looking for genuine connections in the city.",
-    gender: "Non-binary",
-    orientation: "Queer"
-  });
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return doc(db, "users", authUser.uid);
+  }, [db, authUser]);
 
-  const [tempProfile, setTempProfile] = useState({ ...profile });
+  const { data: profile, loading: profileLoading } = useDoc<UserProfile>(profileRef as any);
+
+  const [tempBio, setTempBio] = useState("");
+
+  useEffect(() => {
+    if (profile?.bio) {
+      setTempBio(profile.bio);
+    }
+  }, [profile]);
 
   const handleSave = () => {
-    setProfile(tempProfile);
+    if (!profileRef) return;
+    
+    updateDoc(profileRef as any, { bio: tempBio });
     setIsEditing(false);
     toast({
       title: "Profile Updated",
       description: "Your changes have been saved successfully.",
     });
   };
+
+  // Wait for auth to be determined
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If determined and no user, redirect to auth
+  if (!authUser && !authLoading) {
+    router.push('/auth');
+    return null;
+  }
+
+  // If user is here but profile is still loading
+  if (profileLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If user exists but document doesn't, they might need to complete onboarding
+  if (!profile && !profileLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <div className="w-20 h-20 rounded-[32px] bg-muted flex items-center justify-center text-muted-foreground">
+          <Shield size={40} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold text-foreground">Profile incomplete</h2>
+          <p className="text-sm text-muted-foreground font-light leading-relaxed">
+            Please complete your onboarding to set up your private identity on Aura.
+          </p>
+        </div>
+        <Button 
+          onClick={() => router.push('/onboarding')}
+          className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg"
+        >
+          Complete Onboarding
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
@@ -71,8 +130,12 @@ export default function ProfilePage() {
       <div className="px-8 space-y-12">
         <div className="flex flex-col items-center text-center space-y-6 pt-4">
           <div className="relative">
-            <div className="w-32 h-32 rounded-[40px] bg-muted border-2 border-primary/20 flex items-center justify-center aura-glow">
-              <span className="text-4xl font-bold text-foreground/20">ME</span>
+            <div className="w-32 h-32 rounded-[40px] bg-muted border-2 border-primary/20 flex items-center justify-center aura-glow overflow-hidden">
+              {profile.photoUrl ? (
+                <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-4xl font-bold text-foreground/20">{profile.name[0]}</span>
+              )}
             </div>
             <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-lg">
               <BadgeCheck size={20} className="text-white" />
@@ -83,7 +146,7 @@ export default function ProfilePage() {
             <h2 className="text-3xl font-semibold text-foreground">{profile.name}, {profile.age}</h2>
             <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
               <Shield size={12} />
-              {t('identity_verified')}
+              {profile.verificationStatus === 'Verified' ? t('identity_verified') : "Verification Pending"}
             </div>
           </div>
         </div>
@@ -98,7 +161,6 @@ export default function ProfilePage() {
               <Dialog open={isEditing} onOpenChange={setIsEditing}>
                 <DialogTrigger asChild>
                   <button 
-                    onClick={() => setTempProfile({ ...profile })}
                     className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Pencil size={14} />
@@ -116,25 +178,10 @@ export default function ProfilePage() {
                     <div className="space-y-3">
                       <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Bio</Label>
                       <Textarea 
-                        value={tempProfile.bio}
-                        onChange={(e) => setTempProfile({ ...tempProfile, bio: e.target.value })}
+                        value={tempBio}
+                        onChange={(e) => setTempBio(e.target.value)}
                         className="bg-muted border-border rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4 text-foreground"
                       />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</Label>
-                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-foreground/60 cursor-not-allowed">
-                          {profile.gender}
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</Label>
-                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-foreground/60 cursor-not-allowed">
-                          {profile.orientation}
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -158,7 +205,7 @@ export default function ProfilePage() {
               </Dialog>
             </div>
             <p className="text-lg leading-relaxed text-foreground font-light">
-              {profile.bio}
+              {profile.bio || "No bio added yet."}
             </p>
           </div>
 

@@ -10,11 +10,19 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
+    if (!auth) {
+      setLoading(true);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
+
+    return () => unsubscribe();
   }, [auth]);
 
-  return { user, loading };
+  // If auth service is not ready, we are still loading
+  return { user, loading: !auth ? true : loading };
 }

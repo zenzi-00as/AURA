@@ -33,10 +33,10 @@ export function FirebaseProvider({
 
 export const useFirebase = () => {
   const context = useContext(FirebaseContext);
-  if (!context) throw new Error('useFirebase must be used within a FirebaseProvider');
+  // Do not throw error here to allow SSR and initial hydration to proceed safely
   return context;
 };
 
-export const useFirebaseApp = () => useFirebase().app;
-export const useFirestore = () => useFirebase().db;
-export const useAuth = () => useFirebase().auth;
+export const useFirebaseApp = () => useFirebase()?.app;
+export const useFirestore = () => useFirebase()?.db;
+export const useAuth = () => useFirebase()?.auth;

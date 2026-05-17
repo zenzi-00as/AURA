@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -7,7 +8,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where, Query, doc, writeBatch } from "firebase/firestore";
 import { Notification } from "@/lib/types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export function BottomNav() {
   const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser } = useUser();
+  const isClearingRef = useRef(false);
 
   // Query for unread notifications in real-time
   const unreadQuery = useMemoFirebase(() => {
@@ -33,26 +35,26 @@ export function BottomNav() {
 
   // Automatically mark notifications as read when on the corresponding tab
   useEffect(() => {
-    if (!db || !authUser || unreadNotifications.length === 0) return;
+    if (!db || !authUser || unreadNotifications.length === 0 || isClearingRef.current) return;
 
     const clearNotifications = async (types: string[]) => {
+      const notificationsToClear = unreadNotifications.filter(n => types.includes(n.type));
+      if (notificationsToClear.length === 0) return;
+
+      isClearingRef.current = true;
       const batch = writeBatch(db);
-      let count = 0;
       
-      unreadNotifications.forEach(n => {
-        if (types.includes(n.type)) {
-          const ref = doc(db, "notifications", n.id);
-          batch.update(ref, { read: true });
-          count++;
-        }
+      notificationsToClear.forEach(n => {
+        const ref = doc(db, "notifications", n.id);
+        batch.update(ref, { read: true });
       });
 
-      if (count > 0) {
-        try {
-          await batch.commit();
-        } catch (err) {
-          console.error("Failed to clear notifications:", err);
-        }
+      try {
+        await batch.commit();
+      } catch (err) {
+        console.error("Failed to clear notifications:", err);
+      } finally {
+        isClearingRef.current = false;
       }
     };
 
