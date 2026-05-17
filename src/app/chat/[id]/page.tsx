@@ -113,7 +113,7 @@ export default function ChatRoom() {
       {/* Header */}
       <header className="px-6 h-20 flex items-center justify-between border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-muted-foreground hover:text-white">
+          <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors">
             <ArrowLeft size={22} />
           </button>
           <div className="flex flex-col">
@@ -210,26 +210,28 @@ export default function ChatRoom() {
 
       {/* Report Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] max-w-[90%] sm:max-w-[425px]">
-          <DialogHeader className="space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto mb-2">
-              <ShieldAlert size={24} />
+        <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+          <DialogHeader className="space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto mb-2">
+              <ShieldAlert size={28} />
             </div>
-            <DialogTitle className="text-2xl font-semibold text-center">Report User</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-center">
-              Help us understand what's happening. Your report is private and helps keep the Aura community safe.
-            </DialogDescription>
+            <div className="space-y-1 text-center">
+              <DialogTitle className="text-2xl font-semibold">Report User</DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm font-light">
+                Help us understand what's happening. Your report is private and helps keep the Aura community safe.
+              </DialogDescription>
+            </div>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className="space-y-5 py-6">
+            <div className="space-y-3">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Reason for reporting</label>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto pr-1">
                 {REPORT_REASONS.map(reason => (
                   <button
                     key={reason}
                     onClick={() => setReportReason(reason)}
-                    className={`h-11 px-4 rounded-xl text-sm font-medium text-left transition-all ${reportReason === reason ? "bg-primary/20 border-primary/30 text-primary" : "bg-white/5 border border-white/5 text-muted-foreground hover:bg-white/10"}`}
+                    className={`h-12 px-4 rounded-xl text-sm font-medium text-left transition-all border ${reportReason === reason ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"}`}
                   >
                     {reason}
                   </button>
@@ -237,31 +239,31 @@ export default function ChatRoom() {
               </div>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Additional details (Optional)</label>
               <Textarea 
                 placeholder="Describe what happened..."
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
-                className="bg-white/5 border-white/10 rounded-xl min-h-[100px] text-sm resize-none focus:ring-primary"
+                className="bg-white/5 border-white/10 rounded-xl min-h-[100px] text-sm resize-none focus:ring-primary p-4"
               />
             </div>
           </div>
 
-          <DialogFooter className="flex-col gap-2 sm:flex-col">
+          <DialogFooter className="flex flex-col gap-3 sm:flex-col pt-2">
             <Button 
               onClick={handleSubmitReport}
               disabled={isReporting || !reportReason}
-              className="w-full h-12 rounded-xl fuchsia-gradient text-white font-medium"
+              className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
             >
               {isReporting ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : "Submit Report"}
             </Button>
             <Button 
               variant="ghost" 
               onClick={() => setIsReportDialogOpen(false)}
-              className="w-full h-12 rounded-xl text-muted-foreground hover:text-white"
+              className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
             >
               Cancel
             </Button>
