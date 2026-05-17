@@ -15,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -209,15 +220,43 @@ export default function ProfilePage() {
             <div className="text-muted-foreground">→</div>
           </button>
           
-          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <LogOut size={18} />
-              </div>
-              <span className="font-medium text-white">{t('sign_out')}</span>
-            </div>
-            <div className="text-muted-foreground">→</div>
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <LogOut size={18} />
+                  </div>
+                  <span className="font-medium text-white">{t('sign_out')}</span>
+                </div>
+                <div className="text-muted-foreground">→</div>
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+              <AlertDialogHeader className="space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                  <LogOut size={32} />
+                </div>
+                <div className="space-y-2 text-center">
+                  <AlertDialogTitle className="text-2xl font-semibold">{t('sign_out')}</AlertDialogTitle>
+                  <AlertDialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
+                    Are you sure you want to sign out? You can log back in anytime with your registered phone number.
+                  </AlertDialogDescription>
+                </div>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex flex-col gap-3 pt-4 sm:flex-col">
+                <AlertDialogAction 
+                  onClick={() => router.push('/auth')}
+                  className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
+                >
+                  {t('sign_out')}
+                </AlertDialogAction>
+                <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:text-white transition-colors">
+                  {t('cancel')}
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
