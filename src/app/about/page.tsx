@@ -102,7 +102,7 @@ export default function AboutPage() {
             <h3 className="text-sm font-semibold text-white">Global Community</h3>
           </div>
           <p className="text-sm text-muted-foreground font-light leading-relaxed">
-            Available in 6 languages and growing. Aura is a stateless community designed for the modern queer nomad.
+            Available in 6 languages and growing. Aura is a stateless community designed for the modern queer nomad, ensuring safety across borders.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             {['🇺🇸', '🇮🇳', '🇪🇸', '🇧🇷', '🇫🇷', '🇩🇪'].map(flag => (
@@ -113,16 +113,20 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Version Info */}
+        {/* Version Info & Legal Trust */}
         <div className="pt-8 text-center space-y-4 pb-12">
           <div className="flex flex-col gap-2">
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.4.0</p>
             <p className="text-[9px] text-muted-foreground/60 italic font-light">Crafted with care by the Aura Collective.</p>
           </div>
-          <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium">
+          <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-white/5 pt-6">
             <button className="hover:text-white transition-colors">Terms of Service</button>
             <button className="hover:text-white transition-colors">Privacy Policy</button>
             <button className="hover:text-white transition-colors">Cookies</button>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
+            <Shield size={10} />
+            <span>Encrypted Infrastructure</span>
           </div>
         </div>
       </div>
