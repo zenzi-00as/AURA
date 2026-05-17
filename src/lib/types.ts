@@ -8,17 +8,21 @@ export type UserProfile = {
   gender: string;
   orientation: string;
   verificationStatus: VerificationStatus;
-  distance: string; // Pre-calculated string like "350 meters away"
-  distanceKm: number; // Numeric value for filtering
-  lastActive: Date;
-  online: boolean;
+  location?: {
+    lat: number;
+    lng: number;
+  } | null;
+  distance?: string; // Pre-calculated string like "350 meters away"
+  distanceKm?: number; // Numeric value for filtering
+  lastActive: any; // Firestore Timestamp
+  isOnline: boolean;
 };
 
 export type Message = {
   id: string;
   senderId: string;
   text: string;
-  timestamp: Date;
+  timestamp: any;
   seen: boolean;
 };
 
@@ -26,6 +30,6 @@ export type ChatRoom = {
   id: string;
   participants: string[];
   lastMessage?: string;
-  lastTimestamp?: Date;
+  lastTimestamp?: any;
   typingUser?: string;
 };

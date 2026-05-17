@@ -28,12 +28,14 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 <BadgeCheck size={18} className="text-primary" />
               )}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
-              <MapPin size={12} className="text-primary/60" />
-              {user.distance}
-            </div>
+            {user.distance && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                <MapPin size={12} className="text-primary/60" />
+                {user.distance}
+              </div>
+            )}
           </div>
-          <div className={`w-2.5 h-2.5 rounded-full ${user.online ? "bg-primary animate-pulse shadow-[0_0_10px_rgba(217,70,239,0.5)]" : "bg-muted"}`} />
+          <div className={`w-2.5 h-2.5 rounded-full ${user.isOnline ? "bg-primary animate-pulse shadow-[0_0_10px_rgba(217,70,239,0.5)]" : "bg-muted"}`} />
         </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">

@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, limit } from "firebase/firestore";
+import { collection, query, limit, Query } from "firebase/firestore";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function Dashboard() {
     return query(
       collection(db, "users"),
       limit(20)
-    );
+    ) as Query<UserProfile>;
   }, [db]);
 
   const { data: firestoreUsers, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
@@ -66,30 +66,49 @@ export default function Dashboard() {
   const filteredUsers = useMemo(() => {
     if (!firestoreUsers) return [];
     
-    return firestoreUsers.filter(user => {
-      // Don't show current user
-      if (authUser && user.uid === authUser.uid) return false;
+    return firestoreUsers
+      .filter(user => {
+        // Don't show current user
+        if (authUser && user.uid === authUser.uid) return false;
 
-      const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
-      
-      // Basic distance filter if locations are available
-      let withinDistance = true;
-      if (currentLocation && user.location) {
-        // Crude km approximation
-        const lat1 = currentLocation.lat;
-        const lon1 = currentLocation.lng;
-        const lat2 = (user as any).location.lat;
-        const lon2 = (user as any).location.lng;
+        const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
         
-        const d = Math.sqrt(
-          Math.pow(lat2 - lat1, 2) + 
-          Math.pow(lon2 - lon1, 2)
-        ) * 111; 
-        withinDistance = d <= activeFilters.distance;
-      }
+        return withinAge;
+      })
+      .map(user => {
+        // Calculate dynamic distance for display
+        let distanceStr = "";
+        let distKm = 999;
 
-      return withinDistance && withinAge;
-    });
+        if (currentLocation && user.location) {
+          const lat1 = currentLocation.lat;
+          const lon1 = currentLocation.lng;
+          const lat2 = user.location.lat;
+          const lon2 = user.location.lng;
+          
+          distKm = Math.sqrt(
+            Math.pow(lat2 - lat1, 2) + 
+            Math.pow(lon2 - lon1, 2)
+          ) * 111;
+
+          distanceStr = distKm < 1 
+            ? `${Math.round(distKm * 1000)}m away` 
+            : `${distKm.toFixed(1)}km away`;
+        }
+
+        return {
+          ...user,
+          distance: distanceStr,
+          distanceKm: distKm
+        };
+      })
+      .filter(user => {
+        // Apply distance filter if location is known
+        if (currentLocation && user.location) {
+          return user.distanceKm! <= activeFilters.distance;
+        }
+        return true;
+      });
   }, [firestoreUsers, activeFilters, authUser, currentLocation]);
 
   const handleApplyFilters = () => {
@@ -117,7 +136,9 @@ export default function Dashboard() {
           {currentLocation && (
             <div className="flex items-center gap-1 mt-1 px-1">
               <MapPin size={10} className="text-primary" />
-              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">Live: {currentLocation.lat.toFixed(2)}, {currentLocation.lng.toFixed(2)}</span>
+              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">
+                Live: {currentLocation.lat.toFixed(2)}, {currentLocation.lng.toFixed(2)}
+              </span>
             </div>
           )}
         </div>
