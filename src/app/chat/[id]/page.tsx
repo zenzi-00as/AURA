@@ -159,8 +159,8 @@ export default function ChatRoom() {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        <div className="text-center py-4">
+      <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-4">
+        <div className="text-center py-2">
           <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Encrypted Connection</span>
         </div>
         
