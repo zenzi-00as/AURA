@@ -4,30 +4,70 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Compass, MessageCircle, User, Bell } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
-import { useState, useEffect } from "react";
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { collection, query, where, Query, doc, writeBatch } from "firebase/firestore";
+import { Notification } from "@/lib/types";
+import { useEffect } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
-  
-  const [activeUpdates, setActiveUpdates] = useState<Record<string, boolean>>({
-    "/chat": true,
-    "/notifications": false,
-  });
+  const db = useFirestore();
+  const { user: authUser } = useUser();
 
+  // Query for unread notifications in real-time
+  const unreadQuery = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return query(
+      collection(db, "notifications"),
+      where("userId", "==", authUser.uid),
+      where("read", "==", false)
+    ) as Query<Notification>;
+  }, [db, authUser]);
+
+  const { data: unreadNotifications } = useCollection<Notification>(unreadQuery);
+
+  const hasUnreadMessages = unreadNotifications.some(n => n.type === 'message');
+  const hasUnreadAlerts = unreadNotifications.some(n => n.type !== 'message');
+
+  // Automatically mark notifications as read when on the corresponding tab
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setActiveUpdates(prev => ({ ...prev, "/notifications": true }));
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!db || !authUser || unreadNotifications.length === 0) return;
+
+    const clearNotifications = async (types: string[]) => {
+      const batch = writeBatch(db);
+      let count = 0;
+      
+      unreadNotifications.forEach(n => {
+        if (types.includes(n.type)) {
+          const ref = doc(db, "notifications", n.id);
+          batch.update(ref, { read: true });
+          count++;
+        }
+      });
+
+      if (count > 0) {
+        try {
+          await batch.commit();
+        } catch (err) {
+          console.error("Failed to clear notifications:", err);
+        }
+      }
+    };
+
+    if (pathname === "/chat") {
+      clearNotifications(['message']);
+    } else if (pathname === "/notifications") {
+      clearNotifications(['verification', 'proximity']);
+    }
+  }, [pathname, unreadNotifications, db, authUser]);
 
   const navItems = [
-    { icon: Compass, path: "/dashboard", label: t('discovery') },
-    { icon: MessageCircle, path: "/chat", label: t('chats') },
-    { icon: Bell, path: "/notifications", label: t('alerts') },
-    { icon: User, path: "/profile", label: t('me') },
+    { icon: Compass, path: "/dashboard", label: t('discovery'), hasBadge: false },
+    { icon: MessageCircle, path: "/chat", label: t('chats'), hasBadge: hasUnreadMessages },
+    { icon: Bell, path: "/notifications", label: t('alerts'), hasBadge: hasUnreadAlerts },
+    { icon: User, path: "/profile", label: t('me'), hasBadge: false },
   ];
 
   return (
@@ -35,7 +75,7 @@ export function BottomNav() {
       <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          const hasUpdate = activeUpdates[item.path];
+          const showBadge = item.hasBadge && !isActive;
 
           return (
             <button
@@ -54,7 +94,7 @@ export function BottomNav() {
               <div className="relative z-10 flex items-center justify-center">
                 <item.icon size={22} className={`relative z-10 ${isActive ? 'text-foreground' : ''}`} />
                 
-                {hasUpdate && !isActive && (
+                {showBadge && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
