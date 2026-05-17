@@ -30,7 +30,7 @@ export default function FeedbackPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = () => {
-    if (!message.trim()) return;
+    if (!message.trim() || rating === 0) return;
     
     setIsLoading(true);
     // Simulate API call
@@ -93,9 +93,12 @@ export default function FeedbackPage() {
         <div className="space-y-8">
           {/* Rating Section */}
           <div className="space-y-4 text-center">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-              {t('feedback_rating')}
-            </label>
+            <div className="flex items-center justify-center gap-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                {t('feedback_rating')}
+              </label>
+              <span className="text-primary font-bold text-[10px]">*</span>
+            </div>
             <div className="flex items-center justify-center gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -118,6 +121,9 @@ export default function FeedbackPage() {
                 </button>
               ))}
             </div>
+            {rating === 0 && (
+              <p className="text-[9px] text-primary/60 font-medium uppercase tracking-tighter">Required to submit</p>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -151,7 +157,7 @@ export default function FeedbackPage() {
 
           <Button 
             onClick={handleSubmit}
-            disabled={isLoading || !message.trim()}
+            disabled={isLoading || !message.trim() || rating === 0}
             className="w-full h-16 rounded-3xl fuchsia-gradient text-white font-medium text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
           >
             {isLoading ? (
