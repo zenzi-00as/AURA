@@ -3,9 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Phone, MoreVertical, Send, CheckCheck, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Phone, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 type Message = {
   id: string;
@@ -17,6 +24,7 @@ type Message = {
 export default function ChatRoom() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", sender: "them", text: "Hey! Your profile bio is really cool. Design for living?", time: "2:41 PM" },
     { id: "2", sender: "me", text: "Thanks! Yeah, I'm an architect. Just moved nearby.", time: "2:43 PM" },
@@ -42,8 +50,23 @@ export default function ChatRoom() {
   };
 
   const handleCall = () => {
-    // Launch native dialer placeholder
     window.location.href = "tel:+1234567890";
+  };
+
+  const handleDeleteConversation = () => {
+    toast({
+      title: "Conversation Deleted",
+      description: "The chat history has been removed.",
+    });
+    router.push("/chat");
+  };
+
+  const handleReportUser = () => {
+    toast({
+      variant: "destructive",
+      title: "User Reported",
+      description: "Thank you for keeping Aura safe. We will review this profile.",
+    });
   };
 
   return (
@@ -69,9 +92,30 @@ export default function ChatRoom() {
           >
             <Phone size={18} />
           </button>
-          <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
-            <MoreVertical size={18} />
-          </button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors focus:outline-none">
+                <MoreVertical size={18} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#1A181C] border-white/10 text-white rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
+              <DropdownMenuItem 
+                onClick={handleReportUser}
+                className="rounded-xl px-4 py-3 focus:bg-white/5 cursor-pointer flex items-center gap-3"
+              >
+                <Flag size={16} className="text-muted-foreground" />
+                <span className="text-sm">Report User</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleDeleteConversation}
+                className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3"
+              >
+                <Trash2 size={16} />
+                <span className="text-sm">Delete Conversation</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
