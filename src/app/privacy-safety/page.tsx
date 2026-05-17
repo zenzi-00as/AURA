@@ -188,8 +188,8 @@ export default function PrivacySafetyPage() {
         <div className="pt-8 text-center space-y-2 pb-12">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Security Protocol v2.5.0</p>
           <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-white/10">
-            <button className="hover:text-white transition-colors">Terms of Service</button>
-            <button className="hover:text-white transition-colors">Privacy Policy</button>
+            <button onClick={() => router.push('/terms')} className="hover:text-white transition-colors">Terms of Service</button>
+            <button onClick={() => router.push('/privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
           </div>
         </div>
       </div>

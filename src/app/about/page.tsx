@@ -196,8 +196,8 @@ export default function AboutPage() {
             <p className="text-[9px] text-muted-foreground/60 italic font-light">Crafted with care by the Aura Collective.</p>
           </div>
           <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-white/5 pt-6">
-            <button className="hover:text-white transition-colors">Terms of Service</button>
-            <button className="hover:text-white transition-colors">Privacy Policy</button>
+            <button onClick={() => router.push('/terms')} className="hover:text-white transition-colors">Terms of Service</button>
+            <button onClick={() => router.push('/privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
             <button className="hover:text-white transition-colors">Cookies</button>
           </div>
           <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
