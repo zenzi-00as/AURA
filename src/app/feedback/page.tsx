@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageSquare, Send, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, CheckCircle2, Star } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   { id: "bug", label: "category_bug" },
@@ -23,6 +24,8 @@ export default function FeedbackPage() {
   
   const [category, setCategory] = useState("suggestion");
   const [message, setMessage] = useState("");
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -88,6 +91,35 @@ export default function FeedbackPage() {
         </div>
 
         <div className="space-y-8">
+          {/* Rating Section */}
+          <div className="space-y-4 text-center">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
+              {t('feedback_rating')}
+            </label>
+            <div className="flex items-center justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  onClick={() => setRating(star)}
+                  className="p-1 transition-transform active:scale-90"
+                >
+                  <Star
+                    size={32}
+                    className={cn(
+                      "transition-all",
+                      (hoveredRating || rating) >= star
+                        ? "fill-primary text-primary drop-shadow-[0_0_8px_rgba(217,70,239,0.5)]"
+                        : "text-white/10 hover:text-white/30"
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
               {t('feedback_category')}
