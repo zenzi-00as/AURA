@@ -15,7 +15,8 @@ import {
   ChevronRight,
   AlertTriangle,
   User,
-  Check
+  Check,
+  Palette
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
+import { useTheme } from "@/context/ThemeContext";
 import { LANGUAGES, Language } from "@/lib/translations";
 
 const MOCK_BLOCKED_USERS = [
@@ -51,6 +53,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { t, language, setLanguage } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
   
   const [settings, setSettings] = useState({
     notifications: true,
@@ -105,12 +108,12 @@ export default function SettingsPage() {
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
-        <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
+    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12 transition-colors duration-300 dark:bg-[#0C0B0D] bg-white">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-colors">
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">{t('settings')}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{t('settings')}</h1>
       </header>
 
       <div className="p-6 space-y-8">
@@ -122,20 +125,20 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Dialog open={isBlockedListOpen} onOpenChange={setIsBlockedListOpen}>
               <DialogTrigger asChild>
-                <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors">
+                <button className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
                       <UserX size={18} />
                     </div>
                     <div className="text-left">
-                      <h3 className="font-medium text-white">{t('blocked_users')}</h3>
+                      <h3 className="font-medium text-foreground">{t('blocked_users')}</h3>
                       <p className="text-xs text-muted-foreground font-light">Manage who can't contact you.</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+              <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                 <DialogHeader className="space-y-3">
                   <DialogTitle className="text-2xl font-semibold">{t('blocked_users')}</DialogTitle>
                   <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
@@ -153,10 +156,10 @@ export default function SettingsPage() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, scale: 0.9 }}
-                          className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group"
+                          className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border group"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
                               <User size={18} />
                             </div>
                             <div className="flex flex-col">
@@ -176,7 +179,7 @@ export default function SettingsPage() {
                       ))
                     ) : (
                       <div className="text-center py-12 space-y-3">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-muted-foreground">
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
                           <Shield size={24} />
                         </div>
                         <p className="text-sm text-muted-foreground font-light">Your blocked list is clear.</p>
@@ -188,7 +191,7 @@ export default function SettingsPage() {
                 <div className="pt-2">
                   <Button 
                     onClick={() => setIsBlockedListOpen(false)}
-                    className="w-full h-14 rounded-2xl bg-white/5 text-white font-medium text-lg hover:bg-white/10 transition-colors"
+                    className="w-full h-14 rounded-2xl bg-muted text-foreground font-medium text-lg hover:bg-muted/80 transition-colors"
                   >
                     {t('cancel')}
                   </Button>
@@ -204,9 +207,9 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('notifications')}</h2>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5">
+            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border transition-colors">
               <div className="space-y-1">
-                <h3 className="font-medium text-white">{t('push_notifications')}</h3>
+                <h3 className="font-medium text-foreground">{t('push_notifications')}</h3>
                 <p className="text-xs text-muted-foreground font-light">Alerts for messages and activity.</p>
               </div>
               <Switch 
@@ -225,9 +228,9 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
               <DialogTrigger asChild>
-                <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors text-white font-medium">
+                <button className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
                       <Globe size={18} />
                     </div>
                     <span>{t('language')}</span>
@@ -235,7 +238,7 @@ export default function SettingsPage() {
                   <span className="text-xs text-muted-foreground">{currentLang.name}</span>
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+              <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-semibold text-center">{t('language')}</DialogTitle>
                 </DialogHeader>
@@ -247,7 +250,7 @@ export default function SettingsPage() {
                         setLanguage(lang.code);
                         setIsLanguageOpen(false);
                       }}
-                      className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${language === lang.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"}`}
+                      className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${language === lang.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}
                     >
                       <span className="flex items-center gap-3">
                         <span>{lang.flag}</span>
@@ -259,6 +262,22 @@ export default function SettingsPage() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <Palette size={18} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-medium text-foreground">{t('dark_mode')}</h3>
+                  <p className="text-xs text-muted-foreground font-light">{t('dark_mode_desc')}</p>
+                </div>
+              </div>
+              <Switch 
+                checked={theme === 'dark'} 
+                onCheckedChange={toggleTheme} 
+              />
+            </div>
           </div>
         </section>
 
@@ -269,15 +288,15 @@ export default function SettingsPage() {
               <DialogTrigger asChild>
                 <button 
                   onClick={handleSignOutClick}
-                  className="w-full flex items-center gap-4 p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white group"
+                  className="w-full flex items-center gap-4 p-6 bg-card rounded-[32px] border border-border hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-foreground group"
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
+                  <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
                     <LogOut size={18} />
                   </div>
                   <span className="font-medium">{t('sign_out')}</span>
                 </button>
               </DialogTrigger>
-              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+              <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
                 <DialogHeader className="space-y-4">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
                     <LogOut size={32} />
@@ -300,7 +319,7 @@ export default function SettingsPage() {
                         stroke="currentColor"
                         strokeWidth="4"
                         fill="transparent"
-                        className="text-white/5"
+                        className="text-muted/20"
                       />
                       <circle
                         cx="48"
@@ -323,7 +342,7 @@ export default function SettingsPage() {
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsSignOutDialogOpen(false)}
-                    className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
+                    className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t('cancel')}
                   </Button>
@@ -340,7 +359,7 @@ export default function SettingsPage() {
                   <span className="font-medium">{t('delete_account')}</span>
                 </button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+              <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
                 <AlertDialogHeader className="space-y-4">
                   <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
                     <AlertTriangle size={32} />
@@ -359,7 +378,7 @@ export default function SettingsPage() {
                   >
                     Delete Permanently
                   </AlertDialogAction>
-                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:text-white transition-colors">
+                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors">
                     {t('cancel')}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
@@ -370,7 +389,7 @@ export default function SettingsPage() {
 
         <div className="pt-8 text-center space-y-2 pb-12">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura v1.0.4</p>
-          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-white/10">
+          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-muted">
             <button>Terms</button>
             <button>Privacy</button>
           </div>
