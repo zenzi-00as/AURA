@@ -55,7 +55,7 @@ export default function AuthPage() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
       <div className="mb-12">
-        <h1 className="text-3xl font-semibold text-white mb-3">
+        <h1 className="text-3xl font-semibold text-foreground mb-3">
           {step === "phone" ? "Welcome back" : "Verify code"}
         </h1>
         <p className="text-muted-foreground font-light leading-relaxed">
@@ -87,7 +87,7 @@ export default function AuthPage() {
                     }
                   }}
                 >
-                  <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary">
+                  <SelectTrigger className="h-14 bg-muted border-border rounded-2xl focus:ring-primary">
                     <SelectValue>
                       <span className="flex items-center gap-2">
                         <span>{selectedCountry.flag}</span>
@@ -95,9 +95,9 @@ export default function AuthPage() {
                       </span>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1A181C] border-white/10 text-white">
+                  <SelectContent className="bg-popover border-border text-foreground">
                     {COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code} className="focus:bg-primary/20 focus:text-white">
+                      <SelectItem key={c.code} value={c.code} className="focus:bg-primary/20 focus:text-foreground">
                         <span className="flex items-center gap-3">
                           <span>{c.flag}</span>
                           <span>{c.name}</span>
@@ -117,7 +117,7 @@ export default function AuthPage() {
                   placeholder={`${selectedCountry.length} digits`}
                   value={phone}
                   onChange={handlePhoneChange}
-                  className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg"
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function AuthPage() {
                 placeholder="000000"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl focus:ring-primary focus:border-primary text-lg"
+                className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg"
               />
             </div>
           )}
@@ -154,7 +154,7 @@ export default function AuthPage() {
           {step === "otp" && (
             <button 
               onClick={() => setStep("phone")}
-              className="w-full text-center text-sm text-muted-foreground hover:text-white transition-colors"
+              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Change number
             </button>

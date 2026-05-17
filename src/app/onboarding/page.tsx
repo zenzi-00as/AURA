@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -150,7 +149,6 @@ export default function Onboarding() {
       
       setLoading(true);
       try {
-        // Persist orientation for dashboard filtering
         if (typeof window !== 'undefined') {
           localStorage.setItem('aura_user_orientation', formData.orientation);
         }
@@ -196,11 +194,11 @@ export default function Onboarding() {
   const isAgeValid = formData.age !== "" && parseInt(formData.age) >= 18;
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-[#0C0B0D]">
+    <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background">
       <div className="flex justify-between items-center mb-8">
         <div className="flex gap-1.5">
           {[1, 2, 3, 4].map(s => (
-            <div key={s} className={`h-1 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-primary" : "w-4 bg-white/10"}`} />
+            <div key={s} className={`h-1 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-primary" : "w-4 bg-muted"}`} />
           ))}
         </div>
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 4</span>
@@ -218,7 +216,7 @@ export default function Onboarding() {
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-white">What's your name?</h2>
+                <h2 className="text-3xl font-semibold text-foreground">What's your name?</h2>
                 <p className="text-muted-foreground">It's nice to meet you. Aura is about real identity.</p>
               </div>
               <div className="relative group">
@@ -229,7 +227,7 @@ export default function Onboarding() {
                   placeholder="Enter your name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg focus:ring-primary"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary"
                 />
               </div>
               <div className="relative group">
@@ -241,7 +239,7 @@ export default function Onboarding() {
                   placeholder="Your age"
                   value={formData.age}
                   onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg focus:ring-primary"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary"
                 />
               </div>
               {formData.age !== "" && parseInt(formData.age) < 18 && (
@@ -253,14 +251,14 @@ export default function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-white">A bit about you</h2>
+                <h2 className="text-3xl font-semibold text-foreground">A bit about you</h2>
                 <p className="text-muted-foreground">Share your vibe. Keep it simple and real.</p>
               </div>
               <Textarea
                 placeholder="Describe your desires to know more about you"
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="min-h-[160px] bg-white/5 border-white/10 rounded-2xl p-4 text-lg resize-none focus:ring-primary"
+                className="min-h-[160px] bg-muted border-border rounded-2xl p-4 text-lg resize-none focus:ring-primary"
               />
             </div>
           )}
@@ -268,7 +266,7 @@ export default function Onboarding() {
           {step === 3 && (
             <div className="space-y-8">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-white">Your Spectrum</h2>
+                <h2 className="text-3xl font-semibold text-foreground">Your Spectrum</h2>
                 <p className="text-muted-foreground">Aura celebrates every identity.</p>
               </div>
               
@@ -279,7 +277,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, gender: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-white/5 border border-white/5 text-muted-foreground hover:border-white/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -294,7 +292,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, orientation: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-white/5 border border-white/5 text-muted-foreground hover:border-white/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -307,11 +305,11 @@ export default function Onboarding() {
           {step === 4 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-white">Selfie Guard</h2>
+                <h2 className="text-3xl font-semibold text-foreground">Selfie Guard</h2>
                 <p className="text-muted-foreground">Verify your profile to keep the community safe and bot-free.</p>
               </div>
               
-              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center group shadow-2xl">
+              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border flex items-center justify-center group shadow-2xl">
                 {formData.photo ? (
                   <motion.img 
                     initial={{ scale: 1.1, opacity: 0 }}
@@ -344,9 +342,9 @@ export default function Onboarding() {
                 )}
                 
                 {loading && (
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
+                  <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
                     <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    <p className="text-sm font-medium text-white">AI Identity Check...</p>
+                    <p className="text-sm font-medium text-foreground">AI Identity Check...</p>
                   </div>
                 )}
                 

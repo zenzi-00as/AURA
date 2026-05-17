@@ -92,9 +92,11 @@ export default function AboutPage() {
           className="space-y-4"
         >
           <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-1">{mounted ? t('our_mission') : "Our Mission"}</h3>
-          <p className="text-lg text-foreground font-light leading-relaxed">
-            {mounted ? t('mission_desc') : "Aura provides a safe and authentic digital space for the LGBTQ+ community."}
-          </p>
+          {mounted && (
+            <p className="text-lg text-foreground font-light leading-relaxed">
+              {t('mission_desc')}
+            </p>
+          )}
         </motion.section>
 
         {/* Beyond the Surface - Features */}

@@ -46,7 +46,7 @@ export default function FeedbackPage() {
 
   if (isSubmitted) {
     return (
-      <div className="flex-1 flex flex-col bg-[#0C0B0D] items-center justify-center p-8 text-center space-y-6">
+      <div className="flex-1 flex flex-col bg-background items-center justify-center p-8 text-center space-y-6">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -55,7 +55,7 @@ export default function FeedbackPage() {
           <CheckCircle2 size={40} />
         </motion.div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-white">Thank you!</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Thank you!</h2>
           <p className="text-muted-foreground font-light leading-relaxed">
             {t('feedback_success')}
           </p>
@@ -71,12 +71,12 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
-        <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">{t('feedback')}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{t('feedback')}</h1>
       </header>
 
       <div className="p-6 space-y-10">
@@ -84,7 +84,7 @@ export default function FeedbackPage() {
           <div className="w-16 h-16 rounded-[24px] fuchsia-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
             <MessageSquare size={32} className="text-white" />
           </div>
-          <h2 className="text-2xl font-semibold text-white">{t('feedback')}</h2>
+          <h2 className="text-2xl font-semibold text-foreground">{t('feedback')}</h2>
           <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
             {t('feedback_desc')}
           </p>
@@ -115,7 +115,7 @@ export default function FeedbackPage() {
                       "transition-all",
                       (hoveredRating || rating) >= star
                         ? "fill-primary text-primary drop-shadow-[0_0_8px_rgba(217,70,239,0.5)]"
-                        : "text-white/10 hover:text-white/30"
+                        : "text-muted border-primary/20 hover:text-primary/30"
                     )}
                   />
                 </button>
@@ -135,7 +135,7 @@ export default function FeedbackPage() {
                 <button
                   key={cat.id}
                   onClick={() => setCategory(cat.id)}
-                  className={`h-11 rounded-xl text-xs font-medium transition-all border ${category === cat.id ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"}`}
+                  className={`h-11 rounded-xl text-xs font-medium transition-all border ${category === cat.id ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-border text-muted-foreground hover:bg-muted/80"}`}
                 >
                   {t(cat.label as any)}
                 </button>
@@ -151,7 +151,7 @@ export default function FeedbackPage() {
               placeholder="What's on your mind?"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="bg-white/5 border-white/10 rounded-2xl min-h-[160px] text-sm resize-none focus:ring-primary p-5"
+              className="bg-muted border-border rounded-2xl min-h-[160px] text-sm resize-none focus:ring-primary p-5"
             />
           </div>
 
