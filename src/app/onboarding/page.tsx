@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -50,9 +49,11 @@ export default function Onboarding() {
   }, []);
 
   const startCamera = async () => {
-    if (streamRef.current) return; // Already active
-
     try {
+      if (streamRef.current) {
+        stopCamera();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: "user", 
@@ -64,7 +65,6 @@ export default function Onboarding() {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        // Ensure video plays
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play().catch(e => console.error("Video play failed:", e));
         };
@@ -85,7 +85,6 @@ export default function Onboarding() {
       const context = canvasRef.current.getContext("2d");
       const video = videoRef.current;
       
-      // Calculate square crop
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
       const size = Math.min(videoWidth, videoHeight);
@@ -96,8 +95,11 @@ export default function Onboarding() {
       canvasRef.current.height = 512;
       
       if (context) {
-        // Draw image from video to canvas
+        // Mirrored capture
+        context.translate(512, 0);
+        context.scale(-1, 1);
         context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
+        
         const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8);
         setFormData(prev => ({ ...prev, photo: dataUri }));
         stopCamera();
@@ -107,18 +109,16 @@ export default function Onboarding() {
 
   const handleRetake = () => {
     setFormData(prev => ({ ...prev, photo: null }));
-    setTimeout(() => startCamera(), 100); // Small delay to ensure video element is ready
+    setTimeout(() => startCamera(), 100);
   };
 
-  // Lifecycle management for the camera
   useEffect(() => {
     if (step === 4 && !formData.photo && !cameraActive) {
       startCamera();
     }
     
-    // Cleanup camera if we move away from step 4 or if component unmounts
     return () => {
-      if (step !== 4) {
+      if (step !== 4 || formData.photo) {
         stopCamera();
       }
     };
@@ -305,7 +305,7 @@ export default function Onboarding() {
                 <p className="text-muted-foreground">Verify your profile to keep the community safe and bot-free.</p>
               </div>
               
-              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center group">
+              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center group shadow-2xl">
                 {formData.photo ? (
                   <motion.img 
                     initial={{ scale: 1.1, opacity: 0 }}
@@ -341,28 +341,30 @@ export default function Onboarding() {
                 <canvas ref={canvasRef} className="hidden" />
               </div>
 
-              {!formData.photo ? (
-                cameraActive ? (
-                  <Button onClick={capturePhoto} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
-                    <Camera className="mr-2" size={20} />
-                    Capture Selfie
-                  </Button>
+              <div className="flex flex-col gap-3">
+                {!formData.photo ? (
+                  cameraActive ? (
+                    <Button onClick={capturePhoto} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
+                      <Camera className="mr-2" size={20} />
+                      Capture Selfie
+                    </Button>
+                  ) : (
+                    <Button onClick={startCamera} className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 text-white text-lg font-medium hover:bg-white/10 transition-colors">
+                      <Camera className="mr-2" size={20} />
+                      Open Camera
+                    </Button>
+                  )
                 ) : (
-                  <Button onClick={startCamera} className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 text-white text-lg font-medium hover:bg-white/10 transition-colors">
-                    <Camera className="mr-2" size={20} />
-                    Open Camera
-                  </Button>
-                )
-              ) : (
-                <button 
-                  onClick={handleRetake} 
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline disabled:opacity-50"
-                >
-                  <RefreshCcw size={16} />
-                  Retake photo
-                </button>
-              )}
+                  <button 
+                    onClick={handleRetake} 
+                    disabled={loading}
+                    className="w-full h-12 flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline disabled:opacity-50"
+                  >
+                    <RefreshCcw size={16} />
+                    Retake photo
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </motion.div>
