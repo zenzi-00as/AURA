@@ -59,6 +59,7 @@ export default function Onboarding() {
         setCameraActive(true);
       }
     } catch (err) {
+      console.error("Camera access error:", err);
       toast({ 
         variant: "destructive", 
         title: "Camera access denied", 
@@ -72,7 +73,6 @@ export default function Onboarding() {
       const context = canvasRef.current.getContext("2d");
       const video = videoRef.current;
       
-      // Use square aspect ratio for selfie
       const size = Math.min(video.videoWidth, video.videoHeight);
       const startX = (video.videoWidth - size) / 2;
       const startY = (video.videoHeight - size) / 2;
@@ -93,9 +93,13 @@ export default function Onboarding() {
     startCamera();
   };
 
+  // Auto-start camera when reaching Step 4
   useEffect(() => {
+    if (step === 4 && !formData.photo && !cameraActive) {
+      startCamera();
+    }
     return () => stopCamera();
-  }, [stopCamera]);
+  }, [step, formData.photo, cameraActive, stopCamera]);
 
   const nextStep = async () => {
     if (step === 1) {
@@ -149,7 +153,6 @@ export default function Onboarding() {
           router.push("/dashboard");
         }
       } catch (e) {
-        // Fallback for demo environments where AI might be restricted
         router.push("/dashboard");
       } finally {
         setLoading(false);
@@ -316,7 +319,8 @@ export default function Onboarding() {
               {!formData.photo ? (
                 cameraActive ? (
                   <Button onClick={capturePhoto} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
-                    Capture Verification
+                    <Camera className="mr-2" size={20} />
+                    Capture Selfie
                   </Button>
                 ) : (
                   <Button onClick={startCamera} className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 text-white text-lg font-medium hover:bg-white/10 transition-colors">
