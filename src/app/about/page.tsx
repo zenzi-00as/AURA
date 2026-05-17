@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
@@ -21,23 +22,28 @@ import { useTranslation } from "@/context/LanguageContext";
 export default function AboutPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const coreValues = [
     {
-      title: t('authenticity_title'),
-      desc: t('authenticity_desc'),
+      title: mounted ? t('authenticity_title') : "Authenticity",
+      desc: mounted ? t('authenticity_desc') : "Verification is core to our safety protocol.",
       icon: Fingerprint,
       color: "text-primary"
     },
     {
-      title: t('minimalism_title'),
-      desc: t('minimalism_desc'),
+      title: mounted ? t('minimalism_title') : "Minimalism",
+      desc: mounted ? t('minimalism_desc') : "Design that stays out of your way.",
       icon: Sparkles,
       color: "text-secondary"
     },
     {
-      title: t('privacy_title'),
-      desc: t('privacy_desc'),
+      title: mounted ? t('privacy_title') : "Privacy",
+      desc: mounted ? t('privacy_desc') : "Your data stays where it belongs: with you.",
       icon: Shield,
       color: "text-emerald-500"
     }
@@ -45,24 +51,24 @@ export default function AboutPage() {
 
   const features = [
     {
-      title: t('ai_guard'),
-      desc: t('ai_guard_desc'),
+      title: mounted ? t('ai_guard') : "AI-Powered Guard",
+      desc: mounted ? t('ai_guard_desc') : "Advanced verification for a bot-free space.",
       icon: Cpu,
     },
     {
-      title: t('stateless_title'),
-      desc: t('stateless_desc'),
+      title: mounted ? t('stateless_title') : "Stateless Connection",
+      desc: mounted ? t('stateless_desc') : "Secure infrastructure for modern queer nomads.",
       icon: Map,
     }
   ];
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
+      <header className="px-6 h-16 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">{t('about')}</h1>
+        <h1 className="text-xl font-semibold text-white">{mounted ? t('about') : "About Aura"}</h1>
       </header>
 
       <div className="p-8 space-y-16">
@@ -87,17 +93,17 @@ export default function AboutPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-1">{t('our_mission')}</h3>
+          <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-1">{mounted ? t('our_mission') : "Our Mission"}</h3>
           <p className="text-lg text-white font-light leading-relaxed">
-            {t('mission_desc')}
+            {mounted ? t('mission_desc') : "Aura provides a safe and authentic digital space for the LGBTQ+ community."}
           </p>
         </motion.section>
 
         {/* Beyond the Surface - Features */}
         <section className="space-y-8">
           <div className="space-y-2">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t('how_it_works')}</h3>
-            <p className="text-sm text-muted-foreground font-light px-1">{t('how_it_works_desc')}</p>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{mounted ? t('how_it_works') : "Beyond the Surface"}</h3>
+            <p className="text-sm text-muted-foreground font-light px-1">{mounted ? t('how_it_works_desc') : "Discover how we build a safer connection."}</p>
           </div>
           <div className="grid grid-cols-1 gap-4">
             {features.map((feature, idx) => (
@@ -124,7 +130,7 @@ export default function AboutPage() {
 
         {/* Core Values */}
         <section className="space-y-6">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t('core_values')}</h3>
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{mounted ? t('core_values') : "Core Values"}</h3>
           <div className="space-y-4">
             {coreValues.map((value, idx) => (
               <motion.div
@@ -152,10 +158,10 @@ export default function AboutPage() {
         <section className="glass-card p-8 rounded-[40px] border border-white/5 space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
           <div className="flex items-center gap-3 text-emerald-500">
             <Handshake size={24} />
-            <h3 className="text-sm font-semibold text-white">{t('our_promise')}</h3>
+            <h3 className="text-sm font-semibold text-white">{mounted ? t('our_promise') : "Our Commitment"}</h3>
           </div>
           <p className="text-sm text-muted-foreground font-light leading-relaxed">
-            {t('promise_desc')}
+            {mounted ? t('promise_desc') : "We are committed to maintaining a space where authenticity is celebrated and your journey is protected."}
           </p>
           <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
             <Lock size={12} />

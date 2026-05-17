@@ -315,7 +315,7 @@ export const translations = {
     our_mission: "Nossa Missão",
     mission_desc: "A Aura foi construída para fornecer um espaço digital seguro, minimalista e autêntico para a comunidade LGBTQ+ global.",
     core_values: "Valores Centrais",
-    authenticity_title: "Autenticidade",
+    authenticity_title: "Authenticidade",
     authenticity_desc: "Cada perfil na Aura é verificado para garantir que você está falando com pessoas reais.",
     minimalism_title: "Minimalismo",
     minimalism_desc: "Focamos em design limpo e recursos essenciais.",
