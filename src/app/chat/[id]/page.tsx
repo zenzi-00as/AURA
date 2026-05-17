@@ -3,15 +3,24 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Phone, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag } from "lucide-react";
+import { ArrowLeft, Phone, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 type Message = {
@@ -20,6 +29,15 @@ type Message = {
   text: string;
   time: string;
 };
+
+const REPORT_REASONS = [
+  "Harassment or Hate Speech",
+  "Fake Profile or Bot",
+  "Inappropriate Content",
+  "Spam or Scamming",
+  "Underage User",
+  "Other"
+];
 
 export default function ChatRoom() {
   const params = useParams();
@@ -31,6 +49,11 @@ export default function ChatRoom() {
     { id: "3", sender: "them", text: "That's awesome. I'm into UI/UX myself. Maybe we can grab a coffee sometime?", time: "2:44 PM" },
   ]);
   const [input, setInput] = useState("");
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [isReporting, setIsReporting] = useState(false);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,12 +84,28 @@ export default function ChatRoom() {
     router.push("/chat");
   };
 
-  const handleReportUser = () => {
-    toast({
-      variant: "destructive",
-      title: "User Reported",
-      description: "Thank you for keeping Aura safe. We will review this profile.",
-    });
+  const handleSubmitReport = () => {
+    if (!reportReason) {
+      toast({
+        variant: "destructive",
+        title: "Reason required",
+        description: "Please select a reason for reporting.",
+      });
+      return;
+    }
+    
+    setIsReporting(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsReporting(false);
+      setIsReportDialogOpen(false);
+      setReportReason("");
+      setReportDescription("");
+      toast({
+        title: "Report Submitted",
+        description: "Thank you for helping keep Aura safe. Our team will review this shortly.",
+      });
+    }, 1500);
   };
 
   return (
@@ -101,7 +140,7 @@ export default function ChatRoom() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-[#1A181C] border-white/10 text-white rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
               <DropdownMenuItem 
-                onClick={handleReportUser}
+                onClick={() => setIsReportDialogOpen(true)}
                 className="rounded-xl px-4 py-3 focus:bg-white/5 cursor-pointer flex items-center gap-3"
               >
                 <Flag size={16} className="text-muted-foreground" />
@@ -168,6 +207,67 @@ export default function ChatRoom() {
           </Button>
         </div>
       </div>
+
+      {/* Report Dialog */}
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] max-w-[90%] sm:max-w-[425px]">
+          <DialogHeader className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto mb-2">
+              <ShieldAlert size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-semibold text-center">Report User</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-center">
+              Help us understand what's happening. Your report is private and helps keep the Aura community safe.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Reason for reporting</label>
+              <div className="grid grid-cols-1 gap-2">
+                {REPORT_REASONS.map(reason => (
+                  <button
+                    key={reason}
+                    onClick={() => setReportReason(reason)}
+                    className={`h-11 px-4 rounded-xl text-sm font-medium text-left transition-all ${reportReason === reason ? "bg-primary/20 border-primary/30 text-primary" : "bg-white/5 border border-white/5 text-muted-foreground hover:bg-white/10"}`}
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Additional details (Optional)</label>
+              <Textarea 
+                placeholder="Describe what happened..."
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                className="bg-white/5 border-white/10 rounded-xl min-h-[100px] text-sm resize-none focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button 
+              onClick={handleSubmitReport}
+              disabled={isReporting || !reportReason}
+              className="w-full h-12 rounded-xl fuchsia-gradient text-white font-medium"
+            >
+              {isReporting ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : "Submit Report"}
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsReportDialogOpen(false)}
+              className="w-full h-12 rounded-xl text-muted-foreground hover:text-white"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
