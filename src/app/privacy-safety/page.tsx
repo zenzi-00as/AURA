@@ -54,7 +54,7 @@ export default function PrivacySafetyPage() {
       icon: Lock,
       color: "text-secondary",
       content: [
-        { title: "End-to-End Encryption", desc: "Your private messages are only readable by you and your match." },
+        { title: "Secure Architecture", desc: "Your private messages are only readable by you and your match." },
         { title: "Minimal Data Footprint", desc: "We only collect what is necessary to connect you safely." },
         { title: "Stateless Infrastructure", desc: "Aura is designed to be ephemeral. Your presence is secured across borders." },
         { title: "Ethical Data Stewardship", desc: "We treat your data with the highest level of care, prioritizing your anonymity and digital well-being." }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -167,7 +166,7 @@ export default function ChatRoom() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-4">
         <div className="text-center py-2">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Encrypted Connection</span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Private Connection</span>
         </div>
         
         {messages.map((msg) => (

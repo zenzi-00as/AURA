@@ -41,9 +41,9 @@ export default function PrivacyPage() {
           <div className="flex items-start gap-4">
             <EyeOff className="text-emerald-500 mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-white">Encryption & Storage</h3>
+              <h3 className="font-semibold text-white">Architecture & Storage</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Messages are protected with end-to-end encryption. Our infrastructure is "stateless," meaning we minimize the persistence of your social graph and data presence to what is strictly necessary.
+                Messages are protected with secure architecture. Our infrastructure is "stateless," meaning we minimize the persistence of your social graph and data presence to what is strictly necessary.
               </p>
             </div>
           </div>

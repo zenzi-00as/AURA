@@ -160,12 +160,14 @@ export default function AboutPage() {
             <Handshake size={24} />
             <h3 className="text-sm font-semibold text-white">{mounted ? t('our_promise') : "Our Commitment"}</h3>
           </div>
-          <p className="text-sm text-muted-foreground font-light leading-relaxed">
-            {mounted ? t('promise_desc') : "We are committed to maintaining a space where authenticity is celebrated and your journey is protected."}
-          </p>
+          {mounted && (
+            <p className="text-sm text-muted-foreground font-light leading-relaxed">
+              {t('promise_desc')}
+            </p>
+          )}
           <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
             <Lock size={12} />
-            <span>Encrypted • No Ads • No Selling</span>
+            <span>Secured • No Ads • No Selling</span>
           </div>
         </section>
 
@@ -202,7 +204,7 @@ export default function AboutPage() {
           </div>
           <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
             <ShieldCheck size={10} />
-            <span>Encrypted Infrastructure</span>
+            <span>Secured Infrastructure</span>
           </div>
         </div>
       </div>

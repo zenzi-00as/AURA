@@ -164,7 +164,7 @@ export default function AuthPage() {
 
       <div className="mt-auto pb-8 text-center">
         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-          Secure • Private • Encrypted
+          Secure • Private • Guarded
         </p>
       </div>
     </div>
