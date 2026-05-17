@@ -47,7 +47,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
+      <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
         <h1 className="text-xl font-semibold tracking-tight text-white">{t('profile')}</h1>
         <button 
           onClick={() => router.push('/settings')}
@@ -183,7 +183,10 @@ export default function ProfilePage() {
             <div className="text-muted-foreground">→</div>
           </button>
 
-          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => router.push('/feedback')}
+            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
+          >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <MessageSquare size={18} />
