@@ -227,7 +227,7 @@ export default function Onboarding() {
                   placeholder="Enter your name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary text-foreground"
                 />
               </div>
               <div className="relative group">
@@ -239,7 +239,7 @@ export default function Onboarding() {
                   placeholder="Your age"
                   value={formData.age}
                   onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary text-foreground"
                 />
               </div>
               {formData.age !== "" && parseInt(formData.age) < 18 && (
@@ -258,7 +258,7 @@ export default function Onboarding() {
                 placeholder="Describe your desires to know more about you"
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="min-h-[160px] bg-muted border-border rounded-2xl p-4 text-lg resize-none focus:ring-primary"
+                className="min-h-[160px] bg-muted border-border rounded-2xl p-4 text-lg resize-none focus:ring-primary text-foreground"
               />
             </div>
           )}
@@ -277,7 +277,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, gender: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -292,7 +292,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, orientation: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -365,7 +365,7 @@ export default function Onboarding() {
                   <button 
                     onClick={handleRetake} 
                     disabled={loading}
-                    className="w-full h-12 flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline disabled:opacity-50"
+                    className="w-full h-12 flex items-center justify-center gap-2 text-sm text-foreground font-bold hover:underline disabled:opacity-50"
                   >
                     <RefreshCcw size={16} />
                     Retake photo

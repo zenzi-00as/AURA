@@ -83,7 +83,7 @@ export default function AuthPage() {
                     const country = COUNTRIES.find((c) => c.code === val);
                     if (country) {
                       setSelectedCountry(country);
-                      setPhone(""); // Reset phone when country changes to avoid length mismatches
+                      setPhone(""); 
                     }
                   }}
                 >
@@ -117,7 +117,7 @@ export default function AuthPage() {
                   placeholder={`${selectedCountry.length} digits`}
                   value={phone}
                   onChange={handlePhoneChange}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg"
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function AuthPage() {
                 placeholder="000000"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg"
+                className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
               />
             </div>
           )}
@@ -154,7 +154,7 @@ export default function AuthPage() {
           {step === "otp" && (
             <button 
               onClick={() => setStep("phone")}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="w-full text-center text-sm text-foreground hover:text-primary transition-colors font-medium"
             >
               Change number
             </button>

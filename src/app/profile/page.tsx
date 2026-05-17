@@ -118,20 +118,20 @@ export default function ProfilePage() {
                       <Textarea 
                         value={tempProfile.bio}
                         onChange={(e) => setTempProfile({ ...tempProfile, bio: e.target.value })}
-                        className="bg-muted border-border rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4"
+                        className="bg-muted border-border rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4 text-foreground"
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</Label>
-                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-foreground/60 cursor-not-allowed">
                           {profile.gender}
                         </div>
                       </div>
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</Label>
-                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-foreground/60 cursor-not-allowed">
                           {profile.orientation}
                         </div>
                       </div>
@@ -141,7 +141,7 @@ export default function ProfilePage() {
                   <DialogFooter className="flex flex-col gap-3 pt-2">
                     <Button 
                       onClick={handleSave}
-                      className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                      className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                     >
                       <Check size={20} />
                       {t('save_changes')}
@@ -149,7 +149,7 @@ export default function ProfilePage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => setIsEditing(false)}
-                      className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+                      className="w-full h-12 rounded-xl text-foreground hover:text-primary transition-colors font-medium"
                     >
                       {t('cancel')}
                     </Button>
@@ -228,11 +228,11 @@ export default function ProfilePage() {
               <AlertDialogFooter className="flex flex-col gap-3 pt-4">
                 <AlertDialogAction 
                   onClick={() => router.push('/auth')}
-                  className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
+                  className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   {t('sign_out')}
                 </AlertDialogAction>
-                <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border">
+                <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border font-medium">
                   {t('cancel')}
                 </AlertDialogCancel>
               </AlertDialogFooter>

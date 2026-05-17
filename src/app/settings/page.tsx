@@ -171,7 +171,7 @@ export default function SettingsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleUnblock(user.id, user.name)}
-                            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 rounded-xl px-4"
+                            className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary hover:bg-primary/10 rounded-xl px-4"
                           >
                             Unblock
                           </Button>
@@ -191,7 +191,7 @@ export default function SettingsPage() {
                 <div className="pt-2">
                   <Button 
                     onClick={() => setIsBlockedListOpen(false)}
-                    className="w-full h-14 rounded-2xl bg-muted text-foreground font-medium text-lg hover:bg-muted/80 transition-colors border border-border"
+                    className="w-full h-14 rounded-2xl bg-muted text-foreground font-bold text-lg hover:bg-muted/80 transition-colors border border-border"
                   >
                     {t('cancel')}
                   </Button>
@@ -342,7 +342,7 @@ export default function SettingsPage() {
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsSignOutDialogOpen(false)}
-                    className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+                    className="w-full h-12 rounded-xl text-foreground hover:text-primary transition-colors font-bold"
                   >
                     {t('cancel')}
                   </Button>
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                   >
                     Delete Permanently
                   </AlertDialogAction>
-                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border">
+                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border font-bold">
                     {t('cancel')}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
