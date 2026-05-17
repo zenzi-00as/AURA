@@ -11,13 +11,11 @@ export function BottomNav() {
   const router = useRouter();
   const { t } = useTranslation();
   
-  // Simulated real-time update state to demonstrate the glowing indicators
   const [activeUpdates, setActiveUpdates] = useState<Record<string, boolean>>({
     "/chat": true,
     "/notifications": false,
   });
 
-  // Simulate receiving a new notification after a short delay
   useEffect(() => {
     const timer = setTimeout(() => {
       setActiveUpdates(prev => ({ ...prev, "/notifications": true }));
@@ -34,7 +32,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-[#0C0B0D]/80 backdrop-blur-2xl border border-white/10 shadow-2xl aura-glow">
+      <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           const hasUpdate = activeUpdates[item.path];
@@ -43,7 +41,7 @@ export function BottomNav() {
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-white" : "text-muted-foreground hover:text-white"}`}
+              className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-white" : "text-muted-foreground hover:text-foreground"}`}
               aria-label={item.label}
             >
               {isActive && (
@@ -56,12 +54,11 @@ export function BottomNav() {
               <div className="relative z-10 flex items-center justify-center">
                 <item.icon size={22} className="relative z-10" />
                 
-                {/* Real-time update indicator */}
                 {hasUpdate && !isActive && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-[#0C0B0D] z-20"
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-background z-20"
                   />
                 )}
               </div>

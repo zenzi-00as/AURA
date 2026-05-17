@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "navigation";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, Info, MessageSquare } from "lucide-react";
@@ -57,12 +57,12 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
-        <h1 className="text-xl font-semibold tracking-tight text-white">{t('profile')}</h1>
+    <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
+      <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
         <button 
           onClick={() => router.push('/settings')}
-          className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
+          className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
         >
           <Settings size={18} />
         </button>
@@ -71,16 +71,16 @@ export default function ProfilePage() {
       <div className="px-8 space-y-12">
         <div className="flex flex-col items-center text-center space-y-6 pt-4">
           <div className="relative">
-            <div className="w-32 h-32 rounded-[40px] bg-white/5 border-2 border-primary/20 flex items-center justify-center aura-glow">
-              <span className="text-4xl font-bold text-white/20">ME</span>
+            <div className="w-32 h-32 rounded-[40px] bg-muted border-2 border-primary/20 flex items-center justify-center aura-glow">
+              <span className="text-4xl font-bold text-foreground/20">ME</span>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-[#0C0B0D] shadow-lg">
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-lg">
               <BadgeCheck size={20} className="text-white" />
             </div>
           </div>
           
           <div className="space-y-1">
-            <h2 className="text-3xl font-semibold text-white">{profile.name}, {profile.age}</h2>
+            <h2 className="text-3xl font-semibold text-foreground">{profile.name}, {profile.age}</h2>
             <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
               <Shield size={12} />
               {t('identity_verified')}
@@ -99,12 +99,12 @@ export default function ProfilePage() {
                 <DialogTrigger asChild>
                   <button 
                     onClick={() => setTempProfile({ ...profile })}
-                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
+                    className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Pencil size={14} />
                   </button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+                <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                   <DialogHeader className="space-y-3">
                     <DialogTitle className="text-2xl font-semibold">{t('edit_profile')}</DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm font-light">
@@ -118,27 +118,27 @@ export default function ProfilePage() {
                       <Textarea 
                         value={tempProfile.bio}
                         onChange={(e) => setTempProfile({ ...tempProfile, bio: e.target.value })}
-                        className="bg-white/5 border-white/10 rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4"
+                        className="bg-muted border-border rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4"
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</Label>
-                        <div className="bg-white/5 border border-white/10 rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
                           {profile.gender}
                         </div>
                       </div>
                       <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</Label>
-                        <div className="bg-white/5 border border-white/10 rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
+                        <div className="bg-muted border border-border rounded-xl h-11 flex items-center px-4 text-sm text-muted-foreground/60 cursor-not-allowed">
                           {profile.orientation}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <DialogFooter className="flex flex-col gap-3 sm:flex-col pt-2">
+                  <DialogFooter className="flex flex-col gap-3 pt-2">
                     <Button 
                       onClick={handleSave}
                       className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
@@ -149,7 +149,7 @@ export default function ProfilePage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => setIsEditing(false)}
-                      className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
+                      className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {t('cancel')}
                     </Button>
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
             </div>
-            <p className="text-lg leading-relaxed text-white font-light">
+            <p className="text-lg leading-relaxed text-foreground font-light">
               {profile.bio}
             </p>
           </div>
@@ -165,14 +165,14 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</label>
-              <div className="flex items-center gap-2 text-white">
+              <div className="flex items-center gap-2 text-foreground">
                 <Heart size={14} className="text-primary" />
                 <span className="font-medium">{profile.gender}</span>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</label>
-              <div className="flex items-center gap-2 text-white">
+              <div className="flex items-center gap-2 text-foreground">
                 <Sparkles size={14} className="text-primary" />
                 <span className="font-medium">{profile.orientation}</span>
               </div>
@@ -181,58 +181,39 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-3">
-          <button 
-            onClick={() => router.push('/about')}
-            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <Info size={18} />
+          {[
+            { label: t('about'), path: '/about', icon: Info },
+            { label: t('feedback'), path: '/feedback', icon: MessageSquare },
+            { label: t('privacy_safety'), path: '/privacy-safety', icon: Shield },
+          ].map((item) => (
+            <button 
+              key={item.path}
+              onClick={() => router.push(item.path)}
+              className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-primary/5 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <item.icon size={18} />
+                </div>
+                <span className="font-medium text-foreground">{item.label}</span>
               </div>
-              <span className="font-medium text-white">{t('about')}</span>
-            </div>
-            <div className="text-muted-foreground">→</div>
-          </button>
-
-          <button 
-            onClick={() => router.push('/feedback')}
-            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <MessageSquare size={18} />
-              </div>
-              <span className="font-medium text-white">{t('feedback')}</span>
-            </div>
-            <div className="text-muted-foreground">→</div>
-          </button>
-
-          <button 
-            onClick={() => router.push('/privacy-safety')}
-            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <Shield size={18} />
-              </div>
-              <span className="font-medium text-white">{t('privacy_safety')}</span>
-            </div>
-            <div className="text-muted-foreground">→</div>
-          </button>
+              <div className="text-muted-foreground">→</div>
+            </button>
+          ))}
           
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+              <button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-destructive/5 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                     <LogOut size={18} />
                   </div>
-                  <span className="font-medium text-white">{t('sign_out')}</span>
+                  <span className="font-medium text-foreground">{t('sign_out')}</span>
                 </div>
                 <div className="text-muted-foreground">→</div>
               </button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+            <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
               <AlertDialogHeader className="space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
                   <LogOut size={32} />
@@ -244,14 +225,14 @@ export default function ProfilePage() {
                   </AlertDialogDescription>
                 </div>
               </AlertDialogHeader>
-              <AlertDialogFooter className="flex flex-col gap-3 pt-4 sm:flex-col">
+              <AlertDialogFooter className="flex flex-col gap-3 pt-4">
                 <AlertDialogAction 
                   onClick={() => router.push('/auth')}
                   className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   {t('sign_out')}
                 </AlertDialogAction>
-                <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:text-white transition-colors">
+                <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border">
                   {t('cancel')}
                 </AlertDialogCancel>
               </AlertDialogFooter>

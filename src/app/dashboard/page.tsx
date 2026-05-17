@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
@@ -126,10 +125,8 @@ export default function Dashboard() {
       const withinDistance = user.distanceKm <= activeFilters.distance;
       const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
       
-      // Orientation compatibility logic
       let matchesOrientation = true;
       if (userOrientation && userOrientation !== 'Pansexual' && userOrientation !== 'Queer') {
-        // Broadly, show people with same orientation or those who identify as Pan/Queer
         matchesOrientation = user.orientation === userOrientation || 
                              user.orientation === 'Pansexual' || 
                              user.orientation === 'Queer' ||
@@ -154,25 +151,25 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
+    <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
+      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl fuchsia-gradient flex items-center justify-center">
             <span className="text-white font-bold text-xs">A</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight">{t('discovery')}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
+            <button className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <SlidersHorizontal size={18} />
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="bg-[#1A181C] border-white/5 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
+          <SheetContent side="bottom" className="bg-popover border-border text-foreground rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
             <SheetHeader className="mb-8">
               <div className="flex items-center justify-between">
-                <SheetTitle className="text-2xl font-semibold text-white">{t('filters')}</SheetTitle>
+                <SheetTitle className="text-2xl font-semibold text-foreground">{t('filters')}</SheetTitle>
               </div>
             </SheetHeader>
             
@@ -253,11 +250,11 @@ export default function Dashboard() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-20 text-center space-y-4"
             >
-              <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-muted-foreground">
+              <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
                 <Info size={32} />
               </div>
               <div className="space-y-1">
-                <p className="text-white font-medium">{t('no_results')}</p>
+                <p className="text-foreground font-medium">{t('no_results')}</p>
                 <p className="text-sm text-muted-foreground font-light">{t('try_expanding')}</p>
               </div>
               <Button 

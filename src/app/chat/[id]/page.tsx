@@ -61,7 +61,6 @@ export default function ChatRoom() {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Simulate real-time status changes occasionally
   useEffect(() => {
     const timer = setInterval(() => {
       if (Math.random() > 0.95) {
@@ -102,7 +101,6 @@ export default function ChatRoom() {
     }
     
     setIsReporting(true);
-    // Simulate API call
     setTimeout(() => {
       setIsReporting(false);
       setIsReportDialogOpen(false);
@@ -116,16 +114,16 @@ export default function ChatRoom() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] h-screen overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background h-screen overflow-hidden transition-colors">
       {/* Header */}
-      <header className="px-6 h-20 flex items-center justify-between border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
+      <header className="px-6 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors">
+          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={22} />
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-white">Aarav</span>
+              <span className="font-semibold text-foreground">Aarav</span>
               <BadgeCheck size={16} className="text-primary" />
             </div>
             <div className="flex items-center gap-1.5">
@@ -139,14 +137,14 @@ export default function ChatRoom() {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors focus:outline-none">
+              <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none">
                 <MoreVertical size={18} />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-[#1A181C] border-white/10 text-white rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
               <DropdownMenuItem 
                 onClick={() => setIsReportDialogOpen(true)}
-                className="rounded-xl px-4 py-3 focus:bg-white/5 cursor-pointer flex items-center gap-3"
+                className="rounded-xl px-4 py-3 focus:bg-muted cursor-pointer flex items-center gap-3"
               >
                 <Flag size={16} className="text-muted-foreground" />
                 <span className="text-sm">Report User</span>
@@ -176,7 +174,7 @@ export default function ChatRoom() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
           >
-            <div className={`max-w-[80%] px-5 py-3.5 rounded-[22px] ${msg.sender === "me" ? "fuchsia-gradient text-white rounded-br-none" : "bg-white/5 text-muted-foreground rounded-bl-none border border-white/5"}`}>
+            <div className={`max-w-[80%] px-5 py-3.5 rounded-[22px] shadow-sm ${msg.sender === "me" ? "fuchsia-gradient text-white rounded-br-none" : "bg-card text-foreground rounded-bl-none border border-border"}`}>
               <p className="text-sm leading-relaxed">{msg.text}</p>
               <div className="flex items-center justify-end gap-1 mt-1.5 opacity-50">
                 <span className="text-[9px] font-medium">{msg.time}</span>
@@ -189,7 +187,7 @@ export default function ChatRoom() {
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-[#0C0B0D]/80 backdrop-blur-xl border-t border-white/5 pb-8">
+      <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border pb-8">
         <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
             <Input
@@ -197,7 +195,7 @@ export default function ChatRoom() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Send a private message..."
-              className="h-12 bg-white/5 border-white/10 rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
+              className="h-12 bg-muted border-border rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
               Secure
@@ -215,7 +213,7 @@ export default function ChatRoom() {
 
       {/* Report Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-7">
+        <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-7">
           <DialogHeader className="space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto mb-1">
               <ShieldAlert size={24} />
@@ -236,7 +234,7 @@ export default function ChatRoom() {
                   <button
                     key={reason}
                     onClick={() => setReportReason(reason)}
-                    className={`h-10 px-4 rounded-xl text-xs font-medium text-left transition-all border ${reportReason === reason ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"}`}
+                    className={`h-10 px-4 rounded-xl text-xs font-medium text-left transition-all border ${reportReason === reason ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}
                   >
                     {reason}
                   </button>
@@ -250,7 +248,7 @@ export default function ChatRoom() {
                 placeholder="Briefly describe what happened..."
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
-                className="bg-white/5 border-white/10 rounded-xl min-h-[80px] text-xs resize-none focus:ring-primary p-3"
+                className="bg-muted border-border rounded-xl min-h-[80px] text-xs resize-none focus:ring-primary p-3"
               />
             </div>
           </div>
@@ -268,7 +266,7 @@ export default function ChatRoom() {
             <Button 
               variant="ghost" 
               onClick={() => setIsReportDialogOpen(false)}
-              className="w-full h-10 rounded-xl text-xs text-muted-foreground hover:text-white transition-colors"
+              className="w-full h-10 rounded-xl text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
             </Button>

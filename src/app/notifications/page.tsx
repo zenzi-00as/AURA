@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -16,10 +15,10 @@ export default function NotificationsPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
-        <h1 className="text-xl font-semibold tracking-tight">{t('activity')}</h1>
-        <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
+    <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
+      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('activity')}</h1>
+        <button className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <Bell size={18} />
         </button>
       </header>
@@ -33,12 +32,12 @@ export default function NotificationsPage() {
             transition={{ delay: idx * 0.1 }}
             className="p-6 glass-card rounded-[32px] flex items-start gap-4"
           >
-            <div className={`w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center ${notif.color}`}>
+            <div className={`w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center ${notif.color}`}>
               <notif.icon size={22} />
             </div>
             <div className="flex-1 space-y-1">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-white">{notif.title}</h3>
+                <h3 className="font-semibold text-foreground">{notif.title}</h3>
                 <span className="text-[10px] text-muted-foreground font-medium">{notif.time}</span>
               </div>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">

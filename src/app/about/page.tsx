@@ -7,10 +7,8 @@ import {
   ArrowLeft, 
   Sparkles, 
   Shield, 
-  Heart, 
   Fingerprint, 
   Globe, 
-  ChevronRight, 
   ShieldCheck, 
   Cpu, 
   Map, 
@@ -63,12 +61,12 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
-      <header className="px-6 h-16 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
-        <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors">
+      <header className="px-6 h-16 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">{mounted ? t('about') : "About Aura"}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{mounted ? t('about') : "About Aura"}</h1>
       </header>
 
       <div className="p-8 space-y-16">
@@ -82,7 +80,7 @@ export default function AboutPage() {
             <span className="text-4xl font-bold text-white">A</span>
           </motion.div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold text-white tracking-tight">Aura</h2>
+            <h2 className="text-3xl font-semibold text-foreground tracking-tight">Aura</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Minimalist • Private • Real</p>
           </div>
         </div>
@@ -94,7 +92,7 @@ export default function AboutPage() {
           className="space-y-4"
         >
           <h3 className="text-xs font-bold text-primary uppercase tracking-widest px-1">{mounted ? t('our_mission') : "Our Mission"}</h3>
-          <p className="text-lg text-white font-light leading-relaxed">
+          <p className="text-lg text-foreground font-light leading-relaxed">
             {mounted ? t('mission_desc') : "Aura provides a safe and authentic digital space for the LGBTQ+ community."}
           </p>
         </motion.section>
@@ -112,13 +110,13 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="glass-card p-6 rounded-[32px] space-y-4 border border-white/5 bg-white/[0.01]"
+                className="glass-card p-6 rounded-[32px] space-y-4"
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <feature.icon size={20} />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-semibold text-white">{feature.title}</h4>
+                  <h4 className="font-semibold text-foreground">{feature.title}</h4>
                   <p className="text-xs text-muted-foreground font-light leading-relaxed">
                     {feature.desc}
                   </p>
@@ -138,13 +136,13 @@ export default function AboutPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="glass-card p-6 rounded-[32px] flex items-start gap-5 border border-white/5"
+                className="glass-card p-6 rounded-[32px] flex items-start gap-5"
               >
-                <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${value.color} shrink-0`}>
+                <div className={`w-12 h-12 rounded-2xl bg-muted flex items-center justify-center ${value.color} shrink-0`}>
                   <value.icon size={22} />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-semibold text-white">{value.title}</h4>
+                  <h4 className="font-semibold text-foreground">{value.title}</h4>
                   <p className="text-xs text-muted-foreground font-light leading-relaxed">
                     {value.desc}
                   </p>
@@ -155,10 +153,10 @@ export default function AboutPage() {
         </section>
 
         {/* Our Promise Section */}
-        <section className="glass-card p-8 rounded-[40px] border border-white/5 space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
           <div className="flex items-center gap-3 text-emerald-500">
             <Handshake size={24} />
-            <h3 className="text-sm font-semibold text-white">{mounted ? t('our_promise') : "Our Commitment"}</h3>
+            <h3 className="text-sm font-semibold text-foreground">{mounted ? t('our_promise') : "Our Commitment"}</h3>
           </div>
           {mounted && (
             <p className="text-sm text-muted-foreground font-light leading-relaxed">
@@ -172,19 +170,19 @@ export default function AboutPage() {
         </section>
 
         {/* Community & Global Presence */}
-        <section className="glass-card p-8 rounded-[40px] border border-white/5 space-y-6 bg-gradient-to-br from-white/[0.02] to-transparent">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-primary/5 to-transparent">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               <Globe size={18} />
             </div>
-            <h3 className="text-sm font-semibold text-white">Global Community</h3>
+            <h3 className="text-sm font-semibold text-foreground">Global Community</h3>
           </div>
           <p className="text-sm text-muted-foreground font-light leading-relaxed">
             Available in 6 languages and growing. Aura is a stateless community designed for the modern queer nomad, ensuring safety across borders.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             {['🇺🇸', '🇮🇳', '🇪🇸', '🇧🇷', '🇫🇷', '🇩🇪'].map(flag => (
-              <div key={flag} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg border border-white/5">
+              <div key={flag} className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg border border-border">
                 {flag}
               </div>
             ))}
@@ -197,10 +195,10 @@ export default function AboutPage() {
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.4.0</p>
             <p className="text-[9px] text-muted-foreground/60 italic font-light">Crafted with care by the Aura Collective.</p>
           </div>
-          <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-white/5 pt-6">
-            <button onClick={() => router.push('/terms')} className="hover:text-white transition-colors">Terms of Service</button>
-            <button onClick={() => router.push('/privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
-            <button className="hover:text-white transition-colors">Cookies</button>
+          <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-border pt-6">
+            <button onClick={() => router.push('/terms')} className="hover:text-foreground transition-colors">Terms of Service</button>
+            <button onClick={() => router.push('/privacy')} className="hover:text-foreground transition-colors">Privacy Policy</button>
+            <button className="hover:text-foreground transition-colors">Cookies</button>
           </div>
           <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
             <ShieldCheck size={10} />

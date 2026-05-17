@@ -15,16 +15,15 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="relative p-6 glass-card rounded-[32px] cursor-pointer overflow-hidden aura-glow"
+      className="relative p-6 glass-card rounded-[32px] cursor-pointer overflow-hidden aura-glow transition-colors"
     >
-      {/* Decorative accent */}
       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-3xl -mr-8 -mt-8" />
       
       <div className="relative space-y-4">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <h3 className="text-xl font-semibold text-white">{user.name}, {user.age}</h3>
+              <h3 className="text-xl font-semibold text-foreground">{user.name}, {user.age}</h3>
               {user.verificationStatus === 'Verified' && (
                 <BadgeCheck size={18} className="text-primary" />
               )}
@@ -34,7 +33,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
               {user.distance}
             </div>
           </div>
-          <div className={`w-2.5 h-2.5 rounded-full ${user.online ? "bg-primary animate-pulse shadow-[0_0_10px_rgba(217,70,239,0.5)]" : "bg-white/10"}`} />
+          <div className={`w-2.5 h-2.5 rounded-full ${user.online ? "bg-primary animate-pulse shadow-[0_0_10px_rgba(217,70,239,0.5)]" : "bg-muted"}`} />
         </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
@@ -42,10 +41,10 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         </p>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <span className="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold text-white/60 uppercase tracking-widest border border-white/5">
+          <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold text-foreground/60 uppercase tracking-widest border border-border">
             {user.gender}
           </span>
-          <span className="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold text-white/60 uppercase tracking-widest border border-white/5">
+          <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold text-foreground/60 uppercase tracking-widest border border-border">
             {user.orientation}
           </span>
         </div>
