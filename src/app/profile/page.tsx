@@ -170,7 +170,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-3">
-          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => router.push('/about')}
+            className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"
+          >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <Info size={18} />
