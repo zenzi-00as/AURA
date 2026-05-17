@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -74,7 +75,6 @@ export default function Onboarding() {
     }
   };
 
-  // Effect to handle camera stream attachment
   useEffect(() => {
     if (cameraActive && videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
@@ -97,7 +97,6 @@ export default function Onboarding() {
       canvasRef.current.height = 512;
       
       if (context) {
-        // Mirrored capture
         context.translate(512, 0);
         context.scale(-1, 1);
         context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
@@ -115,7 +114,6 @@ export default function Onboarding() {
   };
 
   useEffect(() => {
-    // Automatically start camera on step 4
     if (step === 4 && !formData.photo && !cameraActive && !loading) {
       startCamera();
     }
@@ -152,6 +150,11 @@ export default function Onboarding() {
       
       setLoading(true);
       try {
+        // Persist orientation for dashboard filtering
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('aura_user_orientation', formData.orientation);
+        }
+
         const result = await selfieVerification({
           photoDataUri: formData.photo,
           userName: formData.name,
@@ -181,7 +184,6 @@ export default function Onboarding() {
         }
       } catch (e) {
         console.error("Verification error:", e);
-        // Fallback to dashboard on error to prevent blocking users
         router.push("/dashboard");
       } finally {
         setLoading(false);

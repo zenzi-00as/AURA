@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
@@ -106,19 +107,39 @@ export default function Dashboard() {
   const [distance, setDistance] = useState([15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
+  const [userOrientation, setUserOrientation] = useState<string | null>(null);
   
   const [activeFilters, setActiveFilters] = useState({
     distance: 15,
     ageRange: [18, 35]
   });
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aura_user_orientation');
+      setUserOrientation(saved);
+    }
+  }, []);
+
   const filteredUsers = useMemo(() => {
     return MOCK_USERS.filter(user => {
       const withinDistance = user.distanceKm <= activeFilters.distance;
       const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
-      return withinDistance && withinAge;
+      
+      // Orientation compatibility logic
+      let matchesOrientation = true;
+      if (userOrientation && userOrientation !== 'Pansexual' && userOrientation !== 'Queer') {
+        // Broadly, show people with same orientation or those who identify as Pan/Queer
+        matchesOrientation = user.orientation === userOrientation || 
+                             user.orientation === 'Pansexual' || 
+                             user.orientation === 'Queer' ||
+                             (userOrientation === 'Gay' && (user.orientation === 'Bisexual' || user.orientation === 'Queer')) ||
+                             (userOrientation === 'Lesbian' && (user.orientation === 'Bisexual' || user.orientation === 'Queer'));
+      }
+
+      return withinDistance && withinAge && matchesOrientation;
     });
-  }, [activeFilters]);
+  }, [activeFilters, userOrientation]);
 
   const handleApplyFilters = () => {
     setActiveFilters({
