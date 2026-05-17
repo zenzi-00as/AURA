@@ -87,8 +87,8 @@ export const translations = {
     ai_guard_desc: "Advanced neural networks cross-reference bio signals and selfie checks to eliminate bots and impersonators instantly.",
     stateless_title: "Stateless Connection",
     stateless_desc: "Our unique infrastructure ensures that your data presence is ephemeral and secure, no matter where your journey takes you.",
-    our_promise: "Our Commitment",
-    promise_desc: "We pledge never to sell your data to third parties. Aura is funded by the community, for the community.",
+    our_promise: "Our Commitment to You",
+    promise_desc: "Your privacy is not for sale. We pledge to never sell your personal data to third parties, use invasive ad-tracking, or compromise your digital footprint. Aura is a safe haven built on community trust, ensuring that your connections remain private, secure, and entirely yours.",
   },
   hi: {
     discovery: "खोजें",
@@ -167,8 +167,8 @@ export const translations = {
     ai_guard_desc: "उन्नत तंत्रिका नेटवर्क बॉट्स और जालसाजों को तुरंत खत्म करने के लिए सेल्फी जांच का उपयोग करते हैं।",
     stateless_title: "स्टेटलेस कनेक्शन",
     stateless_desc: "हमारी अनूठी संरचना सुनिश्चित करती है कि आपका डेटा सुरक्षित रहे, चाहे आपकी यात्रा कहीं भी ले जाए।",
-    our_promise: "हमारी प्रतिबद्धता",
-    promise_desc: "हम आपके डेटा को कभी भी तीसरे पक्ष को नहीं बेचने का संकल्प लेते हैं।",
+    our_promise: "आपके प्रति हमारी प्रतिबद्धता",
+    promise_desc: "आपकी गोपनीयता बिकाऊ नहीं है। हम आपके व्यक्तिगत डेटा को कभी भी तीसरे पक्ष को नहीं बेचने, आक्रामक विज्ञापन-ट्रैकिंग का उपयोग नहीं करने का संकल्प लेते हैं। Aura सामुदायिक विश्वास पर बना एक सुरक्षित आश्रय है।",
   },
   es: {
     discovery: "Descubrimiento",
@@ -247,8 +247,8 @@ export const translations = {
     ai_guard_desc: "Redes neuronales avanzadas eliminan bots y suplantadores al instante mediante controles de selfies.",
     stateless_title: "Conexión Sin Estado",
     stateless_desc: "Nuestra infraestructura garantiza que tu presencia de datos sea efímera y segura en cualquier lugar.",
-    our_promise: "Nuestro Compromiso",
-    promise_desc: "Prometemos no vender nunca sus datos a terceros. Aura es de la comunidad.",
+    our_promise: "Nuestro Compromiso con Usted",
+    promise_desc: "Su privacidad no está a la venta. Nos comprometemos a no vender nunca sus datos personales a terceros, ni a utilizar rastreo publicitario invasivo. Aura es un refugio seguro basado en la confianza comunitaria.",
   },
   pt: {
     discovery: "Descoberta",
@@ -327,8 +327,8 @@ export const translations = {
     ai_guard_desc: "Redes neurais avançadas eliminam bots e farsantes instantaneamente por meio de verificações de selfies.",
     stateless_title: "Conexão Sem Estado",
     stateless_desc: "Nossa infraestrutura garante que sua presença de dados seja efêmera e segura em qualquer lugar.",
-    our_promise: "Nosso Compromisso",
-    promise_desc: "Prometemos nunca vender seus dados a terceiros. A Aura é da comunidade.",
+    our_promise: "Nosso Compromisso com Você",
+    promise_desc: "Sua privacidade não está à venda. Comprometemo-nos a nunca vender seus dados pessoais a terceiros, nem utilizar rastreio publicitário invasivo. A Aura é um refúgio seguro baseado na confiança da comunidade.",
   },
   fr: {
     discovery: "Découverte",
@@ -407,8 +407,8 @@ export const translations = {
     ai_guard_desc: "Des réseaux neuronaux avancés éliminent instantanément les bots et les usurpateurs d'identité grâce à des selfies.",
     stateless_title: "Connexion Sans État",
     stateless_desc: "Notre infrastructure garantit que vos données sont éphémères et sécurisées partout.",
-    our_promise: "Notre Engagement",
-    promise_desc: "Nous nous engageons à ne jamais vendre vos données à des tiers. Aura appartient à la communauté.",
+    our_promise: "Notre Engagement envers Vous",
+    promise_desc: "Votre vie privée n'est pas à vendre. Nous nous engageons à ne jamais vendre vos données personnelles à des tiers, ni à utiliser de suivi publicitaire invasif. Aura est un havre de paix fondé sur la confiance communautaire.",
   },
   de: {
     discovery: "Entdeckung",
@@ -487,7 +487,7 @@ export const translations = {
     ai_guard_desc: "Fortschrittliche neuronale Netze eliminieren Bots und Nachahmer sofort durch Selfie-Checks.",
     stateless_title: "Stateless Connection",
     stateless_desc: "Unsere Infrastruktur stellt sicher, dass Ihre Datenpräsenz überall flüchtig und sicher ist.",
-    our_promise: "Unser Versprechen",
-    promise_desc: "Wir versprechen, Ihre Daten niemals an Dritte zu verkaufen. Aura ist von der Community.",
+    our_promise: "Unser Versprechen an Sie",
+    promise_desc: "Ihre Privatsphäre steht nicht zum Verkauf. Wir versprechen, Ihre persönlichen Daten niemals an Dritte zu verkaufen oder invasives Ad-Tracking zu nutzen. Aura ist ein sicherer Hafen, der auf dem Vertrauen der Community basiert.",
   }
 };
