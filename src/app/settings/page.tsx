@@ -42,7 +42,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
-import { LANGUAGES, Language } from "@/lib/translations";
+import { LANGUAGES } from "@/lib/translations";
 
 const MOCK_BLOCKED_USERS = [
   { id: "b1", name: "Stranger12", date: "2 days ago" },
@@ -108,8 +108,8 @@ export default function SettingsPage() {
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12 transition-colors duration-300 dark:bg-[#0C0B0D] bg-white">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-colors">
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors duration-300">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-colors">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
@@ -191,7 +191,7 @@ export default function SettingsPage() {
                 <div className="pt-2">
                   <Button 
                     onClick={() => setIsBlockedListOpen(false)}
-                    className="w-full h-14 rounded-2xl bg-muted text-foreground font-medium text-lg hover:bg-muted/80 transition-colors"
+                    className="w-full h-14 rounded-2xl bg-muted text-foreground font-medium text-lg hover:bg-muted/80 transition-colors border border-border"
                   >
                     {t('cancel')}
                   </Button>
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                   >
                     Delete Permanently
                   </AlertDialogAction>
-                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors">
+                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border">
                     {t('cancel')}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
@@ -390,8 +390,8 @@ export default function SettingsPage() {
         <div className="pt-8 text-center space-y-2 pb-12">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura v1.0.4</p>
           <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-muted">
-            <button>Terms</button>
-            <button>Privacy</button>
+            <button onClick={() => router.push('/terms')}>Terms</button>
+            <button onClick={() => router.push('/privacy')}>Privacy</button>
           </div>
         </div>
       </div>
