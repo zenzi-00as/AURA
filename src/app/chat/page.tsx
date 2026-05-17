@@ -43,7 +43,7 @@ export default function ChatList() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-10 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
+      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20 border-b border-white/5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
             <span className="text-white font-bold text-sm">A</span>
