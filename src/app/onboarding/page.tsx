@@ -67,6 +67,14 @@ export default function Onboarding() {
   };
 
   const nextStep = async () => {
+    if (step === 1) {
+      const ageNum = parseInt(formData.age);
+      if (isNaN(ageNum) || ageNum < 18) {
+        toast({ variant: "destructive", title: "Age requirement", description: "You must be 18 years or older to join Aura." });
+        return;
+      }
+    }
+
     if (step === 4 && formData.photo) {
       setLoading(true);
       try {
@@ -93,6 +101,8 @@ export default function Onboarding() {
       setStep(s => s + 1);
     }
   };
+
+  const isAgeValid = formData.age !== "" && parseInt(formData.age) >= 18;
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-[#0C0B0D]">
@@ -143,6 +153,9 @@ export default function Onboarding() {
                   className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg"
                 />
               </div>
+              {formData.age !== "" && parseInt(formData.age) < 18 && (
+                <p className="text-destructive text-xs font-medium px-1">Age must be 18+</p>
+              )}
             </div>
           )}
 
@@ -248,7 +261,7 @@ export default function Onboarding() {
       <div className="mt-8 pb-4">
         <Button
           onClick={nextStep}
-          disabled={loading || (step === 1 && (!formData.name || !formData.age)) || (step === 2 && !formData.bio) || (step === 3 && (!formData.gender || !formData.orientation)) || (step === 4 && !formData.photo)}
+          disabled={loading || (step === 1 && (!formData.name || !isAgeValid)) || (step === 2 && !formData.bio) || (step === 3 && (!formData.gender || !formData.orientation)) || (step === 4 && !formData.photo)}
           className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
