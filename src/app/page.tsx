@@ -30,9 +30,9 @@ export default function Home() {
         className="z-10 flex flex-col items-center"
       >
         <div className="w-24 h-24 rounded-3xl fuchsia-gradient aura-glow mb-6 flex items-center justify-center">
-          <span className="text-4xl font-bold text-white">A</span>
+          <span className="text-4xl font-bold text-foreground">A</span>
         </div>
-        <h1 className="text-4xl font-semibold tracking-tight text-white mb-2">Aura</h1>
+        <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-2">Aura</h1>
         <p className="text-muted-foreground font-light tracking-wide uppercase text-xs">Minimalist • Private • Real</p>
       </motion.div>
 

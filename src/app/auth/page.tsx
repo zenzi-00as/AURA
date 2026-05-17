@@ -91,7 +91,7 @@ export default function AuthPage() {
                     <SelectValue>
                       <span className="flex items-center gap-2">
                         <span>{selectedCountry.flag}</span>
-                        <span className="text-sm font-medium">{selectedCountry.code}</span>
+                        <span className="text-sm font-medium text-foreground">{selectedCountry.code}</span>
                       </span>
                     </SelectValue>
                   </SelectTrigger>
@@ -139,10 +139,10 @@ export default function AuthPage() {
           <Button 
             onClick={handleNext}
             disabled={isLoading || (step === "phone" ? !isPhoneValid : otp.length < 6)}
-            className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
             ) : (
               <>
                 {step === "phone" ? "Send Code" : "Verify"}

@@ -277,7 +277,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, gender: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -292,7 +292,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, orientation: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-muted-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -356,7 +356,7 @@ export default function Onboarding() {
                   <Button 
                     onClick={capturePhoto} 
                     disabled={!cameraActive || loading}
-                    className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20"
+                    className="w-full h-16 rounded-3xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20"
                   >
                     <Camera className="mr-2" size={20} />
                     Capture Selfie
@@ -381,10 +381,10 @@ export default function Onboarding() {
         <Button
           onClick={nextStep}
           disabled={loading || (step === 1 && (!formData.name || !isAgeValid)) || (step === 2 && !formData.bio) || (step === 3 && (!formData.gender || !formData.orientation)) || (step === 4 && !formData.photo)}
-          className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className="w-full h-16 rounded-3xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
           ) : (
             <>
               {step === 4 ? "Complete Verification" : "Continue"}

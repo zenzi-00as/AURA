@@ -77,7 +77,7 @@ export default function AboutPage() {
             animate={{ scale: 1, opacity: 1 }}
             className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center mx-auto shadow-2xl shadow-primary/20 aura-glow"
           >
-            <span className="text-4xl font-bold text-white">A</span>
+            <span className="text-4xl font-bold text-foreground">A</span>
           </motion.div>
           <div className="space-y-2">
             <h2 className="text-3xl font-semibold text-foreground tracking-tight">Aura</h2>

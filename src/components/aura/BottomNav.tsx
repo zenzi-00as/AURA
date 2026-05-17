@@ -41,7 +41,7 @@ export function BottomNav() {
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-white" : "text-muted-foreground hover:text-foreground"}`}
+              className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               aria-label={item.label}
             >
               {isActive && (
@@ -52,7 +52,7 @@ export function BottomNav() {
                 />
               )}
               <div className="relative z-10 flex items-center justify-center">
-                <item.icon size={22} className="relative z-10" />
+                <item.icon size={22} className={`relative z-10 ${isActive ? 'text-foreground' : ''}`} />
                 
                 {hasUpdate && !isActive && (
                   <motion.span
