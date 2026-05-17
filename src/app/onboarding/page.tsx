@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -49,21 +50,32 @@ export default function Onboarding() {
   }, []);
 
   const startCamera = async () => {
+    if (streamRef.current) return; // Already active
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } } 
+        video: { 
+          facingMode: "user", 
+          width: { ideal: 1024 }, 
+          height: { ideal: 1024 } 
+        } 
       });
       streamRef.current = stream;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setCameraActive(true);
+        // Ensure video plays
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.error("Video play failed:", e));
+        };
       }
+      setCameraActive(true);
     } catch (err) {
       console.error("Camera access error:", err);
       toast({ 
         variant: "destructive", 
         title: "Camera access denied", 
-        description: "Aura needs camera access for selfie verification." 
+        description: "Aura needs camera access for identity verification. Please check your browser permissions." 
       });
     }
   };
@@ -73,32 +85,43 @@ export default function Onboarding() {
       const context = canvasRef.current.getContext("2d");
       const video = videoRef.current;
       
-      const size = Math.min(video.videoWidth, video.videoHeight);
-      const startX = (video.videoWidth - size) / 2;
-      const startY = (video.videoHeight - size) / 2;
+      // Calculate square crop
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+      const size = Math.min(videoWidth, videoHeight);
+      const startX = (videoWidth - size) / 2;
+      const startY = (videoHeight - size) / 2;
       
       canvasRef.current.width = 512;
       canvasRef.current.height = 512;
       
-      context?.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
-      
-      const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8);
-      setFormData(prev => ({ ...prev, photo: dataUri }));
-      stopCamera();
+      if (context) {
+        // Draw image from video to canvas
+        context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
+        const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8);
+        setFormData(prev => ({ ...prev, photo: dataUri }));
+        stopCamera();
+      }
     }
   };
 
   const handleRetake = () => {
     setFormData(prev => ({ ...prev, photo: null }));
-    startCamera();
+    setTimeout(() => startCamera(), 100); // Small delay to ensure video element is ready
   };
 
-  // Auto-start camera when reaching Step 4
+  // Lifecycle management for the camera
   useEffect(() => {
     if (step === 4 && !formData.photo && !cameraActive) {
       startCamera();
     }
-    return () => stopCamera();
+    
+    // Cleanup camera if we move away from step 4 or if component unmounts
+    return () => {
+      if (step !== 4) {
+        stopCamera();
+      }
+    };
   }, [step, formData.photo, cameraActive, stopCamera]);
 
   const nextStep = async () => {
@@ -139,20 +162,22 @@ export default function Onboarding() {
             description: result.reason 
           });
           setFormData(prev => ({ ...prev, photo: null }));
+          startCamera();
         } else if (result.verificationStatus === 'Pending') {
           toast({ 
             title: "Verification Pending", 
-            description: "Your profile is under review, but you can explore Aura now." 
+            description: "Your profile is under review. You can start using Aura now." 
           });
           router.push("/dashboard");
         } else {
           toast({ 
             title: "Identity Verified", 
-            description: "Welcome to the community!" 
+            description: "Verification successful! Welcome to the community." 
           });
           router.push("/dashboard");
         }
       } catch (e) {
+        console.error("Verification error:", e);
         router.push("/dashboard");
       } finally {
         setLoading(false);
