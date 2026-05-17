@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, Info, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -171,6 +170,26 @@ export default function ProfilePage() {
         </div>
 
         <div className="space-y-3">
+          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Info size={18} />
+              </div>
+              <span className="font-medium text-white">{t('about')}</span>
+            </div>
+            <div className="text-muted-foreground">→</div>
+          </button>
+
+          <button className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <MessageSquare size={18} />
+              </div>
+              <span className="font-medium text-white">{t('feedback')}</span>
+            </div>
+            <div className="text-muted-foreground">→</div>
+          </button>
+
           <button 
             onClick={() => router.push('/privacy-safety')}
             className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 px-8 flex items-center justify-between group hover:bg-white/10 transition-colors"

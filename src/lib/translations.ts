@@ -60,6 +60,8 @@ export const translations = {
     reporting_desc: "How to report harassment or suspicious activity.",
     community_guidelines: "Community Guidelines",
     guidelines_desc: "Our standards for respect and authenticity.",
+    about: "About Aura",
+    feedback: "Feedback",
   },
   hi: {
     discovery: "खोजें",
@@ -111,6 +113,8 @@ export const translations = {
     reporting_desc: "परेशानी या संदिग्ध गतिविधि की रिपोर्ट कैसे करें।",
     community_guidelines: "सामुदायिक दिशानिर्देश",
     guidelines_desc: "सम्मान और प्रामाणिकता के हमारे मानक।",
+    about: "Aura के बारे में",
+    feedback: "प्रतिक्रिया",
   },
   es: {
     discovery: "Descubrimiento",
@@ -159,9 +163,11 @@ export const translations = {
     data_privacy: "Privacidad de Datos",
     data_privacy_desc: "Cómo protegemos y usamos tu información.",
     reporting: "Informar y Soporte",
-    reporting_desc: "Cómo reportar acoso o actividad sospechosa.",
+    reporting_desc: "Cómo reportar acoso o actividad sospeosa.",
     community_guidelines: "Normas de la Comunidad",
     guidelines_desc: "Nuestros estándares de respeto y autenticidad.",
+    about: "Acerca de Aura",
+    feedback: "Comentarios",
   },
   pt: {
     discovery: "Descoberta",
@@ -213,6 +219,8 @@ export const translations = {
     reporting_desc: "Como denunciar assédio ou atividade suspeita.",
     community_guidelines: "Diretrizes da Comunidade",
     guidelines_desc: "Nossos padrões de respeito e autenticidade.",
+    about: "Sobre a Aura",
+    feedback: "Feedback",
   },
   fr: {
     discovery: "Découverte",
@@ -264,6 +272,8 @@ export const translations = {
     reporting_desc: "Comment signaler un harcèlement ou une activité suspecte.",
     community_guidelines: "Règles de la Communauté",
     guidelines_desc: "Nos standards de respect et d'authenticité.",
+    about: "À propos d'Aura",
+    feedback: "Commentaires",
   },
   de: {
     discovery: "Entdeckung",
@@ -315,5 +325,7 @@ export const translations = {
     reporting_desc: "Wie man Belästigung oder verdächtige Aktivitäten meldet.",
     community_guidelines: "Community-Richtlinien",
     guidelines_desc: "Unsere Standards für Respekt und Authentizität.",
+    about: "Über Aura",
+    feedback: "Feedback",
   }
 };
