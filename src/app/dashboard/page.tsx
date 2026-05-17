@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, X, Check } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Info } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -27,6 +27,7 @@ const MOCK_USERS: UserProfile[] = [
     orientation: "Gay",
     verificationStatus: "Verified",
     distance: "350 meters away",
+    distanceKm: 0.35,
     lastActive: new Date(),
     online: true,
   },
@@ -39,6 +40,7 @@ const MOCK_USERS: UserProfile[] = [
     orientation: "Queer",
     verificationStatus: "Verified",
     distance: "1.4 km away",
+    distanceKm: 1.4,
     lastActive: new Date(),
     online: false,
   },
@@ -51,6 +53,7 @@ const MOCK_USERS: UserProfile[] = [
     orientation: "Gay",
     verificationStatus: "Pending",
     distance: "2.8 km away",
+    distanceKm: 2.8,
     lastActive: new Date(),
     online: true,
   },
@@ -63,15 +66,64 @@ const MOCK_USERS: UserProfile[] = [
     orientation: "Pansexual",
     verificationStatus: "Verified",
     distance: "5.2 km away",
+    distanceKm: 5.2,
+    lastActive: new Date(),
+    online: false,
+  },
+  {
+    uid: "5",
+    name: "Sam",
+    age: 31,
+    bio: "Urban gardener and part-time DJ. Let's talk plants and beats.",
+    gender: "Non-binary",
+    orientation: "Queer",
+    verificationStatus: "Verified",
+    distance: "12 km away",
+    distanceKm: 12,
+    lastActive: new Date(),
+    online: true,
+  },
+  {
+    uid: "6",
+    name: "Kai",
+    age: 19,
+    bio: "Fine arts student. Passionate about portraiture and analog film.",
+    gender: "Trans Man",
+    orientation: "Gay",
+    verificationStatus: "Verified",
+    distance: "8.5 km away",
+    distanceKm: 8.5,
     lastActive: new Date(),
     online: false,
   }
 ];
 
 export default function Dashboard() {
-  const [users] = useState<UserProfile[]>(MOCK_USERS);
-  const [distance, setDistance] = useState([10]);
+  const [distance, setDistance] = useState([15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // State for active filters that determine the list
+  const [activeFilters, setActiveFilters] = useState({
+    distance: 15,
+    ageRange: [18, 35]
+  });
+
+  const filteredUsers = useMemo(() => {
+    return MOCK_USERS.filter(user => {
+      const withinDistance = user.distanceKm <= activeFilters.distance;
+      const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
+      return withinDistance && withinAge;
+    });
+  }, [activeFilters]);
+
+  const handleApplyFilters = () => {
+    setActiveFilters({
+      distance: distance[0],
+      ageRange: ageRange
+    });
+    setIsOpen(false);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
@@ -83,7 +135,7 @@ export default function Dashboard() {
           <h1 className="text-xl font-semibold tracking-tight">Discovery</h1>
         </div>
         
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
               <SlidersHorizontal size={18} />
@@ -127,7 +179,10 @@ export default function Dashboard() {
               </div>
 
               <div className="pt-4 flex gap-3">
-                <Button className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20">
+                <Button 
+                  onClick={handleApplyFilters}
+                  className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
+                >
                   <Check className="mr-2" size={20} />
                   Apply Filters
                 </Button>
@@ -138,21 +193,59 @@ export default function Dashboard() {
       </header>
 
       <div className="px-6 space-y-6 overflow-y-auto">
-        <div className="px-2 pt-2 pb-1 flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
-          <Sparkles size={14} />
-          Verified Nearby
+        <div className="px-2 pt-2 pb-1 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
+            <Sparkles size={14} />
+            {filteredUsers.length > 0 ? "Verified Nearby" : "No results found"}
+          </div>
+          {filteredUsers.length > 0 && (
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+              {filteredUsers.length} found
+            </span>
+          )}
         </div>
         
-        {users.map((user, idx) => (
-          <motion.div
-            key={user.uid}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1, duration: 0.5, ease: "easeOut" }}
-          >
-            <AuraCard user={user} />
-          </motion.div>
-        ))}
+        <AnimatePresence mode="popLayout">
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user, idx) => (
+              <motion.div
+                key={user.uid}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <AuraCard user={user} />
+              </motion.div>
+            ))
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-20 text-center space-y-4"
+            >
+              <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                <Info size={32} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-white font-medium">No one matches your filters</p>
+                <p className="text-sm text-muted-foreground font-light">Try expanding your distance or age range.</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setDistance([100]);
+                  setAgeRange([18, 80]);
+                  setActiveFilters({ distance: 100, ageRange: [18, 80] });
+                }}
+                className="text-primary hover:text-primary hover:bg-primary/10"
+              >
+                Reset Filters
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <BottomNav />

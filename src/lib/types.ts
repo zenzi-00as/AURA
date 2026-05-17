@@ -9,6 +9,7 @@ export type UserProfile = {
   orientation: string;
   verificationStatus: VerificationStatus;
   distance: string; // Pre-calculated string like "350 meters away"
+  distanceKm: number; // Numeric value for filtering
   lastActive: Date;
   online: boolean;
 };
