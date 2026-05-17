@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Phone, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert } from "lucide-react";
+import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,10 +84,6 @@ export default function ChatRoom() {
     setInput("");
   };
 
-  const handleCall = () => {
-    window.location.href = "tel:+1234567890";
-  };
-
   const handleDeleteConversation = () => {
     toast({
       title: "Conversation Deleted",
@@ -142,13 +138,6 @@ export default function ChatRoom() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={handleCall}
-            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
-          >
-            <Phone size={18} />
-          </button>
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors focus:outline-none">
