@@ -1,11 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, MapPin, Heart, Pencil, Sparkles } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Local state for profile data
+  const [profile, setProfile] = useState({
+    name: "Alex",
+    age: 25,
+    bio: "Designing spaces and digital experiences. Looking for genuine connections in the city.",
+    gender: "Non-binary",
+    orientation: "Queer"
+  });
+
+  // Temporary state for the edit form
+  const [tempProfile, setTempProfile] = useState({ ...profile });
+
+  const handleSave = () => {
+    setProfile(tempProfile);
+    setIsEditing(false);
+    toast({
+      title: "Profile Updated",
+      description: "Your changes have been saved successfully.",
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
       <header className="px-8 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
@@ -28,7 +66,7 @@ export default function ProfilePage() {
           </div>
           
           <div className="space-y-1">
-            <h2 className="text-3xl font-semibold text-white">Alex, 25</h2>
+            <h2 className="text-3xl font-semibold text-white">{profile.name}, {profile.age}</h2>
             <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
               <Shield size={12} />
               Identity Verified
@@ -43,12 +81,75 @@ export default function ProfilePage() {
           <div className="space-y-4 relative">
             <div className="flex justify-between items-center">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">About Me</h3>
-              <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors">
-                <Pencil size={14} />
-              </button>
+              
+              <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogTrigger asChild>
+                  <button 
+                    onClick={() => setTempProfile({ ...profile })}
+                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+                  <DialogHeader className="space-y-3">
+                    <DialogTitle className="text-2xl font-semibold">Edit Profile</DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm font-light">
+                      Update your bio and identity details.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Bio</Label>
+                      <Textarea 
+                        value={tempProfile.bio}
+                        onChange={(e) => setTempProfile({ ...tempProfile, bio: e.target.value })}
+                        className="bg-white/5 border-white/10 rounded-2xl min-h-[120px] text-sm resize-none focus:ring-primary p-4"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gender</Label>
+                        <Input 
+                          value={tempProfile.gender}
+                          onChange={(e) => setTempProfile({ ...tempProfile, gender: e.target.value })}
+                          className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus:ring-primary"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Orientation</Label>
+                        <Input 
+                          value={tempProfile.orientation}
+                          onChange={(e) => setTempProfile({ ...tempProfile, orientation: e.target.value })}
+                          className="bg-white/5 border-white/10 rounded-xl h-11 text-sm focus:ring-primary"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="flex flex-col gap-3 sm:flex-col pt-2">
+                    <Button 
+                      onClick={handleSave}
+                      className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                    >
+                      <Check size={20} />
+                      Save Changes
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setIsEditing(false)}
+                      className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
             <p className="text-lg leading-relaxed text-white font-light">
-              Designing spaces and digital experiences. Looking for genuine connections in the city.
+              {profile.bio}
             </p>
           </div>
 
@@ -57,14 +158,14 @@ export default function ProfilePage() {
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gender</label>
               <div className="flex items-center gap-2 text-white">
                 <Heart size={14} className="text-primary" />
-                <span className="font-medium">Non-binary</span>
+                <span className="font-medium">{profile.gender}</span>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Orientation</label>
               <div className="flex items-center gap-2 text-white">
                 <Sparkles size={14} className="text-primary" />
-                <span className="font-medium">Queer</span>
+                <span className="font-medium">{profile.orientation}</span>
               </div>
             </div>
           </div>
