@@ -182,6 +182,7 @@ export default function ProfilePage() {
 
         <div className="space-y-3">
           {[
+            { label: t('settings'), path: '/settings', icon: Settings },
             { label: t('about'), path: '/about', icon: Info },
             { label: t('feedback'), path: '/feedback', icon: MessageSquare },
             { label: t('privacy_safety'), path: '/privacy-safety', icon: Shield },
