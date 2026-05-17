@@ -76,12 +76,12 @@ export default function PrivacySafetyPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
-      <header className="px-6 h-16 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
-        <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors">
+      <header className="px-6 h-16 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">{mounted ? t('privacy_safety') : "Privacy & Safety"}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{mounted ? t('privacy_safety') : "Privacy & Safety"}</h1>
       </header>
 
       <div className="p-6 space-y-8">
@@ -93,7 +93,7 @@ export default function PrivacySafetyPage() {
           >
             <Shield size={32} className="text-white" />
           </motion.div>
-          <h2 className="text-2xl font-semibold text-white">{mounted ? t('safety_center') : "Safety Center"}</h2>
+          <h2 className="text-2xl font-semibold text-foreground">{mounted ? t('safety_center') : "Safety Center"}</h2>
           <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
             {mounted ? t('safety_center_desc') : "Your safety is our priority. Explore our resources below."}
           </p>
@@ -101,14 +101,14 @@ export default function PrivacySafetyPage() {
 
         {/* Feature Highlights */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-3xl bg-white/[0.02] border border-white/5 space-y-2">
+          <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
             <Fingerprint className="text-primary" size={20} />
-            <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Verified Only</h4>
+            <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Verified Only</h4>
             <p className="text-[10px] text-muted-foreground font-light leading-snug">AI-checked identities to prevent bots.</p>
           </div>
-          <div className="p-4 rounded-3xl bg-white/[0.02] border border-white/5 space-y-2">
+          <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
             <Globe className="text-emerald-500" size={20} />
-            <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Global Safety</h4>
+            <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Global Safety</h4>
             <p className="text-[10px] text-muted-foreground font-light leading-snug">Resources for LGBTQ+ safety worldwide.</p>
           </div>
         </div>
@@ -120,17 +120,17 @@ export default function PrivacySafetyPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="glass-card rounded-[32px] overflow-hidden border border-white/5 bg-white/[0.01]"
+              className="glass-card rounded-[32px] overflow-hidden border border-border"
             >
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value={section.id} className="border-none">
-                  <AccordionTrigger className="px-6 py-6 hover:no-underline hover:bg-white/5 transition-colors">
+                  <AccordionTrigger className="px-6 py-6 hover:no-underline hover:bg-muted/50 transition-colors">
                     <div className="flex items-start gap-4 text-left">
-                      <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${section.color}`}>
+                      <div className={`w-12 h-12 rounded-2xl bg-muted flex items-center justify-center ${section.color}`}>
                         <section.icon size={22} />
                       </div>
                       <div className="space-y-1">
-                        <h3 className="font-semibold text-white">{section.title}</h3>
+                        <h3 className="font-semibold text-foreground">{section.title}</h3>
                         <p className="text-xs text-muted-foreground font-light leading-snug">
                           {section.description}
                         </p>
@@ -142,7 +142,7 @@ export default function PrivacySafetyPage() {
                       <div key={i} className="space-y-2">
                         <div className="flex items-center gap-2">
                           <CheckCircle2 size={14} className="text-primary" />
-                          <h4 className="text-sm font-medium text-white">{item.title}</h4>
+                          <h4 className="text-sm font-medium text-foreground">{item.title}</h4>
                         </div>
                         <p className="text-xs text-muted-foreground font-light leading-relaxed pl-6">
                           {item.desc}
@@ -175,10 +175,10 @@ export default function PrivacySafetyPage() {
           </div>
         </section>
 
-        <section className="glass-card p-8 rounded-[40px] border border-white/5 space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
           <div className="flex items-center gap-3 text-emerald-500">
             <HeartHandshake size={24} />
-            <h3 className="text-sm font-semibold text-white">Always With You</h3>
+            <h3 className="text-sm font-semibold text-foreground">Always With You</h3>
           </div>
           <p className="text-xs text-muted-foreground font-light leading-relaxed">
             Our safety team operates globally to ensure that your experience on Aura remains respectful and authentic, regardless of where you are in the world.
@@ -187,9 +187,9 @@ export default function PrivacySafetyPage() {
 
         <div className="pt-8 text-center space-y-2 pb-12">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Security Protocol v2.5.0</p>
-          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-white/10">
-            <button onClick={() => router.push('/terms')} className="hover:text-white transition-colors">Terms of Service</button>
-            <button onClick={() => router.push('/privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground underline decoration-border">
+            <button onClick={() => router.push('/terms')} className="hover:text-foreground transition-colors">Terms of Service</button>
+            <button onClick={() => router.push('/privacy')} className="hover:text-foreground transition-colors">Privacy Policy</button>
           </div>
         </div>
       </div>
