@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
@@ -100,6 +101,7 @@ const MOCK_USERS: UserProfile[] = [
 ];
 
 export default function Dashboard() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [distance, setDistance] = useState([15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
@@ -124,6 +126,10 @@ export default function Dashboard() {
       ageRange: ageRange
     });
     setIsOpen(false);
+  };
+
+  const handleUserClick = (uid: string) => {
+    router.push(`/chat/${uid}`);
   };
 
   return (
@@ -182,7 +188,7 @@ export default function Dashboard() {
               <div className="pt-4 flex gap-3">
                 <Button 
                   onClick={handleApplyFilters}
-                  className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
+                  className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   <Check className="mr-2" size={20} />
                   {t('apply_filters')}
@@ -217,7 +223,7 @@ export default function Dashboard() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                <AuraCard user={user} />
+                <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
               </motion.div>
             ))
           ) : (
