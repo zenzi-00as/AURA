@@ -62,7 +62,7 @@ export default function PrivacyPage() {
         <section className="glass-card p-6 rounded-3xl border border-border space-y-4">
           <h4 className="text-sm font-semibold text-foreground uppercase tracking-widest">Our Promise</h4>
           <p className="text-xs text-muted-foreground font-light leading-relaxed">
-            Aura does not sell your personal information. We do not use third-party trackers for advertising. Your privacy is a fundamental right, not a product.
+            Aura is built on a foundation of radical transparency. We promise to protect your digital autonomy and ensure that your experience is defined by real connections, not algorithmic manipulation or data exploitation.
           </p>
         </section>
 
