@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   User,
   Check,
-  Palette
+  Palette,
+  Mail
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -278,6 +279,22 @@ export default function SettingsPage() {
                 onCheckedChange={toggleTheme} 
               />
             </div>
+
+            <button 
+              onClick={() => window.location.href = "mailto:support@aura.com"}
+              className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <Mail size={18} />
+                </div>
+                <div className="text-left space-y-1">
+                  <h3 className="font-medium text-foreground">{t('email_support')}</h3>
+                  <p className="text-xs text-muted-foreground font-light">{t('email_support_desc')}</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
           </div>
         </section>
 
