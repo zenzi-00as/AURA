@@ -1,0 +1,39 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile information for Aura.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "bio": { "type": "string" },
+        "gender": { "type": "string" },
+        "orientation": { "type": "string" },
+        "verificationStatus": { "type": "string", "enum": ["Verified", "Pending", "Rejected"] },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "isOnline": { "type": "boolean" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["uid", "name", "age"]
+    }
+  },
+  "auth": {
+    "providers": ["phone"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "#/entities/UserProfile",
+      "description": "User profile documents."
+    }
+  }
+}

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI-powered identity verification tool.
@@ -37,7 +38,7 @@ const selfieVerificationPrompt = ai.definePrompt({
   name: 'selfieVerificationPrompt',
   input: { schema: SelfieVerificationInputSchema },
   output: { schema: SelfieVerificationOutputSchema },
-  model: 'googleai/gemini-2.5-flash-image', // Explicitly define the model for multimodal input
+  model: 'googleai/gemini-1.5-flash', // Use a stable model for vision-based verification
   prompt: `You are an expert identity verification system for a minimalist LGBTQ+ social app named Aura. Your primary goal is to ensure authenticity and prevent bots or fake profiles.
 
 Analyze the provided live selfie and compare it against the user's profile information.
@@ -60,7 +61,6 @@ User Profile:
 Selfie Photo:
 {{media url=photoDataUri}}`,
   config: {
-    responseModalities: ['TEXT'],
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',

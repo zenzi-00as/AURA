@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -18,97 +19,19 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
-
-const MOCK_USERS: UserProfile[] = [
-  {
-    uid: "1",
-    name: "Aarav",
-    age: 22,
-    bio: "Minimalist architect. Love digital art and late night coffee.",
-    gender: "Man",
-    orientation: "Gay",
-    verificationStatus: "Verified",
-    distance: "350 meters away",
-    distanceKm: 0.35,
-    lastActive: new Date(),
-    online: true,
-  },
-  {
-    uid: "2",
-    name: "Riyan",
-    age: 24,
-    bio: "Product designer from Berlin. Looking for meaningful conversations.",
-    gender: "Non-binary",
-    orientation: "Queer",
-    verificationStatus: "Verified",
-    distance: "1.4 km away",
-    distanceKm: 1.4,
-    lastActive: new Date(),
-    online: false,
-  },
-  {
-    uid: "3",
-    name: "Leo",
-    age: 26,
-    bio: "Jazz pianist. I appreciate good wine and better company.",
-    gender: "Man",
-    orientation: "Gay",
-    verificationStatus: "Pending",
-    distance: "2.8 km away",
-    distanceKm: 2.8,
-    lastActive: new Date(),
-    online: true,
-  },
-  {
-    uid: "4",
-    name: "Jordan",
-    age: 23,
-    bio: "Tech enthusiast. Always exploring new horizons.",
-    gender: "Genderfluid",
-    orientation: "Pansexual",
-    verificationStatus: "Verified",
-    distance: "5.2 km away",
-    distanceKm: 5.2,
-    lastActive: new Date(),
-    online: false,
-  },
-  {
-    uid: "5",
-    name: "Sam",
-    age: 31,
-    bio: "Urban gardener and part-time DJ. Let's talk plants and beats.",
-    gender: "Non-binary",
-    orientation: "Queer",
-    verificationStatus: "Verified",
-    distance: "12 km away",
-    distanceKm: 12,
-    lastActive: new Date(),
-    online: true,
-  },
-  {
-    uid: "6",
-    name: "Kai",
-    age: 19,
-    bio: "Fine arts student. Passionate about portraiture and analog film.",
-    gender: "Trans Man",
-    orientation: "Gay",
-    verificationStatus: "Verified",
-    distance: "8.5 km away",
-    distanceKm: 8.5,
-    lastActive: new Date(),
-    online: false,
-  }
-];
+import { useCollection, useFirestore, useUser } from "@/firebase";
+import { collection, query, where, limit } from "firebase/firestore";
 
 export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
+  const db = useFirestore();
+  const { user: authUser } = useUser();
+  
   const [distance, setDistance] = useState([15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
-  const [userOrientation, setUserOrientation] = useState<string | null>(null);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [liveUsers, setLiveUsers] = useState<UserProfile[]>(MOCK_USERS);
   
   const [activeFilters, setActiveFilters] = useState({
     distance: 15,
@@ -130,42 +53,39 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Simulate real-time updates for user status
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveUsers(prev => prev.map(user => ({
-        ...user,
-        online: Math.random() > 0.4,
-        lastActive: new Date()
-      })));
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  // Fetch real-time users from Firestore
+  const usersQuery = useMemo(() => {
+    if (!db) return null;
+    return query(
+      collection(db, "users"),
+      limit(20)
+    );
+  }, [db]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('aura_user_orientation');
-      setUserOrientation(saved);
-    }
-  }, []);
+  const { data: firestoreUsers, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const filteredUsers = useMemo(() => {
-    return liveUsers.filter(user => {
-      const withinDistance = user.distanceKm <= activeFilters.distance;
+    if (!firestoreUsers) return [];
+    
+    return firestoreUsers.filter(user => {
+      // Don't show current user
+      if (authUser && user.uid === authUser.uid) return false;
+
       const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
       
-      let matchesOrientation = true;
-      if (userOrientation && userOrientation !== 'Pansexual' && userOrientation !== 'Queer') {
-        matchesOrientation = user.orientation === userOrientation || 
-                             user.orientation === 'Pansexual' || 
-                             user.orientation === 'Queer' ||
-                             (userOrientation === 'Gay' && (user.orientation === 'Bisexual' || user.orientation === 'Queer')) ||
-                             (userOrientation === 'Lesbian' && (user.orientation === 'Bisexual' || user.orientation === 'Queer'));
+      // Basic distance filter if locations are available
+      let withinDistance = true;
+      if (currentLocation && user.location) {
+        const d = Math.sqrt(
+          Math.pow(user.location.lat - currentLocation.lat, 2) + 
+          Math.pow(user.location.lng - currentLocation.lng, 2)
+        ) * 111; // Crude km approximation
+        withinDistance = d <= activeFilters.distance;
       }
 
-      return withinDistance && withinAge && matchesOrientation;
+      return withinDistance && withinAge;
     });
-  }, [activeFilters, userOrientation, liveUsers]);
+  }, [firestoreUsers, activeFilters, authUser, currentLocation]);
 
   const handleApplyFilters = () => {
     setActiveFilters({
@@ -254,60 +174,70 @@ export default function Dashboard() {
         </Sheet>
       </header>
 
-      <div className="px-6 space-y-6 overflow-y-auto">
-        <div className="px-2 pt-4 pb-1 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
-            <Sparkles size={14} />
-            {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
+      <div className="px-6 space-y-6 overflow-y-auto pt-4">
+        {usersLoading ? (
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-40 w-full rounded-[32px] bg-muted animate-pulse" />
+            ))}
           </div>
-          {filteredUsers.length > 0 && (
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-              {filteredUsers.length} {t('found')}
-            </span>
-          )}
-        </div>
-        
-        <AnimatePresence mode="popLayout">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user, idx) => (
-              <motion.div
-                key={user.uid}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
-              </motion.div>
-            ))
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-20 text-center space-y-4"
-            >
-              <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
-                <Info size={32} />
+        ) : (
+          <>
+            <div className="px-2 pt-4 pb-1 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
+                <Sparkles size={14} />
+                {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
               </div>
-              <div className="space-y-1">
-                <p className="text-foreground font-medium">{t('no_results')}</p>
-                <p className="text-sm text-muted-foreground font-light">{t('try_expanding')}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setDistance([100]);
-                  setAgeRange([18, 80]);
-                  setActiveFilters({ distance: 100, ageRange: [18, 80] });
-                }}
-                className="text-primary hover:text-primary hover:bg-primary/10"
-              >
-                {t('reset_filters')}
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {filteredUsers.length > 0 && (
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                  {filteredUsers.length} {t('found')}
+                </span>
+              )}
+            </div>
+            
+            <AnimatePresence mode="popLayout">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <motion.div
+                    key={user.uid}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center py-20 text-center space-y-4"
+                >
+                  <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
+                    <Info size={32} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-foreground font-medium">{t('no_results')}</p>
+                    <p className="text-sm text-muted-foreground font-light">{t('try_expanding')}</p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      setDistance([100]);
+                      setAgeRange([18, 80]);
+                      setActiveFilters({ distance: 100, ageRange: [18, 80] });
+                    }}
+                    className="text-primary hover:text-primary hover:bg-primary/10"
+                  >
+                    {t('reset_filters')}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
       </div>
 
       <BottomNav />

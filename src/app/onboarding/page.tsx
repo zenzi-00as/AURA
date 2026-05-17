@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -10,6 +11,10 @@ import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw } from "lucid
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useFirestore, useUser } from "@/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const GENDER_OPTIONS = [
   "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
@@ -26,6 +31,8 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const db = useFirestore();
+  const { user: authUser } = useUser();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -124,6 +131,34 @@ export default function Onboarding() {
     };
   }, [step, formData.photo, cameraActive, stopCamera, loading]);
 
+  const saveProfileToFirestore = async (uid: string, verificationStatus: string) => {
+    if (!db) return;
+    
+    const userRef = doc(db, "users", uid);
+    const profileData = {
+      uid,
+      name: formData.name,
+      bio: formData.bio,
+      gender: formData.gender,
+      orientation: formData.orientation,
+      age: parseInt(formData.age),
+      verificationStatus,
+      lastActive: serverTimestamp(),
+      isOnline: true,
+      location: null // Location can be added later
+    };
+
+    setDoc(userRef, profileData, { merge: true })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'write',
+          requestResourceData: profileData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+  };
+
   const nextStep = async () => {
     if (step === 1) {
       const ageNum = parseInt(formData.age);
@@ -149,10 +184,6 @@ export default function Onboarding() {
       
       setLoading(true);
       try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('aura_user_orientation', formData.orientation);
-        }
-
         const result = await selfieVerification({
           photoDataUri: formData.photo,
           userName: formData.name,
@@ -167,21 +198,31 @@ export default function Onboarding() {
           });
           setFormData(prev => ({ ...prev, photo: null }));
           startCamera();
-        } else if (result.verificationStatus === 'Pending') {
-          toast({ 
-            title: "Verification Pending", 
-            description: "Your profile is under review. You can start using Aura now." 
-          });
-          router.push("/dashboard");
         } else {
-          toast({ 
-            title: "Identity Verified", 
-            description: "Verification successful! Welcome to the community." 
-          });
+          // Save profile regardless of Verified/Pending for MVP
+          if (authUser) {
+            await saveProfileToFirestore(authUser.uid, result.verificationStatus);
+          }
+          
+          if (result.verificationStatus === 'Pending') {
+            toast({ 
+              title: "Verification Pending", 
+              description: "Your profile is under review. You can start using Aura now." 
+            });
+          } else {
+            toast({ 
+              title: "Identity Verified", 
+              description: "Verification successful! Welcome to the community." 
+            });
+          }
           router.push("/dashboard");
         }
       } catch (e) {
         console.error("Verification error:", e);
+        // Fallback for demo purposes if GenAI fails
+        if (authUser) {
+          await saveProfileToFirestore(authUser.uid, 'Pending');
+        }
         router.push("/dashboard");
       } finally {
         setLoading(false);
