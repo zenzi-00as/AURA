@@ -184,7 +184,7 @@ export default function ChatRoom() {
       </div>
 
       {/* Input */}
-      <div className="p-6 bg-[#0C0B0D]/80 backdrop-blur-xl border-t border-white/5 pb-10">
+      <div className="p-4 bg-[#0C0B0D]/80 backdrop-blur-xl border-t border-white/5 pb-8">
         <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
             <Input
@@ -192,7 +192,7 @@ export default function ChatRoom() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Send a private message..."
-              className="h-14 bg-white/5 border-white/10 rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
+              className="h-12 bg-white/5 border-white/10 rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
               Secure
@@ -201,9 +201,9 @@ export default function ChatRoom() {
           <Button 
             onClick={handleSend}
             disabled={!input.trim()}
-            className="w-14 h-14 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"
+            className="w-12 h-12 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"
           >
-            <Send size={20} className="text-white ml-0.5" />
+            <Send size={18} className="text-white ml-0.5" />
           </Button>
         </div>
       </div>
