@@ -141,7 +141,7 @@ export default function ProfilePage() {
                   <DialogFooter className="flex flex-col gap-3 pt-2">
                     <Button 
                       onClick={handleSave}
-                      className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                      className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                     >
                       <Check size={20} />
                       {t('save_changes')}
@@ -229,7 +229,7 @@ export default function ProfilePage() {
               <AlertDialogFooter className="flex flex-col gap-3 pt-4">
                 <AlertDialogAction 
                   onClick={() => router.push('/auth')}
-                  className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground font-medium text-lg shadow-lg shadow-primary/20"
+                  className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   {t('sign_out')}
                 </AlertDialogAction>

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Info } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Info, MapPin } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -107,11 +107,40 @@ export default function Dashboard() {
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
   const [userOrientation, setUserOrientation] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [liveUsers, setLiveUsers] = useState<UserProfile[]>(MOCK_USERS);
   
   const [activeFilters, setActiveFilters] = useState({
     distance: 15,
     ageRange: [18, 35]
   });
+
+  // Fetch real-time geolocation
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.log("Location access denied or unavailable", error)
+      );
+    }
+  }, []);
+
+  // Simulate real-time updates for user status
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveUsers(prev => prev.map(user => ({
+        ...user,
+        online: Math.random() > 0.4,
+        lastActive: new Date()
+      })));
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -121,7 +150,7 @@ export default function Dashboard() {
   }, []);
 
   const filteredUsers = useMemo(() => {
-    return MOCK_USERS.filter(user => {
+    return liveUsers.filter(user => {
       const withinDistance = user.distanceKm <= activeFilters.distance;
       const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
       
@@ -136,7 +165,7 @@ export default function Dashboard() {
 
       return withinDistance && withinAge && matchesOrientation;
     });
-  }, [activeFilters, userOrientation]);
+  }, [activeFilters, userOrientation, liveUsers]);
 
   const handleApplyFilters = () => {
     setActiveFilters({
@@ -153,11 +182,19 @@ export default function Dashboard() {
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
       <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl fuchsia-gradient flex items-center justify-center">
-            <span className="text-white font-bold text-xs">A</span>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl fuchsia-gradient flex items-center justify-center">
+              <span className="text-white font-bold text-xs">A</span>
+            </div>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
+          {currentLocation && (
+            <div className="flex items-center gap-1 mt-1 px-1">
+              <MapPin size={10} className="text-primary" />
+              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">Live: {currentLocation.lat.toFixed(2)}, {currentLocation.lng.toFixed(2)}</span>
+            </div>
+          )}
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -218,7 +255,7 @@ export default function Dashboard() {
       </header>
 
       <div className="px-6 space-y-6 overflow-y-auto">
-        <div className="px-2 pt-2 pb-1 flex items-center justify-between">
+        <div className="px-2 pt-4 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
             <Sparkles size={14} />
             {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
