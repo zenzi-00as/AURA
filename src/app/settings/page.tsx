@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -14,7 +14,6 @@ import {
   Smartphone,
   ChevronRight,
   AlertTriangle,
-  X,
   User
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -55,6 +54,27 @@ export default function SettingsPage() {
   });
   const [blockedUsers, setBlockedUsers] = useState(MOCK_BLOCKED_USERS);
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
+  
+  // Sign out timer state
+  const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
+  const [signOutCountdown, setSignOutCountdown] = useState(5);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isSignOutDialogOpen && signOutCountdown > 0) {
+      interval = setInterval(() => {
+        setSignOutCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isSignOutDialogOpen && signOutCountdown === 0) {
+      router.push("/auth");
+    }
+    return () => clearInterval(interval);
+  }, [isSignOutDialogOpen, signOutCountdown, router]);
+
+  const handleSignOutClick = () => {
+    setSignOutCountdown(5);
+    setIsSignOutDialogOpen(true);
+  };
 
   const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -215,15 +235,71 @@ export default function SettingsPage() {
         <section className="space-y-4 pt-4">
           <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">Account Actions</h2>
           <div className="space-y-2">
-            <button 
-              onClick={() => router.push("/auth")}
-              className="w-full flex items-center gap-4 p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white group"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
-                <LogOut size={18} />
-              </div>
-              <span className="font-medium">Sign Out</span>
-            </button>
+            <Dialog open={isSignOutDialogOpen} onOpenChange={setIsSignOutDialogOpen}>
+              <DialogTrigger asChild>
+                <button 
+                  onClick={handleSignOutClick}
+                  className="w-full flex items-center gap-4 p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white group"
+                >
+                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
+                    <LogOut size={18} />
+                  </div>
+                  <span className="font-medium">Sign Out</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+                <DialogHeader className="space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                    <LogOut size={32} />
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <DialogTitle className="text-2xl font-semibold">Signing Out</DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
+                      You will login at any time with the same number you used to join Aura.
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+                
+                <div className="py-6 flex flex-col items-center justify-center space-y-4">
+                  <div className="relative w-24 h-24 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="44"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="transparent"
+                        className="text-white/5"
+                      />
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="44"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="transparent"
+                        strokeDasharray={276}
+                        strokeDashoffset={276 - (276 * signOutCountdown) / 5}
+                        className="text-primary transition-all duration-1000 ease-linear"
+                      />
+                    </svg>
+                    <span className="absolute text-3xl font-bold">{signOutCountdown}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Secure Redirect</p>
+                </div>
+
+                <div className="pt-2">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsSignOutDialogOpen(false)}
+                    className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             <AlertDialog>
               <AlertDialogTrigger asChild>
