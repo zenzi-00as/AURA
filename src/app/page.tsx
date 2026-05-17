@@ -1,21 +1,28 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useUser } from "@/firebase";
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useUser();
 
   useEffect(() => {
-    // Simulate auth check
-    const timer = setTimeout(() => {
-      setLoading(false);
-      router.push("/auth");
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [router]);
+    // Wait for the auth state to be determined before redirecting
+    if (!loading) {
+      const timer = setTimeout(() => {
+        if (user) {
+          router.push("/dashboard");
+        } else {
+          router.push("/auth");
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading, router]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden">

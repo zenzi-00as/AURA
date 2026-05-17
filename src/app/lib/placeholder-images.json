@@ -1,0 +1,17 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "aura-hero",
+      "description": "Abstract colorful gradient representing identity",
+      "imageUrl": "https://picsum.photos/seed/aura1/800/600",
+      "imageHint": "abstract gradient"
+    },
+    {
+      "id": "user-avatar-placeholder",
+      "description": "Generic user avatar placeholder",
+      "imageUrl": "https://picsum.photos/seed/user/200/200",
+      "imageHint": "user profile"
+    }
+  ]
+}
