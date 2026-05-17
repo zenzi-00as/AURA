@@ -14,7 +14,8 @@ import {
   Smartphone,
   ChevronRight,
   AlertTriangle,
-  User
+  User,
+  Check
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/context/LanguageContext";
+import { LANGUAGES, Language } from "@/lib/translations";
 
 const MOCK_BLOCKED_USERS = [
   { id: "b1", name: "Stranger12", date: "2 days ago" },
@@ -47,6 +50,8 @@ const MOCK_BLOCKED_USERS = [
 export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t, language, setLanguage } = useTranslation();
+  
   const [settings, setSettings] = useState({
     notifications: true,
     marketing: false,
@@ -54,8 +59,8 @@ export default function SettingsPage() {
   });
   const [blockedUsers, setBlockedUsers] = useState(MOCK_BLOCKED_USERS);
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   
-  // Sign out timer state
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
 
@@ -97,21 +102,22 @@ export default function SettingsPage() {
     router.push("/auth");
   };
 
+  const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-12">
       <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-[#0C0B0D]/80 backdrop-blur-xl sticky top-0 z-20">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-white transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">Settings</h1>
+        <h1 className="text-xl font-semibold text-white">{t('settings')}</h1>
       </header>
 
       <div className="p-6 space-y-8">
-        {/* Privacy Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Shield size={14} className="text-primary" />
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Privacy & Safety</h2>
+            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('privacy_safety')}</h2>
           </div>
           <div className="space-y-2">
             <Dialog open={isBlockedListOpen} onOpenChange={setIsBlockedListOpen}>
@@ -122,7 +128,7 @@ export default function SettingsPage() {
                       <UserX size={18} />
                     </div>
                     <div className="text-left">
-                      <h3 className="font-medium text-white">Blocked Users</h3>
+                      <h3 className="font-medium text-white">{t('blocked_users')}</h3>
                       <p className="text-xs text-muted-foreground font-light">Manage who can't contact you.</p>
                     </div>
                   </div>
@@ -131,7 +137,7 @@ export default function SettingsPage() {
               </DialogTrigger>
               <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                 <DialogHeader className="space-y-3">
-                  <DialogTitle className="text-2xl font-semibold">Blocked Users</DialogTitle>
+                  <DialogTitle className="text-2xl font-semibold">{t('blocked_users')}</DialogTitle>
                   <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
                     People in this list won't be able to message you or see your profile on Aura.
                   </DialogDescription>
@@ -184,7 +190,7 @@ export default function SettingsPage() {
                     onClick={() => setIsBlockedListOpen(false)}
                     className="w-full h-14 rounded-2xl bg-white/5 text-white font-medium text-lg hover:bg-white/10 transition-colors"
                   >
-                    Close
+                    {t('cancel')}
                   </Button>
                 </div>
               </DialogContent>
@@ -192,16 +198,15 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Notifications Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Bell size={14} className="text-secondary" />
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Notifications</h2>
+            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('notifications')}</h2>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5">
               <div className="space-y-1">
-                <h3 className="font-medium text-white">Push Notifications</h3>
+                <h3 className="font-medium text-white">{t('push_notifications')}</h3>
                 <p className="text-xs text-muted-foreground font-light">Alerts for messages and activity.</p>
               </div>
               <Switch 
@@ -212,28 +217,53 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* App Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Smartphone size={14} className="text-muted-foreground" />
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">General</h2>
+            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('general')}</h2>
           </div>
           <div className="space-y-2">
-            <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors text-white font-medium">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
-                  <Globe size={18} />
+            <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
+              <DialogTrigger asChild>
+                <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors text-white font-medium">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
+                      <Globe size={18} />
+                    </div>
+                    <span>{t('language')}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{currentLang.name}</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-semibold text-center">{t('language')}</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-1 gap-2 py-4">
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setIsLanguageOpen(false);
+                      }}
+                      className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${language === lang.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"}`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span>{lang.flag}</span>
+                        <span className="font-medium">{lang.name}</span>
+                      </span>
+                      {language === lang.code && <Check size={18} />}
+                    </button>
+                  ))}
                 </div>
-                <span>Language</span>
-              </div>
-              <span className="text-xs text-muted-foreground">English</span>
-            </button>
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
 
-        {/* Danger Zone */}
         <section className="space-y-4 pt-4">
-          <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">Account Actions</h2>
+          <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">{t('account_actions')}</h2>
           <div className="space-y-2">
             <Dialog open={isSignOutDialogOpen} onOpenChange={setIsSignOutDialogOpen}>
               <DialogTrigger asChild>
@@ -244,7 +274,7 @@ export default function SettingsPage() {
                   <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
                     <LogOut size={18} />
                   </div>
-                  <span className="font-medium">Sign Out</span>
+                  <span className="font-medium">{t('sign_out')}</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
@@ -253,7 +283,7 @@ export default function SettingsPage() {
                     <LogOut size={32} />
                   </div>
                   <div className="space-y-2 text-center">
-                    <DialogTitle className="text-2xl font-semibold">Signing Out</DialogTitle>
+                    <DialogTitle className="text-2xl font-semibold">{t('sign_out')}</DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
                       You will login at any time with the same number you used to join Aura.
                     </DialogDescription>
@@ -295,7 +325,7 @@ export default function SettingsPage() {
                     onClick={() => setIsSignOutDialogOpen(false)}
                     className="w-full h-12 rounded-xl text-muted-foreground hover:text-white transition-colors"
                   >
-                    Cancel
+                    {t('cancel')}
                   </Button>
                 </div>
               </DialogContent>
@@ -307,7 +337,7 @@ export default function SettingsPage() {
                   <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
                     <Trash2 size={18} />
                   </div>
-                  <span className="font-medium">Delete Account</span>
+                  <span className="font-medium">{t('delete_account')}</span>
                 </button>
               </AlertDialogTrigger>
               <AlertDialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
@@ -330,7 +360,7 @@ export default function SettingsPage() {
                     Delete Permanently
                   </AlertDialogAction>
                   <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:text-white transition-colors">
-                    Cancel
+                    {t('cancel')}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>

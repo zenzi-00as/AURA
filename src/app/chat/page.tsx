@@ -1,10 +1,10 @@
-
 "use client";
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, MessageSquare, Search, Edit3 } from "lucide-react";
+import { BadgeCheck, Search, Edit3 } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 const MOCK_CHATS = [
   { id: "1", name: "Aarav", age: 22, lastMsg: "Maybe we can grab a coffee sometime?", time: "2:44 PM", verified: true, unread: true },
@@ -14,6 +14,7 @@ const MOCK_CHATS = [
 
 export default function ChatList() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
@@ -22,7 +23,7 @@ export default function ChatList() {
           <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
             <span className="text-white font-bold text-sm">A</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">Messages</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">{t('messages')}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">

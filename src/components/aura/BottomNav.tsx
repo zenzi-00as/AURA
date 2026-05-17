@@ -3,16 +3,18 @@
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Compass, MessageCircle, User, Bell } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const navItems = [
-    { icon: Compass, path: "/dashboard", label: "Discovery" },
-    { icon: MessageCircle, path: "/chat", label: "Chats" },
-    { icon: Bell, path: "/notifications", label: "Alerts" },
-    { icon: User, path: "/profile", label: "Me" },
+    { icon: Compass, path: "/dashboard", label: t('discovery') },
+    { icon: MessageCircle, path: "/chat", label: t('chats') },
+    { icon: Bell, path: "/notifications", label: t('alerts') },
+    { icon: User, path: "/profile", label: t('me') },
   ];
 
   return (
@@ -25,6 +27,7 @@ export function BottomNav() {
               key={item.path}
               onClick={() => router.push(item.path)}
               className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-white" : "text-muted-foreground hover:text-white"}`}
+              aria-label={item.label}
             >
               {isActive && (
                 <motion.div

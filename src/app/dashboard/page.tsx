@@ -16,6 +16,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/context/LanguageContext";
 
 const MOCK_USERS: UserProfile[] = [
   {
@@ -99,11 +100,11 @@ const MOCK_USERS: UserProfile[] = [
 ];
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [distance, setDistance] = useState([15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
   
-  // State for active filters that determine the list
   const [activeFilters, setActiveFilters] = useState({
     distance: 15,
     ageRange: [18, 35]
@@ -132,7 +133,7 @@ export default function Dashboard() {
           <div className="w-8 h-8 rounded-xl fuchsia-gradient flex items-center justify-center">
             <span className="text-white font-bold text-xs">A</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight">Discovery</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('discovery')}</h1>
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -144,14 +145,14 @@ export default function Dashboard() {
           <SheetContent side="bottom" className="bg-[#1A181C] border-white/5 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
             <SheetHeader className="mb-8">
               <div className="flex items-center justify-between">
-                <SheetTitle className="text-2xl font-semibold text-white">Discovery Filters</SheetTitle>
+                <SheetTitle className="text-2xl font-semibold text-white">{t('filters')}</SheetTitle>
               </div>
             </SheetHeader>
             
             <div className="space-y-10">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Maximum Distance</Label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">{t('max_distance')}</Label>
                   <span className="text-primary font-semibold text-sm">{distance[0]} km</span>
                 </div>
                 <Slider 
@@ -165,7 +166,7 @@ export default function Dashboard() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Age Range</Label>
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">{t('age_range')}</Label>
                   <span className="text-primary font-semibold text-sm">{ageRange[0]} - {ageRange[1]}</span>
                 </div>
                 <Slider 
@@ -184,7 +185,7 @@ export default function Dashboard() {
                   className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   <Check className="mr-2" size={20} />
-                  Apply Filters
+                  {t('apply_filters')}
                 </Button>
               </div>
             </div>
@@ -196,11 +197,11 @@ export default function Dashboard() {
         <div className="px-2 pt-2 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
             <Sparkles size={14} />
-            {filteredUsers.length > 0 ? "Verified Nearby" : "No results found"}
+            {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
           </div>
           {filteredUsers.length > 0 && (
             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-              {filteredUsers.length} found
+              {filteredUsers.length} {t('found')}
             </span>
           )}
         </div>
@@ -229,8 +230,8 @@ export default function Dashboard() {
                 <Info size={32} />
               </div>
               <div className="space-y-1">
-                <p className="text-white font-medium">No one matches your filters</p>
-                <p className="text-sm text-muted-foreground font-light">Try expanding your distance or age range.</p>
+                <p className="text-white font-medium">{t('no_results')}</p>
+                <p className="text-sm text-muted-foreground font-light">{t('try_expanding')}</p>
               </div>
               <Button 
                 variant="ghost" 
@@ -241,7 +242,7 @@ export default function Dashboard() {
                 }}
                 className="text-primary hover:text-primary hover:bg-primary/10"
               >
-                Reset Filters
+                {t('reset_filters')}
               </Button>
             </motion.div>
           )}
