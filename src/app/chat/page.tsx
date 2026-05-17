@@ -1,9 +1,10 @@
+
 "use client";
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, MessageSquare } from "lucide-react";
+import { BadgeCheck, MessageSquare, Search, Edit3 } from "lucide-react";
 
 const MOCK_CHATS = [
   { id: "1", name: "Aarav", age: 22, lastMsg: "Maybe we can grab a coffee sometime?", time: "2:44 PM", verified: true, unread: true },
@@ -16,16 +17,21 @@ export default function ChatList() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#0C0B0D] pb-32">
-      <header className="px-8 pt-12 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl fuchsia-gradient flex items-center justify-center">
-            <span className="text-white font-bold text-xs">A</span>
+      <header className="px-8 pt-16 pb-6 flex justify-between items-center sticky top-0 bg-[#0C0B0D]/80 backdrop-blur-xl z-20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+            <span className="text-white font-bold text-sm">A</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight">Messages</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Messages</h1>
         </div>
-        <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
-          <MessageSquare size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
+            <Search size={18} />
+          </button>
+          <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
+            <Edit3 size={18} />
+          </button>
+        </div>
       </header>
 
       <div className="px-6 space-y-2">
