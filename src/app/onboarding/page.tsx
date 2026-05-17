@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw } from "lucide-react";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const GENDER_OPTIONS = [
   "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
@@ -62,13 +63,6 @@ export default function Onboarding() {
         } 
       });
       streamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(e => console.error("Video play failed:", e));
-        };
-      }
       setCameraActive(true);
     } catch (err) {
       console.error("Camera access error:", err);
@@ -79,6 +73,14 @@ export default function Onboarding() {
       });
     }
   };
+
+  // Effect to handle camera stream attachment
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(e => console.error("Video play failed:", e));
+    }
+  }, [cameraActive]);
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
@@ -113,7 +115,8 @@ export default function Onboarding() {
   };
 
   useEffect(() => {
-    if (step === 4 && !formData.photo && !cameraActive) {
+    // Automatically start camera on step 4
+    if (step === 4 && !formData.photo && !cameraActive && !loading) {
       startCamera();
     }
     
@@ -122,7 +125,7 @@ export default function Onboarding() {
         stopCamera();
       }
     };
-  }, [step, formData.photo, cameraActive, stopCamera]);
+  }, [step, formData.photo, cameraActive, stopCamera, loading]);
 
   const nextStep = async () => {
     if (step === 1) {
@@ -178,6 +181,7 @@ export default function Onboarding() {
         }
       } catch (e) {
         console.error("Verification error:", e);
+        // Fallback to dashboard on error to prevent blocking users
         router.push("/dashboard");
       } finally {
         setLoading(false);
@@ -314,21 +318,27 @@ export default function Onboarding() {
                     alt="Selfie" 
                     className="w-full h-full object-cover" 
                   />
-                ) : cameraActive ? (
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="w-full h-full object-cover scale-x-[-1]" 
-                  />
                 ) : (
-                  <div className="text-center p-8 space-y-4">
-                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
-                      <ShieldCheck size={40} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Verification is instant and private.</p>
-                  </div>
+                  <>
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      playsInline 
+                      muted 
+                      className={cn(
+                        "w-full h-full object-cover scale-x-[-1]",
+                        !cameraActive && "hidden"
+                      )} 
+                    />
+                    {!cameraActive && (
+                      <div className="text-center p-8 space-y-4">
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                          <ShieldCheck size={40} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Initializing secure camera...</p>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 {loading && (
@@ -343,17 +353,14 @@ export default function Onboarding() {
 
               <div className="flex flex-col gap-3">
                 {!formData.photo ? (
-                  cameraActive ? (
-                    <Button onClick={capturePhoto} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
-                      <Camera className="mr-2" size={20} />
-                      Capture Selfie
-                    </Button>
-                  ) : (
-                    <Button onClick={startCamera} className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 text-white text-lg font-medium hover:bg-white/10 transition-colors">
-                      <Camera className="mr-2" size={20} />
-                      Open Camera
-                    </Button>
-                  )
+                  <Button 
+                    onClick={capturePhoto} 
+                    disabled={!cameraActive || loading}
+                    className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20"
+                  >
+                    <Camera className="mr-2" size={20} />
+                    Capture Selfie
+                  </Button>
                 ) : (
                   <button 
                     onClick={handleRetake} 
