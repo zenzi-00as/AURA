@@ -51,7 +51,7 @@ export default function AuthPage() {
   const isPhoneValid = phone.length === selectedCountry.length;
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden">
+    <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
       <div className="mb-12">
@@ -154,7 +154,7 @@ export default function AuthPage() {
           {step === "otp" && (
             <button 
               onClick={() => setStep("phone")}
-              className="w-full text-center text-sm text-foreground hover:text-primary transition-colors font-medium"
+              className="w-full text-center text-sm text-foreground hover:text-primary transition-colors font-bold"
             >
               Change number
             </button>
