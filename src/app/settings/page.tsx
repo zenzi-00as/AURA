@@ -13,15 +13,28 @@ import {
   Trash2, 
   Globe, 
   Smartphone,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [settings, setSettings] = useState({
-    ghostMode: false,
     notifications: true,
     marketing: false,
     privateProfile: false,
@@ -29,6 +42,16 @@ export default function SettingsPage() {
 
   const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleDeleteAccount = () => {
+    // Simulate account deletion
+    toast({
+      variant: "destructive",
+      title: "Account Deleted",
+      description: "Your account and all associated data have been permanently removed.",
+    });
+    router.push("/auth");
   };
 
   return (
@@ -48,17 +71,6 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Privacy & Safety</h2>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5">
-              <div className="space-y-1">
-                <h3 className="font-medium text-white">Ghost Mode</h3>
-                <p className="text-xs text-muted-foreground font-light">Hide your distance from others.</p>
-              </div>
-              <Switch 
-                checked={settings.ghostMode} 
-                onCheckedChange={() => toggleSetting('ghostMode')} 
-              />
-            </div>
-            
             <button className="w-full flex items-center justify-between p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-white/10 transition-colors">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground">
@@ -117,19 +129,50 @@ export default function SettingsPage() {
         <section className="space-y-4 pt-4">
           <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">Account Actions</h2>
           <div className="space-y-2">
-            <button className="w-full flex items-center gap-4 p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white group">
+            <button 
+              onClick={() => router.push("/auth")}
+              className="w-full flex items-center gap-4 p-6 bg-white/5 rounded-[32px] border border-white/5 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-white group"
+            >
               <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors">
                 <LogOut size={18} />
               </div>
               <span className="font-medium">Sign Out</span>
             </button>
             
-            <button className="w-full flex items-center gap-4 p-6 bg-rose-500/5 rounded-[32px] border border-rose-500/10 hover:bg-rose-500/10 transition-all text-rose-500 group">
-              <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
-                <Trash2 size={18} />
-              </div>
-              <span className="font-medium">Delete Account</span>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="w-full flex items-center gap-4 p-6 bg-rose-500/5 rounded-[32px] border border-rose-500/10 hover:bg-rose-500/10 transition-all text-rose-500 group">
+                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                    <Trash2 size={18} />
+                  </div>
+                  <span className="font-medium">Delete Account</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-[#1A181C] border-white/10 text-white rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
+                <AlertDialogHeader className="space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
+                    <AlertTriangle size={32} />
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <AlertDialogTitle className="text-2xl font-semibold">Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
+                      This action is permanent and cannot be undone. All your messages, matches, and profile data will be scrubbed from Aura.
+                    </AlertDialogDescription>
+                  </div>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col pt-4">
+                  <AlertDialogAction 
+                    onClick={handleDeleteAccount}
+                    className="w-full h-14 rounded-2xl bg-destructive text-destructive-foreground font-medium text-lg hover:bg-destructive/90 transition-colors"
+                  >
+                    Delete Permanently
+                  </AlertDialogAction>
+                  <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:text-white transition-colors">
+                    Cancel
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </section>
 
