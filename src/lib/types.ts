@@ -33,3 +33,15 @@ export type ChatRoom = {
   lastTimestamp?: any;
   typingUser?: string;
 };
+
+export type NotificationType = 'verification' | 'proximity' | 'message';
+
+export type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  timestamp: any;
+  read: boolean;
+};
