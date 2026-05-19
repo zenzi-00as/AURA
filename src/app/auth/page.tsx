@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/firebase";
-import { signInAnonymously } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const COUNTRIES = [
@@ -34,32 +34,54 @@ export default function AuthPage() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const router = useRouter();
   const auth = useAuth();
   const { toast } = useToast();
 
   const handleNext = async () => {
+    if (!auth) return;
     setIsLoading(true);
     try {
       if (step === "phone") {
-        // In a real production app, use RecaptchaVerifier and signInWithPhoneNumber
-        // For this prototype, we simulate the OTP step and use anonymous login
-        // to get the user into the onboarding flow immediately.
-        setTimeout(() => {
-          setIsLoading(false);
-          setStep("otp");
-        }, 800);
+        const fullPhone = selectedCountry.code + phone;
+        
+        // Initialize Recaptcha
+        const recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          "recaptcha-container",
+          {
+            size: "invisible",
+          }
+        );
+
+        const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier);
+        setConfirmationResult(result);
+        setStep("otp");
+        toast({
+          title: "Code Sent",
+          description: `Verification code sent to ${fullPhone}`,
+        });
       } else {
-        // Simulate OTP verification
-        await signInAnonymously(auth);
+        if (!confirmationResult) throw new Error("No confirmation result found");
+        
+        await confirmationResult.confirm(otp);
+        toast({
+          title: "Verified",
+          description: "Phone number verified successfully.",
+        });
         router.push("/onboarding");
       }
     } catch (error: any) {
+      console.error("Auth Error:", error);
       toast({
         variant: "destructive",
         title: "Auth Error",
-        description: error.message,
+        description: error.message || "Failed to authenticate. Please try again.",
       });
+      // Reset if it was an OTP error to allow retrying
+      if (step === "otp") setOtp("");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -77,6 +99,9 @@ export default function AuthPage() {
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
+      {/* Recaptcha container for Firebase Auth */}
+      <div id="recaptcha-container"></div>
+
       <div className="mb-12">
         <h1 className="text-3xl font-semibold text-foreground mb-3">
           {step === "phone" ? "Welcome back" : "Verify code"}
@@ -176,7 +201,10 @@ export default function AuthPage() {
 
           {step === "otp" && (
             <button 
-              onClick={() => setStep("phone")}
+              onClick={() => {
+                setStep("phone");
+                setConfirmationResult(null);
+              }}
               className="w-full text-center text-sm text-foreground hover:text-primary transition-colors font-bold"
             >
               Change number
