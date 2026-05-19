@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -37,7 +38,6 @@ export default function Dashboard() {
     ageRange: [18, 35]
   });
 
-  // Fetch real-time geolocation
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -52,7 +52,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Fetch real-time users from Firestore
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -68,15 +67,11 @@ export default function Dashboard() {
     
     return firestoreUsers
       .filter(user => {
-        // Don't show current user
         if (authUser && user.uid === authUser.uid) return false;
-
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
-        
         return withinAge;
       })
       .map(user => {
-        // Calculate dynamic distance for display
         let distanceStr = "";
         let distKm = 999;
 
@@ -103,7 +98,6 @@ export default function Dashboard() {
         };
       })
       .filter(user => {
-        // Apply distance filter if location is known
         if (currentLocation && user.location) {
           return user.distanceKm! <= activeFilters.distance;
         }
@@ -125,20 +119,20 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-6 py-3 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
+      <header className="px-6 py-2 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg fuchsia-gradient flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">A</span>
+            <div className="w-6 h-6 rounded-lg fuchsia-gradient flex items-center justify-center">
+              <span className="text-white font-bold text-[9px]">A</span>
             </div>
-            <h1 className="text-lg font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
+            <h1 className="text-base font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
           </div>
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <button className="w-9 h-9 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-              <SlidersHorizontal size={16} />
+            <button className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <SlidersHorizontal size={14} />
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="bg-popover border-border text-foreground rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
@@ -192,7 +186,7 @@ export default function Dashboard() {
         </Sheet>
       </header>
 
-      <div className="px-6 space-y-6 overflow-y-auto pt-4">
+      <div className="px-6 space-y-4 overflow-y-auto pt-4">
         {usersLoading ? (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map(i => (
@@ -201,9 +195,9 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <div className="px-2 pt-4 pb-1 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-primary font-medium text-xs uppercase tracking-widest">
-                <Sparkles size={14} />
+            <div className="px-2 pt-2 pb-1 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-primary font-medium text-[10px] uppercase tracking-widest">
+                <Sparkles size={12} />
                 {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
               </div>
               {filteredUsers.length > 0 && (

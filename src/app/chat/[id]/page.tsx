@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert } from "lucide-react";
+import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,6 +83,15 @@ export default function ChatRoom() {
     setInput("");
   };
 
+  const handleCall = () => {
+    toast({
+      title: "Calling...",
+      description: "Dialing Aarav via secure link.",
+    });
+    // In a real app, this would initiate a webRTC or carrier call
+    window.location.href = `tel:+910000000000`;
+  };
+
   const handleDeleteConversation = () => {
     toast({
       title: "Conversation Deleted",
@@ -115,8 +125,7 @@ export default function ChatRoom() {
 
   return (
     <div className="flex-1 flex flex-col bg-background h-screen overflow-hidden transition-colors">
-      {/* Header */}
-      <header className="px-6 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
+      <header className="px-6 h-16 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
           <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={22} />
@@ -134,7 +143,13 @@ export default function ChatRoom() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleCall}
+            className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Phone size={18} />
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none">
@@ -161,7 +176,6 @@ export default function ChatRoom() {
         </div>
       </header>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-4">
         <div className="text-center py-2">
           <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Private Connection</span>
@@ -186,7 +200,6 @@ export default function ChatRoom() {
         <div ref={scrollRef} />
       </div>
 
-      {/* Input */}
       <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border pb-8">
         <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
@@ -211,7 +224,6 @@ export default function ChatRoom() {
         </div>
       </div>
 
-      {/* Report Dialog */}
       <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-7">
           <DialogHeader className="space-y-2">

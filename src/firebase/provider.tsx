@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext } from 'react';
@@ -33,7 +34,7 @@ export function FirebaseProvider({
 
 export const useFirebase = () => {
   const context = useContext(FirebaseContext);
-  // Return the context value or a default object with nulls to avoid crashes during SSR
+  // Return the context value or a default object with nulls to avoid crashes during SSR/Hydration
   return context || { app: null, db: null, auth: null };
 };
 
