@@ -1,11 +1,10 @@
-
 'use server';
 /**
- * @fileOverview An AI-powered identity verification tool.
+ * @fileOverview A sophisticated AI biometric verification system for Aura.
  *
- * - selfieVerification - A function that compares a live selfie with user data for authenticity.
- * - SelfieVerificationInput - The input type for the selfieVerification function.
- * - SelfieVerificationOutput - The return type for the selfieVerification function.
+ * - selfieVerification - Analyzes a selfie for face presence, liveness, and authenticity.
+ * - SelfieVerificationInput - The input type containing the image and profile context.
+ * - SelfieVerificationOutput - The detailed assessment of the identity check.
  */
 
 import { ai } from '@/ai/genkit';
@@ -15,18 +14,19 @@ const SelfieVerificationInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
-      "A live selfie captured by the user, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A live selfie captured by the user, as a data URI. Format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  userName: z.string().describe("The user's name as provided in their profile."),
-  userDescription: z.string().describe("The user's self-description or bio."),
+  userName: z.string().describe("The user's profile name."),
+  userDescription: z.string().describe("The user's self-description."),
 });
 export type SelfieVerificationInput = z.infer<typeof SelfieVerificationInputSchema>;
 
 const SelfieVerificationOutputSchema = z.object({
-  verificationStatus: z.enum(['Verified', 'Pending', 'Rejected']).describe("The AI's assessment of the verification status."),
-  reason: z.string().describe("Explanation for the verification status."),
-  isRealPerson: z.boolean().describe("True if the AI believes the image is of a real person."),
-  matchesProfile: z.boolean().describe("True if the AI believes the person in the photo matches the profile description."),
+  verificationStatus: z.enum(['Verified', 'Pending', 'Rejected']).describe("The final status of the check."),
+  reason: z.string().describe("Detailed explanation of the assessment."),
+  isRealPerson: z.boolean().describe("True if the AI detects a live, three-dimensional human face."),
+  isLiveCapture: z.boolean().describe("True if the image shows no signs of being a photo of a screen or printout."),
+  matchesProfile: z.boolean().describe("True if the face aligns with the age and gender implied in the profile."),
 });
 export type SelfieVerificationOutput = z.infer<typeof SelfieVerificationOutputSchema>;
 
@@ -38,21 +38,28 @@ const selfieVerificationPrompt = ai.definePrompt({
   name: 'selfieVerificationPrompt',
   input: { schema: SelfieVerificationInputSchema },
   output: { schema: SelfieVerificationOutputSchema },
-  prompt: `You are an expert identity verification system for Aura. 
+  prompt: `You are a sophisticated biometric security AI for Aura, an LGBTQ+ connection app. Your primary goal is to ensure EVERY user is a real, live human being to prevent bots, scammers, and catfishing.
 
-Analyze the provided selfie and profile data. 
+Analyze the provided selfie for:
+1. FACE DETECTION: Is there a clear, unobstructed human face?
+2. LIVENESS CHECK (CRITICAL): Does this look like a live capture? 
+   REJECT (isLiveCapture: false) if you detect:
+   - Digital moiré patterns (interference lines from screens).
+   - Reflection or glare typical of a smartphone/monitor display.
+   - Visible borders of a physical photograph or screen.
+   - Lack of natural depth/shadows.
+3. IDENTITY ALIGNMENT: Does the person in the photo generally match the name "{{userName}}" and bio "{{userDescription}}"?
 
-Checks:
-1. Real person check: Ensure it's not a bot, fake, or re-photographed image.
-2. Profile match: Does the photo generally align with the name "{{userName}}" and bio "{{userDescription}}"?
+OUTPUT REQUIREMENTS:
+- If it's a clear, live face: verificationStatus = 'Verified'.
+- If it's blurry or ambiguous: verificationStatus = 'Pending'.
+- If it's a bot, a photo of a photo, or no face: verificationStatus = 'Rejected'.
 
-Provide verificationStatus ('Verified', 'Pending', or 'Rejected') and details.
-
-User Profile:
+User Context:
 Name: {{{userName}}}
 Bio: {{{userDescription}}}
 
-Selfie:
+Selfie Data:
 {{media url=photoDataUri}}`,
 });
 
@@ -64,17 +71,27 @@ const selfieVerificationFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      // Check for valid API key context or environment before running
       const { output } = await selfieVerificationPrompt(input);
-      if (!output) throw new Error("No output from model");
+      if (!output) throw new Error("Verification engine failed to produce a result.");
+      
+      // Enforce strict liveness
+      if (!output.isRealPerson || !output.isLiveCapture) {
+        return {
+          ...output,
+          verificationStatus: 'Rejected',
+          reason: !output.isRealPerson ? "No clear human face detected." : "The image appears to be a non-live capture (e.g., a photo of a screen). Please take a fresh selfie."
+        };
+      }
+
       return output;
     } catch (error) {
-      console.error('AI Verification Error:', error);
-      // Fallback to Pending so users aren't blocked by API errors
+      console.error('Biometric Check Failed:', error);
+      // Safety fallback: queue for manual review rather than rejecting if the AI service is down
       return {
         verificationStatus: 'Pending',
-        reason: 'AI verification service temporarily unavailable. Profile queued for manual review.',
+        reason: 'The automated check is currently under maintenance. Your profile is queued for manual verification.',
         isRealPerson: true,
+        isLiveCapture: true,
         matchesProfile: true,
       };
     }

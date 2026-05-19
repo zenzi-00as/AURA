@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -7,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw } from "lucide-react";
+import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert } from "lucide-react";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -143,9 +142,10 @@ export default function Onboarding() {
       orientation: formData.orientation,
       age: parseInt(formData.age),
       verificationStatus,
+      photoUrl: formData.photo, // Save the verified selfie URL
       lastActive: serverTimestamp(),
       isOnline: true,
-      location: null // Location can be added later
+      location: null
     };
 
     setDoc(userRef, profileData, { merge: true })
@@ -184,6 +184,7 @@ export default function Onboarding() {
       
       setLoading(true);
       try {
+        // Instant AI biometric & liveness verification
         const result = await selfieVerification({
           photoDataUri: formData.photo,
           userName: formData.name,
@@ -196,30 +197,22 @@ export default function Onboarding() {
             title: "Verification Failed", 
             description: result.reason 
           });
+          // Force retake for failed liveness/face checks
           setFormData(prev => ({ ...prev, photo: null }));
           startCamera();
         } else {
-          // Save profile regardless of Verified/Pending for MVP
           if (authUser) {
             await saveProfileToFirestore(authUser.uid, result.verificationStatus);
           }
           
-          if (result.verificationStatus === 'Pending') {
-            toast({ 
-              title: "Verification Pending", 
-              description: "Your profile is under review. You can start using Aura now." 
-            });
-          } else {
-            toast({ 
-              title: "Identity Verified", 
-              description: "Verification successful! Welcome to the community." 
-            });
-          }
+          toast({ 
+            title: result.verificationStatus === 'Verified' ? "Identity Verified" : "Verification Pending", 
+            description: result.reason || "Welcome to the community." 
+          });
           router.push("/dashboard");
         }
       } catch (e) {
         console.error("Verification error:", e);
-        // Fallback for demo purposes if GenAI fails
         if (authUser) {
           await saveProfileToFirestore(authUser.uid, 'Pending');
         }
@@ -347,7 +340,7 @@ export default function Onboarding() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-semibold text-foreground">Selfie Guard</h2>
-                <p className="text-muted-foreground">Verify your profile to keep the community safe and bot-free.</p>
+                <p className="text-muted-foreground">Verify your identity with a live selfie. No gallery uploads allowed for community safety.</p>
               </div>
               
               <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border flex items-center justify-center group shadow-2xl">
@@ -376,7 +369,7 @@ export default function Onboarding() {
                         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
                           <ShieldCheck size={40} />
                         </div>
-                        <p className="text-sm text-muted-foreground">Initializing secure camera...</p>
+                        <p className="text-sm text-muted-foreground">Initializing secure biometric camera...</p>
                       </div>
                     )}
                   </>
@@ -386,6 +379,7 @@ export default function Onboarding() {
                   <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
                     <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                     <p className="text-sm font-medium text-foreground">AI Identity Check...</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest animate-pulse">Scanning Face & Liveness</p>
                   </div>
                 )}
                 
@@ -400,7 +394,7 @@ export default function Onboarding() {
                     className="w-full h-16 rounded-3xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20"
                   >
                     <Camera className="mr-2" size={20} />
-                    Capture Selfie
+                    Capture Live Selfie
                   </Button>
                 ) : (
                   <button 
@@ -412,6 +406,13 @@ export default function Onboarding() {
                     Retake photo
                   </button>
                 )}
+              </div>
+              
+              <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                <ShieldAlert size={20} className="text-primary shrink-0" />
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Our AI scans for a clear face and ensures the photo is taken live. Uploads from gallery are strictly prohibited.
+                </p>
               </div>
             </div>
           )}
