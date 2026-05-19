@@ -6,12 +6,16 @@ import { Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 
 interface FirebaseContextType {
-  app: FirebaseApp;
-  db: Firestore;
-  auth: Auth;
+  app: FirebaseApp | null;
+  db: Firestore | null;
+  auth: Auth | null;
 }
 
-const FirebaseContext = createContext<FirebaseContextType | null>(null);
+const FirebaseContext = createContext<FirebaseContextType>({
+  app: null,
+  db: null,
+  auth: null
+});
 
 export function FirebaseProvider({
   children,
@@ -20,9 +24,9 @@ export function FirebaseProvider({
   auth,
 }: {
   children: React.ReactNode;
-  app: FirebaseApp;
-  db: Firestore;
-  auth: Auth;
+  app: FirebaseApp | null;
+  db: Firestore | null;
+  auth: Auth | null;
 }) {
   return (
     <FirebaseContext.Provider value={{ app, db, auth }}>
@@ -32,9 +36,7 @@ export function FirebaseProvider({
 }
 
 export const useFirebase = () => {
-  const context = useContext(FirebaseContext);
-  // Do not throw error here to allow SSR and initial hydration to proceed safely
-  return context;
+  return useContext(FirebaseContext);
 };
 
 export const useFirebaseApp = () => useFirebase()?.app;

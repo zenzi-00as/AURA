@@ -11,7 +11,7 @@ export function useUser() {
 
   useEffect(() => {
     if (!auth) {
-      setLoading(true);
+      // If auth is not initialized yet (SSR or early hydration), stay in loading state
       return;
     }
 
@@ -23,6 +23,5 @@ export function useUser() {
     return () => unsubscribe();
   }, [auth]);
 
-  // If auth service is not ready, we are still loading
   return { user, loading: !auth ? true : loading };
 }

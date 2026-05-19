@@ -1,28 +1,24 @@
-
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { initializeFirebase } from './index';
 import { FirebaseProvider } from './provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export function FirebaseClientProvider({ children }: { children: React.ReactNode }) {
-  // Initialize outside of state to avoid returning null on the server
-  // initializeFirebase is idempotent because of getApps check
-  const services = useMemo(() => typeof window !== 'undefined' ? initializeFirebase() : null, []);
-
-  if (!services) {
-    // Return children on server for correct hydration shell
-    return (
-      <div className="min-h-screen bg-background">
-        {children}
-      </div>
-    );
-  }
+  // Initialize only on the client
+  const services = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return initializeFirebase();
+  }, []);
 
   return (
-    <FirebaseProvider app={services.app} db={services.db} auth={services.auth}>
-      <FirebaseErrorListener />
+    <FirebaseProvider 
+      app={services?.app ?? null} 
+      db={services?.db ?? null} 
+      auth={services?.auth ?? null}
+    >
+      {services && <FirebaseErrorListener />}
       {children}
     </FirebaseProvider>
   );

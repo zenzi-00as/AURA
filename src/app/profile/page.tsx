@@ -68,8 +68,7 @@ export default function ProfilePage() {
     });
   };
 
-  // Wait for auth to be determined
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -77,23 +76,12 @@ export default function ProfilePage() {
     );
   }
 
-  // If determined and no user, redirect to auth
-  if (!authUser && !authLoading) {
+  if (!authUser) {
     router.push('/auth');
     return null;
   }
 
-  // If user is here but profile is still loading
-  if (profileLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // If user exists but document doesn't, they might need to complete onboarding
-  if (!profile && !profileLoading) {
+  if (!profile) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
         <div className="w-20 h-20 rounded-[32px] bg-muted flex items-center justify-center text-muted-foreground">
@@ -134,12 +122,14 @@ export default function ProfilePage() {
               {profile.photoUrl ? (
                 <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-4xl font-bold text-foreground/20">{profile.name[0]}</span>
+                <span className="text-4xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
               )}
             </div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-lg">
-              <BadgeCheck size={20} className="text-white" />
-            </div>
+            {profile.verificationStatus === 'Verified' && (
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-lg">
+                <BadgeCheck size={20} className="text-white" />
+              </div>
+            )}
           </div>
           
           <div className="space-y-1">
