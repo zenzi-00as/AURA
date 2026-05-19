@@ -1,4 +1,3 @@
-
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 
 export type UserProfile = {
@@ -18,6 +17,13 @@ export type UserProfile = {
   lastActive: any; 
   isOnline: boolean;
   photoUrl?: string;
+};
+
+export type BlockedUser = {
+  id: string;
+  uid: string;
+  name: string;
+  blockedAt: any;
 };
 
 export type Message = {

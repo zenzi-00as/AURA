@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -25,6 +24,16 @@
         "photoUrl": { "type": "string" }
       },
       "required": ["uid", "name", "age"]
+    },
+    "BlockedUser": {
+      "title": "Blocked User",
+      "description": "A record of a user blocked by another user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "blockedAt": { "type": "string", "format": "date-time" }
+      }
     },
     "ChatRoom": {
       "title": "Chat Room",
@@ -69,6 +78,10 @@
     "/users/{userId}": {
       "schema": "#/entities/UserProfile",
       "description": "User profile documents."
+    },
+    "/users/{userId}/blockedUsers/{blockedUserId}": {
+      "schema": "#/entities/BlockedUser",
+      "description": "List of users blocked by this user."
     },
     "/chatRooms/{roomId}": {
       "schema": "#/entities/ChatRoom",

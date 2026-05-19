@@ -44,29 +44,41 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { LANGUAGES } from "@/lib/translations";
-
-const MOCK_BLOCKED_USERS = [
-  { id: "b1", name: "Stranger12", date: "2 days ago" },
-  { id: "b2", name: "SpamBot99", date: "1 week ago" },
-];
+import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy, deleteDoc, doc, Query } from "firebase/firestore";
+import { BlockedUser } from "@/lib/types";
+import { formatDistanceToNow } from "date-fns";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { t, language, setLanguage } = useTranslation();
   const { theme, toggleTheme } = useTheme();
+  const db = useFirestore();
+  const { user: authUser } = useUser();
   
   const [settings, setSettings] = useState({
     notifications: true,
     marketing: false,
     privateProfile: false,
   });
-  const [blockedUsers, setBlockedUsers] = useState(MOCK_BLOCKED_USERS);
+  
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
+
+  // Real-time blocked users
+  const blockedQuery = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return query(
+      collection(db, "users", authUser.uid, "blockedUsers"),
+      orderBy("blockedAt", "desc")
+    ) as Query<BlockedUser>;
+  }, [db, authUser]);
+
+  const { data: blockedUsers, loading: blockedLoading } = useCollection<BlockedUser>(blockedQuery);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -89,8 +101,20 @@ export default function SettingsPage() {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleUnblock = (id: string, name: string) => {
-    setBlockedUsers(prev => prev.filter(u => u.id !== id));
+  const handleUnblock = (blockId: string, name: string) => {
+    if (!db || !authUser) return;
+    
+    const blockRef = doc(db, "users", authUser.uid, "blockedUsers", blockId);
+    
+    deleteDoc(blockRef).catch(err => {
+      console.error("Failed to unblock", err);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to unblock user. Please try again.",
+      });
+    });
+
     toast({
       title: "User Unblocked",
       description: `${name} can now find and message you again.`,
@@ -149,7 +173,11 @@ export default function SettingsPage() {
 
                 <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
                   <AnimatePresence mode="popLayout">
-                    {blockedUsers.length > 0 ? (
+                    {blockedLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                      </div>
+                    ) : blockedUsers.length > 0 ? (
                       blockedUsers.map((user) => (
                         <motion.div
                           key={user.id}
@@ -165,7 +193,9 @@ export default function SettingsPage() {
                             </div>
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">{user.name}</span>
-                              <span className="text-[10px] text-muted-foreground">Blocked {user.date}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                Blocked {user.blockedAt?.toDate ? formatDistanceToNow(user.blockedAt.toDate(), { addSuffix: true }) : "recently"}
+                              </span>
                             </div>
                           </div>
                           <Button
