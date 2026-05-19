@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Info, MapPin } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Info } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -133,14 +133,6 @@ export default function Dashboard() {
             </div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
           </div>
-          {currentLocation && (
-            <div className="flex items-center gap-1 mt-1 px-1">
-              <MapPin size={10} className="text-primary" />
-              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">
-                Live: {currentLocation.lat.toFixed(2)}, {currentLocation.lng.toFixed(2)}
-              </span>
-            </div>
-          )}
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
