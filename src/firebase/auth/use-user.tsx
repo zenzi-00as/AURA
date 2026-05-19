@@ -10,8 +10,8 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If auth is not initialized yet (SSR or early hydration), keep loading
     if (!auth) {
-      // If auth is not initialized yet (SSR or early hydration), stay in loading state
       return;
     }
 

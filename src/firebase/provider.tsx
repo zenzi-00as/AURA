@@ -11,11 +11,7 @@ interface FirebaseContextType {
   auth: Auth | null;
 }
 
-const FirebaseContext = createContext<FirebaseContextType>({
-  app: null,
-  db: null,
-  auth: null
-});
+const FirebaseContext = createContext<FirebaseContextType | null>(null);
 
 export function FirebaseProvider({
   children,
@@ -36,7 +32,9 @@ export function FirebaseProvider({
 }
 
 export const useFirebase = () => {
-  return useContext(FirebaseContext);
+  const context = useContext(FirebaseContext);
+  // Return the context value or a default object with nulls to avoid crashes during SSR
+  return context || { app: null, db: null, auth: null };
 };
 
 export const useFirebaseApp = () => useFirebase()?.app;

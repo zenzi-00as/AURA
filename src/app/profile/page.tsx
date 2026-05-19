@@ -60,7 +60,12 @@ export default function ProfilePage() {
   const handleSave = () => {
     if (!profileRef) return;
     
-    updateDoc(profileRef as any, { bio: tempBio });
+    updateDoc(profileRef as any, { 
+      bio: tempBio 
+    }).catch(err => {
+      console.error("Failed to update profile", err);
+    });
+    
     setIsEditing(false);
     toast({
       title: "Profile Updated",
