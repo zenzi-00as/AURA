@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock } from "lucide-react";
+import { ArrowRight, Phone, Lock, Check } from "lucide-react";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ export default function AuthPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const router = useRouter();
@@ -41,6 +43,16 @@ export default function AuthPage() {
 
   const handleNext = async () => {
     if (!auth) return;
+    
+    if (step === "phone" && !agreedToTerms) {
+      toast({
+        variant: "destructive",
+        title: "Consent Required",
+        description: "Please agree to the Terms & Conditions and Privacy Policy to continue.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (step === "phone") {
@@ -123,50 +135,75 @@ export default function AuthPage() {
           className="space-y-6"
         >
           {step === "phone" ? (
-            <div className="flex gap-2">
-              <div className="w-32">
-                <Select
-                  defaultValue={selectedCountry.code}
-                  onValueChange={(val) => {
-                    const country = COUNTRIES.find((c) => c.code === val);
-                    if (country) {
-                      setSelectedCountry(country);
-                      setPhone(""); 
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-14 bg-muted border-border rounded-2xl focus:ring-primary">
-                    <SelectValue>
-                      <span className="flex items-center gap-2">
-                        <span>{selectedCountry.flag}</span>
-                        <span className="text-sm font-medium text-foreground">{selectedCountry.code}</span>
-                      </span>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border text-foreground">
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code} className="focus:bg-primary/20 focus:text-foreground">
-                        <span className="flex items-center gap-3">
-                          <span>{c.flag}</span>
-                          <span>{c.name}</span>
-                          <span className="text-muted-foreground ml-auto">{c.code}</span>
+            <div className="space-y-6">
+              <div className="flex gap-2">
+                <div className="w-32">
+                  <Select
+                    defaultValue={selectedCountry.code}
+                    onValueChange={(val) => {
+                      const country = COUNTRIES.find((c) => c.code === val);
+                      if (country) {
+                        setSelectedCountry(country);
+                        setPhone(""); 
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-14 bg-muted border-border rounded-2xl focus:ring-primary">
+                      <SelectValue>
+                        <span className="flex items-center gap-2">
+                          <span>{selectedCountry.flag}</span>
+                          <span className="text-sm font-medium text-foreground">{selectedCountry.code}</span>
                         </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="relative group flex-1">
-                <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Phone size={18} />
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border text-foreground">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code} className="focus:bg-primary/20 focus:text-foreground">
+                          <span className="flex items-center gap-3">
+                            <span>{c.flag}</span>
+                            <span>{c.name}</span>
+                            <span className="text-muted-foreground ml-auto">{c.code}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Input
-                  type="tel"
-                  placeholder={`${selectedCountry.length} digits`}
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
+                <div className="relative group flex-1">
+                  <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <Phone size={18} />
+                  </div>
+                  <Input
+                    type="tel"
+                    placeholder={`${selectedCountry.length} digits`}
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 px-1">
+                <Checkbox 
+                  id="terms" 
+                  checked={agreedToTerms} 
+                  onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                  className="mt-1 border-border bg-muted data-[state=checked]:bg-primary data-[state=checked]:text-white"
                 />
+                <label 
+                  htmlFor="terms" 
+                  className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none"
+                >
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">
+                    Terms & Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-foreground font-semibold hover:text-primary transition-colors">
+                    Privacy Policy
+                  </Link>
+                  .
+                </label>
               </div>
             </div>
           ) : (
@@ -186,7 +223,7 @@ export default function AuthPage() {
 
           <Button 
             onClick={handleNext}
-            disabled={isLoading || (step === "phone" ? !isPhoneValid : otp.length < 6)}
+            disabled={isLoading || (step === "phone" ? (!isPhoneValid || !agreedToTerms) : otp.length < 6)}
             className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
