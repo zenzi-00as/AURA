@@ -74,22 +74,22 @@ const selfieVerificationFlow = ai.defineFlow(
       const { output } = await selfieVerificationPrompt(input);
       if (!output) throw new Error("Verification engine failed to produce a result.");
       
-      // Enforce strict liveness
+      // Enforce strict liveness and face presence
       if (!output.isRealPerson || !output.isLiveCapture) {
         return {
           ...output,
           verificationStatus: 'Rejected',
-          reason: !output.isRealPerson ? "No clear human face detected." : "The image appears to be a non-live capture (e.g., a photo of a screen). Please take a fresh selfie."
+          reason: !output.isRealPerson ? "No clear human face detected." : "The image appears to be a non-live capture (e.g., a photo of a screen). Please take a fresh selfie in natural lighting."
         };
       }
 
       return output;
     } catch (error) {
       console.error('Biometric Check Failed:', error);
-      // Safety fallback: queue for manual review rather than rejecting if the AI service is down
+      // Fallback: queue for manual review rather than rejecting if the service is interrupted
       return {
         verificationStatus: 'Pending',
-        reason: 'The automated check is currently under maintenance. Your profile is queued for manual verification.',
+        reason: 'The automated check is currently processing high volume. Your profile is queued for rapid manual verification.',
         isRealPerson: true,
         isLiveCapture: true,
         matchesProfile: true,

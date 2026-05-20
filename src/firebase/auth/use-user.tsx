@@ -12,6 +12,7 @@ export function useUser() {
   useEffect(() => {
     // If auth is not initialized yet (SSR or early hydration), keep loading
     if (!auth) {
+      setLoading(true);
       return;
     }
 
@@ -23,5 +24,8 @@ export function useUser() {
     return () => unsubscribe();
   }, [auth]);
 
-  return { user, loading: !auth ? true : loading };
+  // If auth is null (SSR), we are definitely still loading the client-side state
+  const isActuallyLoading = !auth || loading;
+
+  return { user, loading: isActuallyLoading };
 }

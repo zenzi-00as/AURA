@@ -1,28 +1,32 @@
+'use client';
 
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { useUser } from "@/firebase";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { useUser } from '@/firebase';
 
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useUser();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Wait for the auth state to be determined before redirecting
-    if (!loading) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Wait for hydration and auth state to be determined before redirecting
+    if (mounted && !loading) {
       const timer = setTimeout(() => {
         if (user) {
-          router.push("/dashboard");
+          router.push('/dashboard');
         } else {
-          router.push("/auth");
+          router.push('/auth');
         }
-      }, 1500);
+      }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, mounted]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden">
@@ -33,18 +37,20 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, ease: "easeOut" }}
+        transition={{ duration: 1, ease: 'easeOut' }}
         className="z-10 flex flex-col items-center"
       >
         <div className="w-24 h-24 rounded-3xl fuchsia-gradient aura-glow mb-6 flex items-center justify-center">
           <span className="text-4xl font-bold text-foreground">A</span>
         </div>
         <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-2">Aura</h1>
-        <p className="text-muted-foreground font-light tracking-wide uppercase text-xs">Minimalist • Private • Real</p>
+        <p className="text-muted-foreground font-light tracking-wide uppercase text-xs">
+          Minimalist • Private • Real
+        </p>
       </motion.div>
 
-      {loading && (
-        <motion.div 
+      {(!mounted || loading) && (
+        <motion.div
           className="absolute bottom-12 flex gap-1"
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
