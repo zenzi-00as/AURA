@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock } from "lucide-react";
+import { ArrowRight, Phone, Lock, Info } from "lucide-react";
 import Link from "next/link";
 import {
   Select,
@@ -28,6 +28,9 @@ const COUNTRIES = [
   { name: "France", code: "+33", flag: "🇫🇷", length: 9 },
   { name: "Australia", code: "+61", flag: "🇦🇺", length: 9 },
 ];
+
+const DEMO_PHONE = "0000000000";
+const DEMO_OTP = "123456";
 
 export default function AuthPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
@@ -66,10 +69,36 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
+      const fullPhone = selectedCountry.code + phone;
+
+      // Handle Demo Bypass
+      if (step === "phone" && phone === DEMO_PHONE) {
+        setTimeout(() => {
+          setStep("otp");
+          setIsLoading(false);
+          toast({
+            title: "Demo Mode",
+            description: "Using demo credentials. OTP is 123456",
+          });
+        }, 800);
+        return;
+      }
+
+      if (step === "otp" && phone === DEMO_PHONE) {
+        if (otp === DEMO_OTP) {
+          toast({
+            title: "Verified (Demo)",
+            description: "Logged in with demo account.",
+          });
+          router.push("/onboarding");
+          return;
+        } else {
+          throw new Error("Invalid demo OTP");
+        }
+      }
+
+      // Real Auth Path
       if (step === "phone") {
-        const fullPhone = selectedCountry.code + phone;
-        
-        // Initialize or reuse Recaptcha
         if (!recaptchaVerifierRef.current) {
           recaptchaVerifierRef.current = new RecaptchaVerifier(
             auth,
@@ -100,8 +129,6 @@ export default function AuthPage() {
     } catch (error: any) {
       console.error("Auth Error:", error);
       
-      // CRITICAL: Clear reCAPTCHA instance on error to prevent stale token issues
-      // (resolves auth/firebase-app-check-token-is-invalid and re-rendering errors)
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
@@ -131,7 +158,6 @@ export default function AuthPage() {
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      {/* Recaptcha container for Firebase Auth */}
       <div id="recaptcha-container"></div>
 
       <div className="mb-12">
@@ -224,6 +250,14 @@ export default function AuthPage() {
                   </Link>
                   .
                 </label>
+              </div>
+
+              {/* Demo Hint */}
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
+                <Info size={16} className="text-primary mt-0.5 shrink-0" />
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  <span className="font-bold text-primary uppercase">Demo Mode:</span> Use <strong>0000000000</strong> with code <strong>+91</strong> and OTP <strong>123456</strong> for instant testing.
+                </p>
               </div>
             </div>
           ) : (
