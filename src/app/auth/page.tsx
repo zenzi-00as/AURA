@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,20 @@ export default function AuthPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  
   const router = useRouter();
   const auth = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+    };
+  }, []);
 
   const handleNext = async () => {
     if (!auth) return;
@@ -58,16 +69,18 @@ export default function AuthPage() {
       if (step === "phone") {
         const fullPhone = selectedCountry.code + phone;
         
-        // Initialize Recaptcha
-        const recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          "recaptcha-container",
-          {
-            size: "invisible",
-          }
-        );
+        // Initialize or reuse Recaptcha
+        if (!recaptchaVerifierRef.current) {
+          recaptchaVerifierRef.current = new RecaptchaVerifier(
+            auth,
+            "recaptcha-container",
+            {
+              size: "invisible",
+            }
+          );
+        }
 
-        const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier);
+        const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifierRef.current);
         setConfirmationResult(result);
         setStep("otp");
         toast({
@@ -86,12 +99,18 @@ export default function AuthPage() {
       }
     } catch (error: any) {
       console.error("Auth Error:", error);
+      
+      // If reCAPTCHA fails, clear it to allow fresh retry
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+
       toast({
         variant: "destructive",
         title: "Auth Error",
         description: error.message || "Failed to authenticate. Please try again.",
       });
-      // Reset if it was an OTP error to allow retrying
       if (step === "otp") setOtp("");
     } finally {
       setIsLoading(false);
