@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock, Check } from "lucide-react";
+import { ArrowRight, Phone, Lock } from "lucide-react";
 import Link from "next/link";
 import {
   Select,
@@ -100,7 +100,8 @@ export default function AuthPage() {
     } catch (error: any) {
       console.error("Auth Error:", error);
       
-      // If reCAPTCHA fails, clear it to allow fresh retry
+      // CRITICAL: Clear reCAPTCHA instance on error to prevent stale token issues
+      // (resolves auth/firebase-app-check-token-is-invalid and re-rendering errors)
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
