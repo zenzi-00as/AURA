@@ -119,20 +119,20 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-6 py-2 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
+      <header className="px-8 py-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg fuchsia-gradient flex items-center justify-center">
-              <span className="text-white font-bold text-[9px]">A</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="text-white font-bold text-sm">A</span>
             </div>
-            <h1 className="text-base font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
           </div>
         </div>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
-            <button className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-              <SlidersHorizontal size={14} />
+            <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <SlidersHorizontal size={18} />
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="bg-popover border-border text-foreground rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
