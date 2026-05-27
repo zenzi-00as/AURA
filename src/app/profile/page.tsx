@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, Info, MessageSquare } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, Info, MessageSquare, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -75,14 +75,15 @@ export default function ProfilePage() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <div className="flex-1 flex flex-col items-center justify-center bg-background p-8">
+        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast mb-4" />
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Synchronizing Identity</p>
       </div>
     );
   }
 
   if (!authUser) {
-    router.push('/auth');
+    router.replace('/auth');
     return null;
   }
 
@@ -100,7 +101,7 @@ export default function ProfilePage() {
         </div>
         <Button 
           onClick={() => router.push('/onboarding')}
-          className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg"
+          className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-xl shadow-primary/20"
         >
           Complete Onboarding
         </Button>
@@ -121,18 +122,26 @@ export default function ProfilePage() {
       </header>
 
       <div className="px-8 space-y-12">
-        <div className="flex flex-col items-center text-center space-y-6 pt-4">
+        <div className="flex flex-col items-center text-center space-y-6 pt-6">
           <div className="relative">
-            <div className="w-32 h-32 rounded-[40px] bg-muted border-2 border-primary/20 flex items-center justify-center aura-glow overflow-hidden">
+            {/* Identity Guard: Photo is shown to self ONLY */}
+            <div className="w-36 h-36 rounded-[48px] bg-muted border-2 border-primary/20 flex items-center justify-center aura-glow overflow-hidden relative">
               {profile.photoUrl ? (
                 <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-4xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
+                <span className="text-5xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
               )}
+              
+              {/* Privacy Label Overlay */}
+              <div className="absolute inset-x-0 bottom-0 bg-background/60 backdrop-blur-md py-1.5 flex items-center justify-center gap-1.5">
+                <Lock size={10} className="text-foreground/60" />
+                <span className="text-[8px] font-bold text-foreground/60 uppercase tracking-widest">Private View</span>
+              </div>
             </div>
+            
             {profile.verificationStatus === 'Verified' && (
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-lg">
-                <BadgeCheck size={20} className="text-white" />
+              <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-xl">
+                <BadgeCheck size={22} className="text-white" />
               </div>
             )}
           </div>
@@ -144,6 +153,14 @@ export default function ProfilePage() {
               {profile.verificationStatus === 'Verified' ? t('identity_verified') : "Verification Pending"}
             </div>
           </div>
+        </div>
+
+        {/* Privacy Shield Info */}
+        <div className="mx-2 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
+          <Lock size={16} className="text-primary mt-0.5 shrink-0" />
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <span className="font-bold text-primary uppercase">Identity Guard:</span> Your verified photo is stored in an encrypted state and is <strong>only visible to you</strong>. Other users see a privacy-focused initials placeholder.
+          </p>
         </div>
 
         <div className="glass-card p-8 rounded-[40px] space-y-6 relative overflow-hidden">
@@ -270,7 +287,7 @@ export default function ProfilePage() {
               </AlertDialogHeader>
               <AlertDialogFooter className="flex flex-col gap-3 pt-4">
                 <AlertDialogAction 
-                  onClick={() => router.push('/auth')}
+                  onClick={() => router.replace('/auth')}
                   className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
                 >
                   {t('sign_out')}

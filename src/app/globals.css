@@ -70,6 +70,10 @@
   background: linear-gradient(135deg, #D946EF 0%, #A855F7 100%);
 }
 
+.animate-spin-fast {
+  animation: spin 0.6s linear infinite;
+}
+
 ::-webkit-scrollbar {
   width: 0px;
 }
