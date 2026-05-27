@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Phone, Lock, Info } from "lucide-react";
+import { ArrowRight, Phone, Lock, Info, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import {
   Select,
@@ -40,11 +40,23 @@ export default function AuthPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
+  
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   
   const router = useRouter();
   const auth = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   useEffect(() => {
     return () => {
@@ -76,6 +88,7 @@ export default function AuthPage() {
         setTimeout(() => {
           setStep("otp");
           setIsLoading(false);
+          setResendTimer(60);
           toast({
             title: "Demo Mode",
             description: "Using demo credentials. OTP is 123456",
@@ -90,7 +103,7 @@ export default function AuthPage() {
             title: "Verified (Demo)",
             description: "Logged in with demo account.",
           });
-          router.push("/onboarding");
+          router.replace("/onboarding");
           return;
         } else {
           throw new Error("Invalid demo OTP");
@@ -112,6 +125,7 @@ export default function AuthPage() {
         const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifierRef.current);
         setConfirmationResult(result);
         setStep("otp");
+        setResendTimer(60);
         toast({
           title: "Code Sent",
           description: `Verification code sent to ${fullPhone}`,
@@ -124,7 +138,7 @@ export default function AuthPage() {
           title: "Verified",
           description: "Phone number verified successfully.",
         });
-        router.push("/onboarding");
+        router.replace("/onboarding");
       }
     } catch (error: any) {
       console.error("Auth Error:", error);
@@ -140,6 +154,46 @@ export default function AuthPage() {
         description: error.message || "Failed to authenticate. Please try again.",
       });
       if (step === "otp") setOtp("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!auth || resendTimer > 0 || isLoading) return;
+    
+    if (phone === DEMO_PHONE) {
+      setResendTimer(60);
+      toast({
+        title: "Code Sent (Demo)",
+        description: "Demo verification code resent.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const fullPhone = selectedCountry.code + phone;
+      if (!recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(
+          auth,
+          "recaptcha-container",
+          { size: "invisible" }
+        );
+      }
+      const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifierRef.current);
+      setConfirmationResult(result);
+      setResendTimer(60);
+      toast({
+        title: "Code Resent",
+        description: `A new verification code has been sent to ${fullPhone}`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Resend Failed",
+        description: error.message || "Failed to resend code.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -252,7 +306,6 @@ export default function AuthPage() {
                 </label>
               </div>
 
-              {/* Demo Hint */}
               <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
                 <Info size={16} className="text-primary mt-0.5 shrink-0" />
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
@@ -261,17 +314,40 @@ export default function AuthPage() {
               </div>
             </div>
           ) : (
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                <Lock size={18} />
+            <div className="space-y-6">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Lock size={18} />
+                </div>
+                <Input
+                  type="number"
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.slice(0, 6))}
+                  className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
+                />
               </div>
-              <Input
-                type="number"
-                placeholder="000000"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
-              />
+
+              <div className="flex justify-between items-center px-2">
+                <button
+                  onClick={handleResend}
+                  disabled={resendTimer > 0 || isLoading}
+                  className="text-xs font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors"
+                >
+                  <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
+                  {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
+                </button>
+                <button 
+                  onClick={() => {
+                    setStep("phone");
+                    setConfirmationResult(null);
+                    setResendTimer(0);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold"
+                >
+                  Change number
+                </button>
+              </div>
             </div>
           )}
 
@@ -289,18 +365,6 @@ export default function AuthPage() {
               </>
             )}
           </Button>
-
-          {step === "otp" && (
-            <button 
-              onClick={() => {
-                setStep("phone");
-                setConfirmationResult(null);
-              }}
-              className="w-full text-center text-sm text-foreground hover:text-primary transition-colors font-bold"
-            >
-              Change number
-            </button>
-          )}
         </motion.div>
       </AnimatePresence>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -25,18 +25,16 @@ export default function Home() {
   useEffect(() => {
     if (mounted && !authLoading) {
       if (!user) {
-        // Deterministic redirect to auth
         const timer = setTimeout(() => router.replace('/auth'), 1000);
         return () => clearTimeout(timer);
       }
 
       if (!profileLoading) {
-        // Deterministic redirect based on profile status
         const timer = setTimeout(() => {
           if (profile) {
             router.replace('/dashboard');
           } else {
-            router.push('/onboarding');
+            router.replace('/onboarding');
           }
         }, 800);
         return () => clearTimeout(timer);

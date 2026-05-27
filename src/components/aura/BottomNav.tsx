@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +17,6 @@ export function BottomNav() {
   const { user: authUser } = useUser();
   const isClearingRef = useRef(false);
 
-  // Query for unread notifications in real-time
   const unreadQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
     return query(
@@ -33,7 +31,6 @@ export function BottomNav() {
   const hasUnreadMessages = unreadNotifications.some(n => n.type === 'message');
   const hasUnreadAlerts = unreadNotifications.some(n => n.type !== 'message');
 
-  // Automatically mark notifications as read when on the corresponding tab
   useEffect(() => {
     if (!db || !authUser || unreadNotifications.length === 0 || isClearingRef.current) return;
 
@@ -82,7 +79,7 @@ export function BottomNav() {
           return (
             <button
               key={item.path}
-              onClick={() => router.push(item.path)}
+              onClick={() => router.replace(item.path)}
               className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               aria-label={item.label}
             >
