@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -68,19 +69,19 @@ export default function Onboarding() {
 
     const isMan = ["Man", "Trans Man"].includes(formData.gender);
     const isWoman = ["Woman", "Trans Woman"].includes(formData.gender);
+    const o = formData.orientation;
     
     let suggested: string[] = [];
-    const o = formData.orientation;
 
     if (["Bisexual", "Pansexual", "Queer"].includes(o)) {
       suggested = ["Everyone"];
     } else if (isMan) {
-      if (o === "Gay") suggested = ["Man"];
-      else if (o === "Straight") suggested = ["Woman"];
+      if (o === "Gay") suggested = ["Man", "Trans Man"];
+      else if (o === "Straight") suggested = ["Woman", "Trans Woman"];
       else suggested = ["Everyone"];
     } else if (isWoman) {
-      if (o === "Lesbian") suggested = ["Woman"];
-      else if (o === "Straight") suggested = ["Man"];
+      if (o === "Lesbian") suggested = ["Woman", "Trans Woman"];
+      else if (o === "Straight") suggested = ["Man", "Trans Man"];
       else suggested = ["Everyone"];
     } else {
       suggested = ["Everyone"];
@@ -99,9 +100,7 @@ export default function Onboarding() {
 
   const startCamera = async () => {
     try {
-      if (streamRef.current) {
-        stopCamera();
-      }
+      if (streamRef.current) stopCamera();
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: "user", width: { ideal: 1024 }, height: { ideal: 1024 } } 
       });
@@ -151,15 +150,6 @@ export default function Onboarding() {
     }
     return () => stopCamera();
   }, [step, formData.photo, cameraActive, stopCamera, loading]);
-
-  const handleInterestToggle = (interest: string) => {
-    setFormData(prev => {
-      const updated = prev.interestedIn.includes(interest)
-        ? prev.interestedIn.filter(i => i !== interest)
-        : [...prev.interestedIn, interest];
-      return { ...prev, interestedIn: updated };
-    });
-  };
 
   const saveProfileToFirestore = async (uid: string, verificationStatus: string) => {
     if (!db) return;
@@ -287,11 +277,11 @@ export default function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Vibe</h2>
-                <p className="text-sm text-muted-foreground font-light">Describe your desires to match with someone you feel...</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Bio</h2>
+                <p className="text-sm text-muted-foreground font-light">Let people know who you are and what you're looking for.</p>
               </div>
               <Textarea 
-                placeholder="Describe your desires to match with someone you feel..." 
+                placeholder="Write a few lines about yourself..." 
                 value={formData.bio} 
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
                 className="min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
@@ -333,8 +323,19 @@ export default function Onboarding() {
                 <p className="text-sm text-muted-foreground font-light">Who would you like to connect with?</p>
               </div>
               <InterestedInSelector 
+                gender={formData.gender}
+                orientation={formData.orientation}
                 selected={formData.interestedIn}
-                onToggle={handleInterestToggle}
+                onToggle={(i) => {
+                  setFormData(prev => {
+                    if (prev.interestedIn.includes("Everyone")) return { ...prev, interestedIn: [i] };
+                    const updated = prev.interestedIn.includes(i)
+                      ? prev.interestedIn.filter(item => item !== i)
+                      : [...prev.interestedIn, i];
+                    return { ...prev, interestedIn: updated };
+                  });
+                }}
+                onBulkSelect={(list) => setFormData({ ...formData, interestedIn: list })}
               />
             </div>
           )}

@@ -1,3 +1,4 @@
+
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 
 export type UserProfile = {
@@ -8,8 +9,6 @@ export type UserProfile = {
   gender: string;
   orientation: string;
   interestedIn: string[];
-  showGenderOnProfile: boolean;
-  showOrientationOnProfile: boolean;
   verificationStatus: VerificationStatus;
   location?: {
     lat: number;
@@ -21,6 +20,7 @@ export type UserProfile = {
   isOnline: boolean;
   photoUrl?: string;
   onboardingCompleted: boolean;
+  updatedAt?: any;
 };
 
 export type BlockedUser = {

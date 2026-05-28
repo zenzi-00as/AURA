@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,8 +9,8 @@ import { doc } from 'firebase/firestore';
 
 export default function Home() {
   const router = useRouter();
-  const { user, loading: authLoading } = useUser();
   const db = useFirestore();
+  const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,14 +25,14 @@ export default function Home() {
   const { data: profile, loading: profileLoading } = useDoc(profileRef as any);
 
   useEffect(() => {
-    if (mounted && !authLoading && !profileLoading) {
-      if (!user) {
-        router.replace('/auth');
-      } else if (profile && profile.onboardingCompleted) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/onboarding');
-      }
+    if (!mounted || authLoading || profileLoading) return;
+
+    if (!user) {
+      router.replace('/auth');
+    } else if (profile && profile.onboardingCompleted) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/onboarding');
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
