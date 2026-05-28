@@ -281,7 +281,7 @@ export default function Onboarding() {
                 <p className="text-sm text-muted-foreground font-light">Let people know who you are and what you're looking for.</p>
               </div>
               <Textarea 
-                placeholder="Write a few lines about yourself..." 
+                placeholder="Describe yourself to show your desires match with..." 
                 value={formData.bio} 
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
                 className="min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
