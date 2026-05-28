@@ -12,7 +12,6 @@ export default function Home() {
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
 
-  // Corrected: useFirestore() is now called at the top level
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -26,34 +25,32 @@ export default function Home() {
 
   useEffect(() => {
     if (mounted && !authLoading) {
+      // If not logged in, go to auth immediately
       if (!user) {
-        const timer = setTimeout(() => router.replace('/auth'), 800);
-        return () => clearTimeout(timer);
+        router.replace('/auth');
+        return;
       }
 
+      // If logged in, wait for profile to determine next step
       if (!profileLoading) {
-        const timer = setTimeout(() => {
-          if (profile) {
-            router.replace('/dashboard');
-          } else {
-            router.replace('/onboarding');
-          }
-        }, 600);
-        return () => clearTimeout(timer);
+        if (profile && profile.onboardingCompleted) {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/onboarding');
+        }
       }
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden">
-      {/* Professional Loading Kit: Enhanced Glow Details */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-secondary/10 rounded-full blur-[120px]" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
         className="z-10 flex flex-col items-center"
       >
         <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow mb-8 flex items-center justify-center shadow-2xl shadow-primary/20">
@@ -62,7 +59,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-3">Aura</h1>
         <div className="flex flex-col items-center gap-6">
           <p className="text-muted-foreground font-light tracking-[0.3em] uppercase text-[10px] text-center">
-            Minimalist • Exotic • Real
+            Minimalist • Private • Real
           </p>
           
           <div className="flex gap-2 items-center justify-center">
@@ -73,7 +70,7 @@ export default function Home() {
 
       <div className="absolute bottom-12 text-center">
         <p className="text-[9px] text-muted-foreground/30 uppercase tracking-[0.2em] font-bold">
-          Initializing Identity Protocol
+          Synchronizing Identity
         </p>
       </div>
     </div>
