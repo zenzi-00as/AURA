@@ -12,6 +12,11 @@ export default function Home() {
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // useMemoFirebase is stable and its dependencies are top-level values
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -20,24 +25,13 @@ export default function Home() {
   const { data: profile, loading: profileLoading } = useDoc(profileRef as any);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !authLoading) {
-      // If not logged in, go to auth immediately
+    if (mounted && !authLoading && !profileLoading) {
       if (!user) {
         router.replace('/auth');
-        return;
-      }
-
-      // If logged in, wait for profile to determine next step
-      if (!profileLoading) {
-        if (profile && profile.onboardingCompleted) {
-          router.replace('/dashboard');
-        } else {
-          router.replace('/onboarding');
-        }
+      } else if (profile && profile.onboardingCompleted) {
+        router.replace('/dashboard');
+      } else {
+        router.replace('/onboarding');
       }
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);

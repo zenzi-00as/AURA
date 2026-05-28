@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 const GENDER_OPTIONS = [
   "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
-  "Genderfluid", "Agender", "Prefer not to say"
+  "Genderfluid", "Agender"
 ];
 
 interface GenderSelectorProps {
