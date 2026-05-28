@@ -62,6 +62,33 @@ export default function Onboarding() {
     }
   }, [profile, router]);
 
+  // Smart Auto-Selection for Interests
+  useEffect(() => {
+    if (!formData.gender || !formData.orientation) return;
+
+    const isMan = ["Man", "Trans Man"].includes(formData.gender);
+    const isWoman = ["Woman", "Trans Woman"].includes(formData.gender);
+    
+    let suggested: string[] = [];
+    const o = formData.orientation;
+
+    if (["Bisexual", "Pansexual", "Queer"].includes(o)) {
+      suggested = ["Everyone"];
+    } else if (isMan) {
+      if (o === "Gay") suggested = ["Man"];
+      else if (o === "Straight") suggested = ["Woman"];
+      else suggested = ["Everyone"];
+    } else if (isWoman) {
+      if (o === "Lesbian") suggested = ["Woman"];
+      else if (o === "Straight") suggested = ["Man"];
+      else suggested = ["Everyone"];
+    } else {
+      suggested = ["Everyone"];
+    }
+
+    setFormData(prev => ({ ...prev, interestedIn: suggested }));
+  }, [formData.gender, formData.orientation]);
+
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -342,7 +369,7 @@ export default function Onboarding() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 mt-6">
                 {!formData.photo ? (
                   <Button onClick={capturePhoto} disabled={!cameraActive || loading} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
                     <Camera className="mr-2" size={20} /> Capture Selfie
@@ -353,7 +380,7 @@ export default function Onboarding() {
                   </button>
                 )}
               </div>
-              <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+              <div className="mt-4 flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                 <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
                 <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">Gallery uploads are strictly prohibited. Our AI scans for face presence and capture liveness.</p>
               </div>

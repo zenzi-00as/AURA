@@ -16,7 +16,6 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // useMemoFirebase is stable and its dependencies are top-level values
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
