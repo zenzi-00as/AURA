@@ -357,7 +357,7 @@ export default function AuthPage() {
             className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
-              <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin-fast" />
             ) : (
               <>
                 {step === "phone" ? "Send Code" : "Verify"}

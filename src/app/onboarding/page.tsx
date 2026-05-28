@@ -145,7 +145,8 @@ export default function Onboarding() {
       photoUrl: formData.photo, // Save the verified selfie URL
       lastActive: serverTimestamp(),
       isOnline: true,
-      location: null
+      location: null,
+      onboardingCompleted: true
     };
 
     setDoc(userRef, profileData, { merge: true })
@@ -184,7 +185,6 @@ export default function Onboarding() {
       
       setLoading(true);
       try {
-        // Instant AI biometric & liveness verification
         const result = await selfieVerification({
           photoDataUri: formData.photo,
           userName: formData.name,
@@ -197,7 +197,6 @@ export default function Onboarding() {
             title: "Verification Failed", 
             description: result.reason 
           });
-          // Force retake for failed liveness/face checks
           setFormData(prev => ({ ...prev, photo: null }));
           startCamera();
         } else {
@@ -209,14 +208,14 @@ export default function Onboarding() {
             title: result.verificationStatus === 'Verified' ? "Identity Verified" : "Verification Pending", 
             description: result.reason || "Welcome to the community." 
           });
-          router.push("/dashboard");
+          router.replace("/dashboard");
         }
       } catch (e) {
         console.error("Verification error:", e);
         if (authUser) {
           await saveProfileToFirestore(authUser.uid, 'Pending');
         }
-        router.push("/dashboard");
+        router.replace("/dashboard");
       } finally {
         setLoading(false);
       }
@@ -276,9 +275,6 @@ export default function Onboarding() {
                   className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary text-foreground"
                 />
               </div>
-              {formData.age !== "" && parseInt(formData.age) < 18 && (
-                <p className="text-destructive text-xs font-medium px-1">Age must be 18+</p>
-              )}
             </div>
           )}
 
@@ -286,10 +282,10 @@ export default function Onboarding() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-semibold text-foreground">A bit about you</h2>
-                <p className="text-muted-foreground">Share your vibe. Keep it simple and real.</p>
+                <p className="text-muted-foreground">Share your vibe. Describe your desires to know more about you.</p>
               </div>
               <Textarea
-                placeholder="Describe your desires to know more about you"
+                placeholder="Describe your desires to know more about you..."
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 className="min-h-[160px] bg-muted border-border rounded-2xl p-4 text-lg resize-none focus:ring-primary text-foreground"
@@ -311,7 +307,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, gender: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -326,7 +322,7 @@ export default function Onboarding() {
                     <button
                       key={opt}
                       onClick={() => setFormData({ ...formData, orientation: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-foreground shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
+                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
                     >
                       {opt}
                     </button>
@@ -340,7 +336,7 @@ export default function Onboarding() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-semibold text-foreground">Selfie Guard</h2>
-                <p className="text-muted-foreground">Verify your identity with a live selfie. No gallery uploads allowed for community safety.</p>
+                <p className="text-muted-foreground">Verify your identity with a live selfie. No gallery uploads allowed.</p>
               </div>
               
               <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border flex items-center justify-center group shadow-2xl">
@@ -369,7 +365,7 @@ export default function Onboarding() {
                         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
                           <ShieldCheck size={40} />
                         </div>
-                        <p className="text-sm text-muted-foreground">Initializing secure biometric camera...</p>
+                        <p className="text-sm text-muted-foreground font-medium">Initializing secure biometric camera...</p>
                       </div>
                     )}
                   </>
@@ -377,9 +373,8 @@ export default function Onboarding() {
                 
                 {loading && (
                   <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
-                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
                     <p className="text-sm font-medium text-foreground">AI Identity Check...</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest animate-pulse">Scanning Face & Liveness</p>
                   </div>
                 )}
                 
@@ -391,7 +386,7 @@ export default function Onboarding() {
                   <Button 
                     onClick={capturePhoto} 
                     disabled={!cameraActive || loading}
-                    className="w-full h-16 rounded-3xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20"
+                    className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20"
                   >
                     <Camera className="mr-2" size={20} />
                     Capture Live Selfie
@@ -410,8 +405,8 @@ export default function Onboarding() {
               
               <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                 <ShieldAlert size={20} className="text-primary shrink-0" />
-                <p className="text-[10px] text-muted-foreground leading-snug">
-                  Our AI scans for a clear face and ensures the photo is taken live. Uploads from gallery are strictly prohibited.
+                <p className="text-[10px] text-muted-foreground leading-snug font-medium">
+                  Our AI scans for a clear face and ensures the photo is taken live. Gallery uploads are strictly prohibited.
                 </p>
               </div>
             </div>
@@ -423,10 +418,10 @@ export default function Onboarding() {
         <Button
           onClick={nextStep}
           disabled={loading || (step === 1 && (!formData.name || !isAgeValid)) || (step === 2 && !formData.bio) || (step === 3 && (!formData.gender || !formData.orientation)) || (step === 4 && !formData.photo)}
-          className="w-full h-16 rounded-3xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
-            <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
           ) : (
             <>
               {step === 4 ? "Complete Verification" : "Continue"}
