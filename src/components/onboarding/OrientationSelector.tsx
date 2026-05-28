@@ -4,18 +4,14 @@ import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 interface OrientationSelectorProps {
   gender: string;
   selected: string;
   onSelect: (orientation: string) => void;
-  showOnProfile: boolean;
-  onToggleVisibility: (show: boolean) => void;
 }
 
-export function OrientationSelector({ gender, selected, onSelect, showOnProfile, onToggleVisibility }: OrientationSelectorProps) {
+export function OrientationSelector({ gender, selected, onSelect }: OrientationSelectorProps) {
   const filteredOrientations = useMemo(() => {
     const common = ["Bisexual", "Pansexual", "Asexual", "Queer"];
     
@@ -56,17 +52,6 @@ export function OrientationSelector({ gender, selected, onSelect, showOnProfile,
             </motion.button>
           ))}
         </AnimatePresence>
-      </div>
-
-      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border">
-        <div className="space-y-0.5">
-          <Label className="text-xs font-semibold">Show on profile</Label>
-          <p className="text-[10px] text-muted-foreground">Visible to your matches</p>
-        </div>
-        <Switch 
-          checked={showOnProfile} 
-          onCheckedChange={onToggleVisibility} 
-        />
       </div>
     </div>
   );

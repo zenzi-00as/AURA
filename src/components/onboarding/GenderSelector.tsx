@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const GENDER_OPTIONS = [
   "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
@@ -14,11 +12,9 @@ const GENDER_OPTIONS = [
 interface GenderSelectorProps {
   selected: string;
   onSelect: (gender: string) => void;
-  showOnProfile: boolean;
-  onToggleVisibility: (show: boolean) => void;
 }
 
-export function GenderSelector({ selected, onSelect, showOnProfile, onToggleVisibility }: GenderSelectorProps) {
+export function GenderSelector({ selected, onSelect }: GenderSelectorProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3">
@@ -38,17 +34,6 @@ export function GenderSelector({ selected, onSelect, showOnProfile, onToggleVisi
             {selected === opt && <Check size={16} className="text-white" />}
           </motion.button>
         ))}
-      </div>
-      
-      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border">
-        <div className="space-y-0.5">
-          <Label className="text-xs font-semibold">Show on profile</Label>
-          <p className="text-[10px] text-muted-foreground">Let others know how you identify</p>
-        </div>
-        <Switch 
-          checked={showOnProfile} 
-          onCheckedChange={onToggleVisibility} 
-        />
       </div>
     </div>
   );

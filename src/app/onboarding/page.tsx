@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert, Sparkles, Heart } from "lucide-react";
+import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert } from "lucide-react";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -37,9 +37,7 @@ export default function Onboarding() {
     name: "",
     bio: "",
     gender: "",
-    showGenderOnProfile: true,
     orientation: "",
-    showOrientationOnProfile: true,
     interestedIn: [] as string[],
     age: "",
     photo: null as string | null
@@ -144,9 +142,7 @@ export default function Onboarding() {
       name: formData.name,
       bio: formData.bio,
       gender: formData.gender,
-      showGenderOnProfile: formData.showGenderOnProfile,
       orientation: formData.orientation,
-      showOrientationOnProfile: formData.showOrientationOnProfile,
       interestedIn: formData.interestedIn,
       age: parseInt(formData.age),
       verificationStatus,
@@ -212,8 +208,12 @@ export default function Onboarding() {
         <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow flex items-center justify-center mb-8">
           <span className="text-4xl font-bold text-white">A</span>
         </div>
-        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-        <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Initializing Identity</p>
+        <div className="flex flex-col items-center gap-6">
+          <p className="text-muted-foreground font-light tracking-[0.3em] uppercase text-[10px] text-center">
+            Minimalist • Private • Real
+          </p>
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
+        </div>
       </div>
     );
   }
@@ -281,8 +281,6 @@ export default function Onboarding() {
               <GenderSelector 
                 selected={formData.gender} 
                 onSelect={(g) => setFormData({ ...formData, gender: g })}
-                showOnProfile={formData.showGenderOnProfile}
-                onToggleVisibility={(v) => setFormData({ ...formData, showGenderOnProfile: v })}
               />
             </div>
           )}
@@ -297,8 +295,6 @@ export default function Onboarding() {
                 gender={formData.gender}
                 selected={formData.orientation}
                 onSelect={(o) => setFormData({ ...formData, orientation: o })}
-                showOnProfile={formData.showOrientationOnProfile}
-                onToggleVisibility={(v) => setFormData({ ...formData, showOrientationOnProfile: v })}
               />
             </div>
           )}
