@@ -7,6 +7,9 @@ export type UserProfile = {
   bio: string;
   gender: string;
   orientation: string;
+  interestedIn: string[];
+  showGenderOnProfile: boolean;
+  showOrientationOnProfile: boolean;
   verificationStatus: VerificationStatus;
   location?: {
     lat: number;
@@ -17,6 +20,7 @@ export type UserProfile = {
   lastActive: any; 
   isOnline: boolean;
   photoUrl?: string;
+  onboardingCompleted: boolean;
 };
 
 export type BlockedUser = {

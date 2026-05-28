@@ -6,38 +6,41 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert } from "lucide-react";
+import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert, Sparkles, Heart } from "lucide-react";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-
-const GENDER_OPTIONS = [
-  "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", 
-  "Genderfluid", "Agender", "Queer"
-];
-
-const ORIENTATION_OPTIONS = [
-  "Gay", "Lesbian", "Bisexual", "Pansexual", "Queer", 
-  "Asexual", "Straight"
-];
+import { GenderSelector } from "@/components/onboarding/GenderSelector";
+import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
+import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
 
 export default function Onboarding() {
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
-  const { user: authUser } = useUser();
+  const { user: authUser, loading: authLoading } = useUser();
+  
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return doc(db, "users", authUser.uid);
+  }, [db, authUser]);
 
+  const { data: profile, loading: profileLoading } = useDoc(profileRef as any);
+
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
     gender: "",
+    showGenderOnProfile: true,
     orientation: "",
+    showOrientationOnProfile: true,
+    interestedIn: [] as string[],
     age: "",
     photo: null as string | null
   });
@@ -46,6 +49,20 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+
+  // Deterministic Auth Guard
+  useEffect(() => {
+    if (!authLoading && !authUser) {
+      router.replace("/auth");
+    }
+  }, [authUser, authLoading, router]);
+
+  // Prevent looping if already completed
+  useEffect(() => {
+    if (profile && profile.onboardingCompleted) {
+      router.replace("/dashboard");
+    }
+  }, [profile, router]);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -60,13 +77,8 @@ export default function Onboarding() {
       if (streamRef.current) {
         stopCamera();
       }
-
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: "user", 
-          width: { ideal: 1024 }, 
-          height: { ideal: 1024 } 
-        } 
+        video: { facingMode: "user", width: { ideal: 1024 }, height: { ideal: 1024 } } 
       });
       streamRef.current = stream;
       setCameraActive(true);
@@ -75,7 +87,7 @@ export default function Onboarding() {
       toast({ 
         variant: "destructive", 
         title: "Camera access denied", 
-        description: "Aura needs camera access for identity verification. Please check your browser permissions." 
+        description: "Aura needs camera access for identity verification." 
       });
     }
   };
@@ -91,12 +103,9 @@ export default function Onboarding() {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext("2d");
       const video = videoRef.current;
-      
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
-      const size = Math.min(videoWidth, videoHeight);
-      const startX = (videoWidth - size) / 2;
-      const startY = (videoHeight - size) / 2;
+      const size = Math.min(video.videoWidth, video.videoHeight);
+      const startX = (video.videoWidth - size) / 2;
+      const startY = (video.videoHeight - size) / 2;
       
       canvasRef.current.width = 512;
       canvasRef.current.height = 512;
@@ -105,58 +114,54 @@ export default function Onboarding() {
         context.translate(512, 0);
         context.scale(-1, 1);
         context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
-        
-        const dataUri = canvasRef.current.toDataURL("image/jpeg", 0.8);
-        setFormData(prev => ({ ...prev, photo: dataUri }));
+        setFormData(prev => ({ ...prev, photo: canvasRef.current!.toDataURL("image/jpeg", 0.8) }));
         stopCamera();
       }
     }
-  };
-
-  const handleRetake = () => {
-    setFormData(prev => ({ ...prev, photo: null }));
-    setTimeout(() => startCamera(), 100);
   };
 
   useEffect(() => {
-    if (step === 4 && !formData.photo && !cameraActive && !loading) {
+    if (step === 6 && !formData.photo && !cameraActive && !loading) {
       startCamera();
     }
-    
-    return () => {
-      if (step !== 4 || formData.photo) {
-        stopCamera();
-      }
-    };
+    return () => stopCamera();
   }, [step, formData.photo, cameraActive, stopCamera, loading]);
+
+  const handleInterestToggle = (interest: string) => {
+    setFormData(prev => {
+      const updated = prev.interestedIn.includes(interest)
+        ? prev.interestedIn.filter(i => i !== interest)
+        : [...prev.interestedIn, interest];
+      return { ...prev, interestedIn: updated };
+    });
+  };
 
   const saveProfileToFirestore = async (uid: string, verificationStatus: string) => {
     if (!db) return;
-    
     const userRef = doc(db, "users", uid);
     const profileData = {
       uid,
       name: formData.name,
       bio: formData.bio,
       gender: formData.gender,
+      showGenderOnProfile: formData.showGenderOnProfile,
       orientation: formData.orientation,
+      showOrientationOnProfile: formData.showOrientationOnProfile,
+      interestedIn: formData.interestedIn,
       age: parseInt(formData.age),
       verificationStatus,
-      photoUrl: formData.photo, // Save the verified selfie URL
+      photoUrl: formData.photo,
       lastActive: serverTimestamp(),
       isOnline: true,
-      location: null,
-      onboardingCompleted: true
+      onboardingCompleted: true,
+      updatedAt: serverTimestamp()
     };
 
     setDoc(userRef, profileData, { merge: true })
       .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: userRef.path,
-          operation: 'write',
-          requestResourceData: profileData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userRef.path, operation: 'write', requestResourceData: profileData
+        }));
       });
   };
 
@@ -164,25 +169,16 @@ export default function Onboarding() {
     if (step === 1) {
       const ageNum = parseInt(formData.age);
       if (isNaN(ageNum) || ageNum < 18) {
-        toast({ 
-          variant: "destructive", 
-          title: "Age requirement", 
-          description: "You must be 18 years or older to join Aura." 
-        });
+        toast({ variant: "destructive", title: "Age requirement", description: "You must be 18+ to join Aura." });
         return;
       }
     }
 
-    if (step === 4) {
+    if (step === 6) {
       if (!formData.photo) {
-        toast({ 
-          variant: "destructive", 
-          title: "Photo required", 
-          description: "Please capture a selfie for verification." 
-        });
+        toast({ variant: "destructive", title: "Photo required", description: "Please capture a selfie for verification." });
         return;
       }
-      
       setLoading(true);
       try {
         const result = await selfieVerification({
@@ -192,29 +188,15 @@ export default function Onboarding() {
         });
         
         if (result.verificationStatus === 'Rejected') {
-          toast({ 
-            variant: "destructive", 
-            title: "Verification Failed", 
-            description: result.reason 
-          });
+          toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
           setFormData(prev => ({ ...prev, photo: null }));
           startCamera();
         } else {
-          if (authUser) {
-            await saveProfileToFirestore(authUser.uid, result.verificationStatus);
-          }
-          
-          toast({ 
-            title: result.verificationStatus === 'Verified' ? "Identity Verified" : "Verification Pending", 
-            description: result.reason || "Welcome to the community." 
-          });
+          if (authUser) await saveProfileToFirestore(authUser.uid, result.verificationStatus);
           router.replace("/dashboard");
         }
       } catch (e) {
-        console.error("Verification error:", e);
-        if (authUser) {
-          await saveProfileToFirestore(authUser.uid, 'Pending');
-        }
+        if (authUser) await saveProfileToFirestore(authUser.uid, 'Pending');
         router.replace("/dashboard");
       } finally {
         setLoading(false);
@@ -224,56 +206,53 @@ export default function Onboarding() {
     }
   };
 
-  const isAgeValid = formData.age !== "" && parseInt(formData.age) >= 18;
+  if (authLoading || profileLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background p-8">
+        <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow flex items-center justify-center mb-8">
+          <span className="text-4xl font-bold text-white">A</span>
+        </div>
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
+        <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Initializing Identity</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background max-w-md mx-auto min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <div className="flex gap-1.5">
-          {[1, 2, 3, 4].map(s => (
-            <div key={s} className={`h-1 rounded-full transition-all duration-500 ${step >= s ? "w-8 bg-primary" : "w-4 bg-muted"}`} />
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5, 6].map(s => (
+            <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
           ))}
         </div>
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 4</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 6</span>
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.4 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="flex-1 flex flex-col"
         >
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-foreground">What's your name?</h2>
-                <p className="text-muted-foreground">It's nice to meet you. Aura is about real identity.</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">What's your name?</h2>
+                <p className="text-sm text-muted-foreground font-light">It's nice to meet you. Aura is about real identity.</p>
               </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <User size={18} />
+              <div className="space-y-4">
+                <div className="relative group">
+                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input placeholder="Enter your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
                 </div>
-                <Input
-                  placeholder="Enter your name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary text-foreground"
-                />
-              </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Hash size={18} />
+                <div className="relative group">
+                  <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input type="number" placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
                 </div>
-                <Input
-                  type="number"
-                  placeholder="Your age"
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary text-foreground"
-                />
               </div>
             </div>
           )}
@@ -281,133 +260,106 @@ export default function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-foreground">A bit about you</h2>
-                <p className="text-muted-foreground">Share your vibe. Describe your desires to know more about you.</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Vibe</h2>
+                <p className="text-sm text-muted-foreground font-light">Describe your desires to match with someone you feel...</p>
               </div>
-              <Textarea
-                placeholder="Describe your desires to know more about you..."
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="min-h-[160px] bg-muted border-border rounded-2xl p-4 text-lg resize-none focus:ring-primary text-foreground"
+              <Textarea 
+                placeholder="Describe your desires to match with someone you feel..." 
+                value={formData.bio} 
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
+                className="min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
               />
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-foreground">Your Spectrum</h2>
-                <p className="text-muted-foreground">Aura celebrates every identity.</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity</h2>
+                <p className="text-sm text-muted-foreground font-light">How do you identify? Aura celebrates the spectrum.</p>
               </div>
-              
-              <div className="space-y-4">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Gender</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {GENDER_OPTIONS.map(opt => (
-                    <button
-                      key={opt}
-                      onClick={() => setFormData({ ...formData, gender: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.gender === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Orientation</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {ORIENTATION_OPTIONS.map(opt => (
-                    <button
-                      key={opt}
-                      onClick={() => setFormData({ ...formData, orientation: opt })}
-                      className={`h-11 rounded-xl text-sm font-medium transition-all ${formData.orientation === opt ? "fuchsia-gradient text-white shadow-lg shadow-primary/20" : "bg-muted border border-border text-foreground hover:border-primary/20"}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <GenderSelector 
+                selected={formData.gender} 
+                onSelect={(g) => setFormData({ ...formData, gender: g })}
+                showOnProfile={formData.showGenderOnProfile}
+                onToggleVisibility={(v) => setFormData({ ...formData, showGenderOnProfile: v })}
+              />
             </div>
           )}
 
           {step === 4 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h2 className="text-3xl font-semibold text-foreground">Selfie Guard</h2>
-                <p className="text-muted-foreground">Verify your identity with a live selfie. No gallery uploads allowed.</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Orientation</h2>
+                <p className="text-sm text-muted-foreground font-light">Choose the orientation that best fits you.</p>
               </div>
-              
-              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border flex items-center justify-center group shadow-2xl">
+              <OrientationSelector 
+                gender={formData.gender}
+                selected={formData.orientation}
+                onSelect={(o) => setFormData({ ...formData, orientation: o })}
+                showOnProfile={formData.showOrientationOnProfile}
+                onToggleVisibility={(v) => setFormData({ ...formData, showOrientationOnProfile: v })}
+              />
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Interested In</h2>
+                <p className="text-sm text-muted-foreground font-light">Who would you like to connect with?</p>
+              </div>
+              <InterestedInSelector 
+                selected={formData.interestedIn}
+                onToggle={handleInterestToggle}
+              />
+            </div>
+          )}
+
+          {step === 6 && (
+            <div className="space-y-6">
+              <div className="space-y-2 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
+                  <ShieldCheck size={32} />
+                </div>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
+                <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
+              </div>
+              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border aura-glow shadow-2xl">
                 {formData.photo ? (
-                  <motion.img 
-                    initial={{ scale: 1.1, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    src={formData.photo} 
-                    alt="Selfie" 
-                    className="w-full h-full object-cover" 
-                  />
+                  <motion.img initial={{ scale: 1.1, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} src={formData.photo} alt="Selfie" className="w-full h-full object-cover" />
                 ) : (
                   <>
-                    <video 
-                      ref={videoRef} 
-                      autoPlay 
-                      playsInline 
-                      muted 
-                      className={cn(
-                        "w-full h-full object-cover scale-x-[-1]",
-                        !cameraActive && "hidden"
-                      )} 
-                    />
+                    <video ref={videoRef} autoPlay playsInline muted className={cn("w-full h-full object-cover scale-x-[-1]", !cameraActive && "hidden")} />
                     {!cameraActive && (
-                      <div className="text-center p-8 space-y-4">
-                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
-                          <ShieldCheck size={40} />
-                        </div>
-                        <p className="text-sm text-muted-foreground font-medium">Initializing secure biometric camera...</p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-4">
+                        <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Waking Secure Camera</p>
                       </div>
                     )}
                   </>
                 )}
-                
                 {loading && (
                   <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
-                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-                    <p className="text-sm font-medium text-foreground">AI Identity Check...</p>
+                    <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
+                    <p className="text-sm font-bold text-foreground">AI Identity Check...</p>
                   </div>
                 )}
-                
-                <canvas ref={canvasRef} className="hidden" />
               </div>
-
               <div className="flex flex-col gap-3">
                 {!formData.photo ? (
-                  <Button 
-                    onClick={capturePhoto} 
-                    disabled={!cameraActive || loading}
-                    className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20"
-                  >
-                    <Camera className="mr-2" size={20} />
-                    Capture Live Selfie
+                  <Button onClick={capturePhoto} disabled={!cameraActive || loading} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
+                    <Camera className="mr-2" size={20} /> Capture Selfie
                   </Button>
                 ) : (
-                  <button 
-                    onClick={handleRetake} 
-                    disabled={loading}
-                    className="w-full h-12 flex items-center justify-center gap-2 text-sm text-foreground font-bold hover:underline disabled:opacity-50"
-                  >
-                    <RefreshCcw size={16} />
-                    Retake photo
+                  <button onClick={() => { setFormData({ ...formData, photo: null }); startCamera(); }} disabled={loading} className="w-full h-12 flex items-center justify-center gap-2 text-sm text-foreground font-bold hover:underline">
+                    <RefreshCcw size={16} /> Retake photo
                   </button>
                 )}
               </div>
-              
-              <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                <ShieldAlert size={20} className="text-primary shrink-0" />
-                <p className="text-[10px] text-muted-foreground leading-snug font-medium">
-                  Our AI scans for a clear face and ensures the photo is taken live. Gallery uploads are strictly prohibited.
-                </p>
+              <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
+                <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">Gallery uploads are strictly prohibited. Our AI scans for face presence and capture liveness.</p>
               </div>
             </div>
           )}
@@ -417,14 +369,22 @@ export default function Onboarding() {
       <div className="mt-8 pb-4">
         <Button
           onClick={nextStep}
-          disabled={loading || (step === 1 && (!formData.name || !isAgeValid)) || (step === 2 && !formData.bio) || (step === 3 && (!formData.gender || !formData.orientation)) || (step === 4 && !formData.photo)}
+          disabled={
+            loading || 
+            (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18)) || 
+            (step === 2 && !formData.bio) || 
+            (step === 3 && !formData.gender) || 
+            (step === 4 && !formData.orientation) || 
+            (step === 5 && formData.interestedIn.length === 0) || 
+            (step === 6 && !formData.photo)
+          }
           className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {loading ? (
             <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
           ) : (
             <>
-              {step === 4 ? "Complete Verification" : "Continue"}
+              {step === 6 ? "Complete Verification" : "Continue"}
               <ChevronRight size={20} />
             </>
           )}
