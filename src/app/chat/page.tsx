@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
@@ -9,7 +9,7 @@ import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react"
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
-import { collection, query, where, limit, Query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, limit, Query, orderBy, doc, updateDoc, writeBatch } from "firebase/firestore";
 import { ChatRoom, UserProfile, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,18 @@ export default function ChatList() {
 
   const { data: unreadMessageNotifs } = useCollection<Notification>(messageNotifsQuery);
 
+  // Clear all unread message notifications when viewing the list
+  useEffect(() => {
+    if (db && unreadMessageNotifs.length > 0) {
+      const batch = writeBatch(db);
+      unreadMessageNotifs.forEach(notif => {
+        const ref = doc(db, "notifications", notif.id);
+        batch.update(ref, { read: true });
+      });
+      batch.commit().catch(err => console.error("Failed to clear message notifications", err));
+    }
+  }, [db, unreadMessageNotifs]);
+
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
     return query(
@@ -66,6 +78,7 @@ export default function ChatList() {
     return rooms.map(room => {
       const otherParticipantId = room.participants.find(id => id !== authUser.uid);
       
+      // We check if it was unread based on notifications
       const isUnread = unreadMessageNotifs.some(n => 
         (room.isSystem && n.title === "AURA Team") || 
         (!room.isSystem && n.body.includes(room.lastMessage || ""))
@@ -105,19 +118,7 @@ export default function ChatList() {
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleChatClick = async (room: any) => {
-    // Clear the unread notification for this specific chat
-    if (room.unread && db && authUser) {
-      const targetNotifs = unreadMessageNotifs.filter(n => 
-        (room.isSystem && n.title === "AURA Team") || 
-        (!room.isSystem && n.body.includes(room.lastMsg))
-      );
-      
-      for (const n of targetNotifs) {
-        const ref = doc(db, "notifications", n.id);
-        updateDoc(ref, { read: true });
-      }
-    }
+  const handleChatClick = (room: any) => {
     router.replace(`/chat/${room.id}`);
   };
 

@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { Bell, ShieldCheck, MapPin, MessageCircle, Info, Sparkles, Heart } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, limit, Query, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, Query, doc, updateDoc, writeBatch } from "firebase/firestore";
 import { Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ export default function NotificationsPage() {
       collection(db, "notifications"),
       where("userId", "==", authUser.uid),
       where("type", "!=", "message"), // Separate: Don't show message alerts in the general notification page
-      orderBy("type"), // Required for inequality filter in some cases, but typically ordered by timestamp
+      orderBy("type"), 
       orderBy("timestamp", "desc"),
       limit(50)
     ) as Query<Notification>;
@@ -30,15 +30,20 @@ export default function NotificationsPage() {
 
   const { data: notifications, loading } = useCollection<Notification>(notifsQuery);
 
-  const handleNotifClick = async (notifId: string, isRead: boolean) => {
-    if (isRead || !db) return;
-    try {
-      const ref = doc(db, "notifications", notifId);
-      await updateDoc(ref, { read: true });
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
+  // Clear all unread general notifications when viewing the list
+  useEffect(() => {
+    if (db && notifications.length > 0) {
+      const unreadNotifs = notifications.filter(n => !n.read);
+      if (unreadNotifs.length > 0) {
+        const batch = writeBatch(db);
+        unreadNotifs.forEach(notif => {
+          const ref = doc(db, "notifications", notif.id);
+          batch.update(ref, { read: true });
+        });
+        batch.commit().catch(err => console.error("Failed to clear notifications", err));
+      }
     }
-  };
+  }, [db, notifications]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -97,9 +102,8 @@ export default function NotificationsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
-                    onClick={() => handleNotifClick(notif.id, notif.read)}
                     className={cn(
-                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border cursor-pointer",
+                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border",
                       notif.read ? "opacity-70 grayscale-[0.5] border-border" : "border-primary/20 bg-primary/5"
                     )}
                   >

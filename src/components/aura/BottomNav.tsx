@@ -42,7 +42,8 @@ export function BottomNav() {
       <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          const showBadge = item.hasBadge;
+          // Only show badge if tab is not active
+          const showBadge = item.hasBadge && !isActive;
 
           return (
             <button
