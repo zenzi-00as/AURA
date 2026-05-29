@@ -27,6 +27,7 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || authLoading || profileLoading) return;
 
+    // Use replace for deterministic, loop-free navigation
     if (!user) {
       router.replace('/auth');
     } else if (profile && profile.onboardingCompleted) {
@@ -36,6 +37,7 @@ export default function Home() {
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
+  // Persistent professional loading state
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden">
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-[120px]" />

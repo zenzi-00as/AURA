@@ -92,30 +92,39 @@ export default function Onboarding() {
     setCameraActive(false);
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
+    if (typeof window === 'undefined' || !navigator.mediaDevices) return;
+    
     try {
       if (streamRef.current) stopCamera();
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user", width: { ideal: 1024 }, height: { ideal: 1024 } } 
+        video: { 
+          facingMode: "user", 
+          width: { ideal: 1024 }, 
+          height: { ideal: 1024 } 
+        } 
       });
       streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
       setCameraActive(true);
     } catch (err) {
       console.error("Camera access error:", err);
       toast({ 
         variant: "destructive", 
         title: "Camera access denied", 
-        description: "Aura needs camera access for identity verification." 
+        description: "Aura needs camera access for identity verification. Please enable it in your browser settings." 
       });
     }
-  };
+  }, [stopCamera, toast]);
 
   useEffect(() => {
-    if (cameraActive && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play().catch(e => console.error("Video play failed:", e));
+    if (step === 6 && !formData.photo && !cameraActive && !loading) {
+      startCamera();
     }
-  }, [cameraActive]);
+    return () => stopCamera();
+  }, [step, formData.photo, cameraActive, startCamera, stopCamera, loading]);
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
@@ -132,18 +141,12 @@ export default function Onboarding() {
         context.translate(512, 0);
         context.scale(-1, 1);
         context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
-        setFormData(prev => ({ ...prev, photo: canvasRef.current!.toDataURL("image/jpeg", 0.8) }));
+        const dataUrl = canvasRef.current.toDataURL("image/jpeg", 0.8);
+        setFormData(prev => ({ ...prev, photo: dataUrl }));
         stopCamera();
       }
     }
   };
-
-  useEffect(() => {
-    if (step === 6 && !formData.photo && !cameraActive && !loading) {
-      startCamera();
-    }
-    return () => stopCamera();
-  }, [step, formData.photo, cameraActive, stopCamera, loading]);
 
   const saveProfileToFirestore = async (uid: string, verificationStatus: string) => {
     if (!db) return;
@@ -198,15 +201,22 @@ export default function Onboarding() {
           toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
           setFormData(prev => ({ ...prev, photo: null }));
           startCamera();
+          setLoading(false);
         } else {
-          if (authUser) await saveProfileToFirestore(authUser.uid, result.verificationStatus);
-          router.replace("/dashboard");
+          if (authUser) {
+            await saveProfileToFirestore(authUser.uid, result.verificationStatus);
+            router.replace("/dashboard");
+          }
         }
       } catch (e) {
-        if (authUser) await saveProfileToFirestore(authUser.uid, 'Pending');
-        router.replace("/dashboard");
+        console.error("Verification error:", e);
+        if (authUser) {
+          await saveProfileToFirestore(authUser.uid, 'Pending');
+          router.replace("/dashboard");
+        }
       } finally {
-        setLoading(false);
+        // Redirection will happen via Root Switcher usually, 
+        // but we use router.replace as a backup.
       }
     } else {
       setStep(s => s + 1);
