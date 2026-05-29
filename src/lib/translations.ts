@@ -1,3 +1,4 @@
+
 export type Language = 'en' | 'hi' | 'es' | 'pt' | 'fr' | 'de';
 
 export const LANGUAGES: { code: Language; name: string; flag: string }[] = [
@@ -283,7 +284,7 @@ export const translations = {
     how_it_works: "Más allá de la superficie",
     how_it_works_desc: "Aura no se trata solo de emparejar. Se trata de una conexión segura para nómadas queer modernos.",
     ai_guard: "Guardia con IA",
-    ai_guard_desc: "Redes neuronales avanzadas eliminan bots y suplantadores al instante mediante controles de selfies.",
+    ai_guard_desc: "Redes neuronales avanzadas eliminam bots y suplantadores al instante mediante controles de selfies.",
     stateless_title: "Conexión Sin Estado",
     stateless_desc: "Nuestra infraestructura garantiza que tu presencia de datos sea efímera y segura en cualquier lugar.",
     our_promise: "Nuestro Compromiso con Usted",
