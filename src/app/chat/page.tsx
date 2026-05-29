@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock, Sparkles } from "lucide-react";
+import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock, Sparkles, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
@@ -51,6 +51,21 @@ export default function ChatList() {
 
     return rooms.map(room => {
       const otherParticipantId = room.participants.find(id => id !== authUser.uid);
+      
+      if (room.isSystem || otherParticipantId === "system") {
+        return {
+          id: room.id,
+          name: "AURA Team",
+          age: "",
+          lastMsg: room.lastMessage || "Welcome to AURA ❤️",
+          time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
+          verified: true,
+          unread: false,
+          isSystem: true,
+          otherUid: "system"
+        };
+      }
+
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
 
       return {
@@ -61,6 +76,7 @@ export default function ChatList() {
         time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
         verified: otherUser?.verificationStatus === 'Verified',
         unread: false,
+        isSystem: false,
         otherUid: otherParticipantId
       };
     });
@@ -168,8 +184,15 @@ export default function ChatList() {
                   onClick={() => handleChatClick(chat.id)}
                   className="group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center relative">
-                    <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative",
+                    chat.isSystem ? "fuchsia-gradient" : "bg-muted"
+                  )}>
+                    {chat.isSystem ? (
+                      <span className="text-white font-bold text-xl">A</span>
+                    ) : (
+                      <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>
+                    )}
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-background border border-border flex items-center justify-center">
                       <Lock size={8} className="text-muted-foreground" />
                     </div>
@@ -178,7 +201,10 @@ export default function ChatList() {
                   <div className="flex-1 flex flex-col min-w-0">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-foreground truncate">{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
+                        <h3 className={cn(
+                          "font-semibold truncate",
+                          chat.isSystem ? "text-primary" : "text-foreground"
+                        )}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
                         {chat.verified && <BadgeCheck size={14} className="text-primary" />}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-medium">{chat.time}</span>

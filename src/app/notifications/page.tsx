@@ -1,13 +1,15 @@
+
 "use client";
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { Bell, ShieldCheck, MapPin, MessageCircle, Info } from "lucide-react";
+import { Bell, ShieldCheck, MapPin, MessageCircle, Info, Sparkles, Heart } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, limit, Query } from "firebase/firestore";
 import { Notification } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
@@ -31,16 +33,18 @@ export default function NotificationsPage() {
       case 'verification': return ShieldCheck;
       case 'proximity': return MapPin;
       case 'message': return MessageCircle;
+      case 'welcome': return Sparkles;
       default: return Bell;
     }
   };
 
   const getColor = (type: string) => {
     switch (type) {
-      case 'verification': return "text-primary";
-      case 'proximity': return "text-secondary";
-      case 'message': return "text-primary";
-      default: return "text-muted-foreground";
+      case 'verification': return "text-emerald-500 bg-emerald-500/10";
+      case 'proximity': return "text-secondary bg-secondary/10";
+      case 'message': return "text-primary bg-primary/10";
+      case 'welcome': return "text-amber-500 bg-amber-500/10";
+      default: return "text-muted-foreground bg-muted";
     }
   };
 
@@ -48,8 +52,11 @@ export default function NotificationsPage() {
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
       <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('activity')}</h1>
-        <button className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+        <button className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative">
           <Bell size={18} />
+          {notifications.some(n => !n.read) && (
+            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
+          )}
         </button>
       </header>
 
@@ -65,7 +72,7 @@ export default function NotificationsPage() {
             {notifications.length > 0 ? (
               notifications.map((notif, idx) => {
                 const Icon = getIcon(notif.type);
-                const color = getColor(notif.type);
+                const colorClasses = getColor(notif.type);
                 const timeStr = notif.timestamp?.toDate 
                   ? notif.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
                   : "Just now";
@@ -78,14 +85,23 @@ export default function NotificationsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="p-6 glass-card rounded-[32px] flex items-start gap-4"
+                    className={cn(
+                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border",
+                      notif.read ? "opacity-70 grayscale-[0.5] border-border" : "border-primary/20 bg-primary/5"
+                    )}
                   >
-                    <div className={`w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center ${color}`}>
+                    <div className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                      colorClasses
+                    )}>
                       <Icon size={22} />
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between items-center">
-                        <h3 className="font-semibold text-foreground">{notif.title}</h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-semibold text-foreground">{notif.title}</h3>
+                          {!notif.read && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                        </div>
                         <span className="text-[10px] text-muted-foreground font-medium">{timeStr}</span>
                       </div>
                       <p className="text-sm text-muted-foreground font-light leading-relaxed">

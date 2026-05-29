@@ -20,6 +20,7 @@ export type UserProfile = {
   isOnline: boolean;
   photoUrl?: string;
   onboardingCompleted: boolean;
+  welcomeSent?: boolean;
   updatedAt?: any;
 };
 
@@ -44,9 +45,10 @@ export type ChatRoom = {
   lastMessage?: string;
   lastTimestamp?: any;
   typing?: Record<string, boolean>;
+  isSystem?: boolean;
 };
 
-export type NotificationType = 'verification' | 'proximity' | 'message';
+export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome';
 
 export type Notification = {
   id: string;

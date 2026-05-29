@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -10,7 +11,7 @@ import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
@@ -49,7 +50,6 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInitializingRef = useRef(false);
 
-  // Auto-suggestion logic for Interests
   useEffect(() => {
     if (step === 5 && formData.interestedIn.length === 0) {
       let suggestions: string[] = [];
@@ -95,18 +95,12 @@ export default function Onboarding() {
       setStream(s);
     } catch (err) {
       console.error("Camera access failed:", err);
-      toast({
-        variant: "destructive",
-        title: "Camera Access Error",
-        description: "Aura requires camera access for identity verification. Please check permissions."
-      });
     } finally {
       setIsCameraLoading(false);
       cameraInitializingRef.current = false;
     }
-  }, [stream, toast]);
+  }, [stream]);
 
-  // Handle stream binding to video element
   useEffect(() => {
     if (stream && videoRef.current) {
       videoRef.current.srcObject = stream;
@@ -152,7 +146,9 @@ export default function Onboarding() {
 
   const saveProfileToFirestore = async (uid: string, verificationStatus: string = 'Pending') => {
     if (!db) return;
+    const batch = writeBatch(db);
     const userRef = doc(db, "users", uid);
+    
     const profileData = {
       uid,
       name: formData.name,
@@ -166,11 +162,51 @@ export default function Onboarding() {
       lastActive: serverTimestamp(),
       isOnline: true,
       onboardingCompleted: true,
+      welcomeSent: true,
       updatedAt: serverTimestamp()
     };
 
+    // 1. Update User Profile
+    batch.set(userRef, profileData, { merge: true });
+
+    // 2. Create System Chat Room
+    const roomId = `system_${uid}`;
+    const roomRef = doc(db, "chatRooms", roomId);
+    batch.set(roomRef, {
+      id: roomId,
+      participants: ["system", uid],
+      lastMessage: "Welcome to AURA ❤️",
+      lastTimestamp: serverTimestamp(),
+      isSystem: true
+    });
+
+    // 3. Send Welcome Message
+    const messageRef = doc(collection(db, "chatRooms", roomId, "messages"));
+    const dateStr = new Date().toLocaleDateString();
+    const welcomeText = `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully created on ${dateStr}.\n\nYou can now:\n• Explore matches\n• Complete your profile\n• Upload photos\n• Start connecting with people nearby\n\nStay respectful and enjoy your experience ✨`;
+    
+    batch.set(messageRef, {
+      id: messageRef.id,
+      senderId: "system",
+      text: welcomeText,
+      timestamp: serverTimestamp(),
+      seen: false
+    });
+
+    // 4. Create Verification Notification
+    const notifRef = doc(collection(db, "notifications"));
+    batch.set(notifRef, {
+      id: notifRef.id,
+      userId: uid,
+      title: "✅ Verification Successful",
+      body: `Hi ${formData.name}, your account has been successfully verified on ${dateStr}. Your profile now gets better visibility and a trusted badge.`,
+      type: "verification",
+      timestamp: serverTimestamp(),
+      read: false
+    });
+
     try {
-      await setDoc(userRef, profileData, { merge: true });
+      await batch.commit();
       router.replace("/dashboard");
     } catch (error) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
