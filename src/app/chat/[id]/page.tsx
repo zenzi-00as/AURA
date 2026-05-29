@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert, Phone } from "lucide-react";
+import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert, Phone, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,13 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-
-type Message = {
-  id: string;
-  sender: "me" | "them";
-  text: string;
-  time: string;
-};
+import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs } from "firebase/firestore";
+import { ChatRoom, UserProfile, Message, Notification } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const REPORT_REASONS = [
   "Harassment or Hate Speech",
@@ -40,88 +37,155 @@ const REPORT_REASONS = [
   "Other"
 ];
 
-export default function ChatRoom() {
-  const params = useParams();
+export default function ChatRoomPage() {
+  const { id: roomId } = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", sender: "them", text: "Hey! Your profile bio is really cool. Design for living?", time: "2:41 PM" },
-    { id: "2", sender: "me", text: "Thanks! Yeah, I'm an architect. Just moved nearby.", time: "2:43 PM" },
-    { id: "3", sender: "them", text: "That's awesome. I'm into UI/UX myself. Maybe we can grab a coffee sometime?", time: "2:44 PM" },
-  ]);
+  const db = useFirestore();
+  const { user: authUser } = useUser();
+  
   const [input, setInput] = useState("");
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
   
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 1. Fetch Room Data
+  const roomRef = useMemoFirebase(() => {
+    if (!db || !roomId) return null;
+    return doc(db, "chatRooms", roomId as string);
+  }, [db, roomId]);
+
+  const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
+
+  // 2. Identify Other Participant
+  const otherUid = useMemo(() => {
+    if (!room || !authUser) return null;
+    return room.participants.find(uid => uid !== authUser.uid);
+  }, [room, authUser]);
+
+  // 3. Fetch Other User Profile
+  const otherUserRef = useMemoFirebase(() => {
+    if (!db || !otherUid || otherUid === 'system') return null;
+    return doc(db, "users", otherUid);
+  }, [db, otherUid]);
+
+  const { data: otherUser } = useDoc<UserProfile>(otherUserRef as any);
+
+  // 4. Fetch Messages Stream
+  const messagesQuery = useMemoFirebase(() => {
+    if (!db || !roomId) return null;
+    return query(
+      collection(db, "chatRooms", roomId as string, "messages"),
+      orderBy("timestamp", "asc")
+    );
+  }, [db, roomId]);
+
+  const { data: messages } = useCollection<Message>(messagesQuery as any);
+
+  // 5. Clear Unread Notifications for this room
+  useEffect(() => {
+    if (db && authUser && roomId && messages.length > 0) {
+      const clearNotifs = async () => {
+        const notifQuery = query(
+          collection(db, "notifications"),
+          where("userId", "==", authUser.uid),
+          where("type", "==", "message"),
+          where("read", "==", false)
+        );
+        const snapshot = await getDocs(notifQuery);
+        snapshot.docs.forEach(notifDoc => {
+          const data = notifDoc.data() as Notification;
+          // Heuristic: If it's a system room or contains recent msg text
+          const isRelevant = room?.isSystem 
+            ? data.title === "AURA Team"
+            : messages.some(m => data.body.includes(m.text.slice(0, 10)));
+          
+          if (isRelevant) {
+            updateDoc(notifDoc.ref, { read: true });
+          }
+        });
+      };
+      clearNotifs();
+    }
+  }, [db, authUser, roomId, messages, room]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (Math.random() > 0.95) {
-        setIsOnline(prev => !prev);
-      }
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: "me",
+  const handleSend = async () => {
+    if (!input.trim() || !db || !roomId || !authUser) return;
+    
+    const messageData = {
+      senderId: authUser.uid,
       text: input,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: serverTimestamp(),
+      seen: false
     };
-    setMessages([...messages, newMessage]);
-    setInput("");
+
+    try {
+      await addDoc(collection(db, "chatRooms", roomId as string, "messages"), messageData);
+      await updateDoc(doc(db, "chatRooms", roomId as string), {
+        lastMessage: input,
+        lastTimestamp: serverTimestamp()
+      });
+      setInput("");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Message failed",
+        description: "Your message could not be sent. Please try again."
+      });
+    }
   };
 
   const handleCall = () => {
+    if (otherUser?.uid === 'system') {
+      toast({ title: "System Room", description: "Voice calls are not available with AURA Team." });
+      return;
+    }
     toast({
       title: "Calling...",
-      description: "Dialing Aarav via secure link.",
+      description: `Dialing ${otherUser?.name || 'User'} via secure link.`,
     });
-    // In a real app, this would initiate a webRTC or carrier call
     window.location.href = `tel:+910000000000`;
   };
 
-  const handleDeleteConversation = () => {
-    toast({
-      title: "Conversation Deleted",
-      description: "The chat history has been removed.",
-    });
-    router.push("/chat");
+  const handleDeleteConversation = async () => {
+    if (!db || !roomId) return;
+    try {
+      await deleteDoc(doc(db, "chatRooms", roomId as string));
+      toast({ title: "Conversation Deleted" });
+      router.push("/chat");
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Could not delete conversation." });
+    }
   };
 
   const handleSubmitReport = () => {
-    if (!reportReason) {
-      toast({
-        variant: "destructive",
-        title: "Reason required",
-        description: "Please select a reason for reporting.",
-      });
-      return;
-    }
-    
+    if (!reportReason) return;
     setIsReporting(true);
     setTimeout(() => {
       setIsReporting(false);
       setIsReportDialogOpen(false);
-      setReportReason("");
-      setReportDescription("");
-      toast({
-        title: "Report Submitted",
-        description: "Thank you for helping keep Aura safe. Our team will review this shortly.",
-      });
+      toast({ title: "Report Submitted", description: "Thank you for helping keep Aura safe." });
     }, 1500);
   };
+
+  if (roomLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Connecting Securely</p>
+      </div>
+    );
+  }
+
+  const displayName = room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
+  const isVerified = room?.isSystem || otherUser?.verificationStatus === 'Verified';
 
   return (
     <div className="flex-1 flex flex-col bg-background h-screen overflow-hidden transition-colors">
@@ -132,24 +196,28 @@ export default function ChatRoom() {
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-foreground">Aarav</span>
-              <BadgeCheck size={16} className="text-primary" />
+              <span className="font-semibold text-foreground">{displayName}</span>
+              {isVerified && <BadgeCheck size={16} className="text-primary" />}
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]"}`} />
-              <span className={`text-[9px] font-bold uppercase tracking-[0.1em] ${isOnline ? "text-emerald-500" : "text-rose-500"}`}>
-                {isOnline ? "Active Now" : "Offline"}
-              </span>
-            </div>
+            {!room?.isSystem && (
+               <div className="flex items-center gap-1.5">
+                <div className={cn("w-1.5 h-1.5 rounded-full", otherUser?.isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted")} />
+                <span className={cn("text-[9px] font-bold uppercase tracking-[0.1em]", otherUser?.isOnline ? "text-emerald-500" : "text-muted-foreground")}>
+                  {otherUser?.isOnline ? "Active Now" : "Offline"}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={handleCall}
-            className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Phone size={18} />
-          </button>
+          {!room?.isSystem && (
+            <button 
+              onClick={handleCall}
+              className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Phone size={18} />
+            </button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none">
@@ -157,13 +225,15 @@ export default function ChatRoom() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
-              <DropdownMenuItem 
-                onClick={() => setIsReportDialogOpen(true)}
-                className="rounded-xl px-4 py-3 focus:bg-muted cursor-pointer flex items-center gap-3"
-              >
-                <Flag size={16} className="text-muted-foreground" />
-                <span className="text-sm">Report User</span>
-              </DropdownMenuItem>
+              {!room?.isSystem && (
+                <DropdownMenuItem 
+                  onClick={() => setIsReportDialogOpen(true)}
+                  className="rounded-xl px-4 py-3 focus:bg-muted cursor-pointer flex items-center gap-3"
+                >
+                  <Flag size={16} className="text-muted-foreground" />
+                  <span className="text-sm">Report User</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem 
                 onClick={handleDeleteConversation}
                 className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3"
@@ -181,22 +251,30 @@ export default function ChatRoom() {
           <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Private Connection</span>
         </div>
         
-        {messages.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
-          >
-            <div className={`max-w-[80%] px-5 py-3.5 rounded-[22px] shadow-sm ${msg.sender === "me" ? "fuchsia-gradient text-white rounded-br-none" : "bg-card text-foreground rounded-bl-none border border-border"}`}>
-              <p className="text-sm leading-relaxed">{msg.text}</p>
-              <div className="flex items-center justify-end gap-1 mt-1.5 opacity-50">
-                <span className="text-[9px] font-medium">{msg.time}</span>
-                {msg.sender === "me" && <CheckCheck size={10} />}
+        {messages.map((msg) => {
+          const isMe = msg.senderId === authUser?.uid;
+          const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+          
+          return (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div className={cn(
+                "max-w-[85%] px-5 py-3.5 rounded-[22px] shadow-sm",
+                isMe ? "fuchsia-gradient text-white rounded-br-none" : "bg-card text-foreground rounded-bl-none border border-border"
+              )}>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                <div className="flex items-center justify-end gap-1 mt-1.5 opacity-50">
+                  <span className="text-[9px] font-medium">{time}</span>
+                  {isMe && <CheckCheck size={10} />}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
         <div ref={scrollRef} />
       </div>
 
@@ -207,7 +285,7 @@ export default function ChatRoom() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Send a private message..."
+              placeholder={room?.isSystem ? "Official AURA Team Support..." : "Send a private message..."}
               className="h-12 bg-muted border-border rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
@@ -246,7 +324,10 @@ export default function ChatRoom() {
                   <button
                     key={reason}
                     onClick={() => setReportReason(reason)}
-                    className={`h-10 px-4 rounded-xl text-xs font-medium text-left transition-all border ${reportReason === reason ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}
+                    className={cn(
+                      "h-10 px-4 rounded-xl text-xs font-medium text-left transition-all border",
+                      reportReason === reason ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"
+                    )}
                   >
                     {reason}
                   </button>
@@ -271,9 +352,7 @@ export default function ChatRoom() {
               disabled={isReporting || !reportReason}
               className="w-full h-12 rounded-2xl fuchsia-gradient text-white font-medium text-base shadow-lg shadow-primary/20"
             >
-              {isReporting ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : "Submit Report"}
+              {isReporting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Report"}
             </Button>
             <Button 
               variant="ghost" 
