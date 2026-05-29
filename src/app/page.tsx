@@ -18,7 +18,7 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Unconditional hook calls at the top level
+  // Stable Firestore Reference
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
