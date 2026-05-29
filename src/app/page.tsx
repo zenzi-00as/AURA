@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,7 +12,6 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
-  // Unconditional hook calls at top level
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -26,12 +24,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Definitive, loop-free navigation logic once hydration is complete
     if (!mounted || authLoading || profileLoading) return;
 
     if (!user) {
       router.replace('/auth');
-    } else if (profile && profile.onboardingCompleted) {
+    } else if (profile && (profile as any).onboardingCompleted) {
       router.replace('/dashboard');
     } else {
       router.replace('/onboarding');
@@ -71,3 +68,4 @@ export default function Home() {
       </div>
     </div>
   );
+}

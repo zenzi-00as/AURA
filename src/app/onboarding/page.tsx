@@ -1,13 +1,12 @@
-
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, ChevronRight, User, Hash, ShieldCheck, Upload, ShieldAlert, Check } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -17,6 +16,7 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
+import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 
 export default function Onboarding() {
   const router = useRouter();
@@ -43,7 +43,48 @@ export default function Onboarding() {
     documentPhoto: null as string | null
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const startCamera = useCallback(async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 720 },
+          height: { ideal: 720 }
+        } 
+      });
+      setStream(s);
+      if (videoRef.current) {
+        videoRef.current.srcObject = s;
+      }
+    } catch (err) {
+      console.error("Camera access failed:", err);
+      toast({
+        variant: "destructive",
+        title: "Camera Error",
+        description: "Aura requires camera access for identity verification. Please check your browser permissions."
+      });
+    }
+  }, [toast]);
+
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+  }, [stream]);
+
+  useEffect(() => {
+    if (step === 6 && !formData.documentPhoto) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => stopCamera();
+  }, [step, formData.documentPhoto, startCamera, stopCamera]);
 
   useEffect(() => {
     if (!authLoading && !authUser) {
@@ -52,32 +93,28 @@ export default function Onboarding() {
   }, [authUser, authLoading, router]);
 
   useEffect(() => {
-    if (profile && profile.onboardingCompleted) {
+    if (profile && (profile as any).onboardingCompleted) {
       router.replace("/dashboard");
     }
   }, [profile, router]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "File too large",
-          description: "Please upload a document smaller than 5MB."
-        });
-        return;
+  const captureSelfie = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      if (context) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUri = canvas.toDataURL('image/jpeg', 0.8);
+        setFormData(prev => ({ ...prev, documentPhoto: dataUri }));
+        stopCamera();
       }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, documentPhoto: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
     }
   };
 
-  const saveProfileToFirestore = async (uid: string) => {
+  const saveProfileToFirestore = async (uid: string, verificationStatus: string = 'Pending') => {
     if (!db) return;
     const userRef = doc(db, "users", uid);
     const profileData = {
@@ -88,7 +125,7 @@ export default function Onboarding() {
       orientation: formData.orientation,
       interestedIn: formData.interestedIn,
       age: parseInt(formData.age),
-      verificationStatus: 'Pending',
+      verificationStatus,
       photoUrl: formData.documentPhoto,
       lastActive: serverTimestamp(),
       isOnline: true,
@@ -121,14 +158,39 @@ export default function Onboarding() {
 
     if (step === 6) {
       if (!formData.documentPhoto) {
-        toast({ variant: "destructive", title: "Document required", description: "Please upload a document for verification." });
+        toast({ variant: "destructive", title: "Selfie required", description: "Please capture a live selfie to proceed." });
         return;
       }
       setLoading(true);
-      if (authUser) {
-        await saveProfileToFirestore(authUser.uid);
+      try {
+        const result = await selfieVerification({
+          photoDataUri: formData.documentPhoto,
+          userName: formData.name,
+          userDescription: formData.bio
+        });
+
+        if (result.verificationStatus === 'Rejected') {
+          toast({
+            variant: "destructive",
+            title: "Verification Denied",
+            description: result.reason
+          });
+          setFormData(prev => ({ ...prev, documentPhoto: null }));
+          setLoading(false);
+          return;
+        }
+
+        if (authUser) {
+          await saveProfileToFirestore(authUser.uid, result.verificationStatus);
+        }
+      } catch (error) {
+        console.error("Verification failed:", error);
+        if (authUser) {
+          await saveProfileToFirestore(authUser.uid, 'Pending');
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     } else {
       setStep(s => s + 1);
     }
@@ -142,6 +204,7 @@ export default function Onboarding() {
             <span className="text-4xl font-bold text-white">A</span>
           </div>
           <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
+          <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Synchronizing Identity</p>
         </div>
       ) : (
         <>
@@ -260,56 +323,54 @@ export default function Onboarding() {
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                       <ShieldCheck size={32} />
                     </div>
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity Verification</h2>
-                    <p className="text-sm text-muted-foreground font-light">Upload a valid document to verify your identity.</p>
+                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
+                    <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
                   </div>
                   
                   <div className="flex-1 flex flex-col gap-6">
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className={cn(
-                        "relative aspect-square rounded-[40px] overflow-hidden bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center p-8 text-center cursor-pointer transition-all hover:border-primary/50",
-                        formData.documentPhoto && "border-solid border-primary/20"
-                      )}
-                    >
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange} 
-                        accept="image/*,.pdf" 
-                        className="hidden" 
-                      />
-                      
+                    <div className={cn(
+                      "relative aspect-square rounded-[40px] overflow-hidden bg-muted border-2 border-border aura-glow",
+                      !formData.documentPhoto && "border-dashed"
+                    )}>
                       {formData.documentPhoto ? (
                         <div className="relative w-full h-full">
-                          <img src={formData.documentPhoto} alt="Document Preview" className="w-full h-full object-cover" />
+                          <img src={formData.documentPhoto} alt="Selfie Preview" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-background/20 backdrop-blur-[2px] flex items-center justify-center">
                             <div className="bg-background/80 p-4 rounded-2xl shadow-xl flex items-center gap-2">
                               <Check className="text-primary" size={20} />
-                              <span className="text-sm font-semibold">Document Selected</span>
+                              <span className="text-sm font-semibold">Selfie Captured</span>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
-                            <Upload size={28} />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-foreground">Tap to upload document</p>
-                            <p className="text-xs text-muted-foreground">ID Card, Driver's License or Passport</p>
-                          </div>
+                        <div className="relative w-full h-full">
+                           <video 
+                             ref={videoRef} 
+                             autoPlay 
+                             playsInline 
+                             muted 
+                             className="w-full h-full object-cover mirror-x" 
+                           />
+                           <div className="absolute inset-x-0 bottom-6 flex justify-center">
+                             <button 
+                               onClick={captureSelfie}
+                               className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border-4 border-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
+                             >
+                               <div className="w-10 h-10 rounded-full bg-white" />
+                             </button>
+                           </div>
                         </div>
                       )}
+                      <canvas ref={canvasRef} className="hidden" />
                     </div>
 
                     <div className="space-y-3">
                       <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                         <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
                         <div className="space-y-1">
-                          <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Verification Requirement</p>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Liveness Check</p>
                           <p className="text-xs text-foreground font-medium leading-relaxed">
-                            The name on your document must exactly match your profile name: <span className="text-primary font-bold">"{formData.name}"</span>
+                            Gallery uploads are strictly prohibited. Our AI scans for face presence and capture liveness.
                           </p>
                         </div>
                       </div>
@@ -318,10 +379,11 @@ export default function Onboarding() {
                     {formData.documentPhoto && (
                       <Button 
                         variant="ghost" 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-10 text-muted-foreground hover:text-foreground text-xs font-bold"
+                        onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))}
+                        className="w-full h-10 text-muted-foreground hover:text-foreground text-xs font-bold flex items-center justify-center gap-2"
                       >
-                        Replace document
+                        <RefreshCcw size={14} />
+                        Retake Selfie
                       </Button>
                     )}
                   </div>
