@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -58,7 +59,7 @@ export function BottomNav() {
     if (pathname === "/chat") {
       clearNotifications(['message']);
     } else if (pathname === "/notifications") {
-      clearNotifications(['verification', 'proximity']);
+      clearNotifications(['verification', 'proximity', 'welcome']);
     }
   }, [pathname, unreadNotifications, db, authUser]);
 
@@ -97,7 +98,7 @@ export function BottomNav() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-background z-20"
+                    className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-background z-20"
                   />
                 )}
               </div>
