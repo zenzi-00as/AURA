@@ -1,14 +1,13 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, ChevronRight, User, Hash, ShieldCheck, RefreshCcw, ShieldAlert } from "lucide-react";
-import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
+import { FileText, ChevronRight, User, Hash, ShieldCheck, Upload, ShieldAlert, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -41,13 +40,10 @@ export default function Onboarding() {
     orientation: "",
     interestedIn: [] as string[],
     age: "",
-    photo: null as string | null
+    documentPhoto: null as string | null
   });
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [cameraActive, setCameraActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !authUser) {
@@ -61,94 +57,27 @@ export default function Onboarding() {
     }
   }, [profile, router]);
 
-  // Smart Pre-selection Logic for Interests
-  useEffect(() => {
-    if (!formData.gender || !formData.orientation) return;
-
-    const isMan = ["Man", "Trans Man"].includes(formData.gender);
-    const isWoman = ["Woman", "Trans Woman"].includes(formData.gender);
-    const o = formData.orientation;
-    
-    let suggested: string[] = [];
-
-    if (isMan) {
-      if (o === "Gay") suggested = ["Man", "Trans Man"];
-      else if (o === "Straight") suggested = ["Woman", "Trans Woman"];
-    } else if (isWoman) {
-      if (o === "Lesbian") suggested = ["Woman", "Trans Woman"];
-      else if (o === "Straight") suggested = ["Man", "Trans Man"];
-    }
-
-    if (suggested.length > 0) {
-      setFormData(prev => ({ ...prev, interestedIn: suggested }));
-    }
-  }, [formData.gender, formData.orientation]);
-
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setCameraActive(false);
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    if (typeof window === 'undefined' || !navigator.mediaDevices) return;
-    
-    try {
-      if (streamRef.current) stopCamera();
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: "user", 
-          width: { ideal: 512 }, 
-          height: { ideal: 512 } 
-        } 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please upload a document smaller than 5MB."
+        });
+        return;
       }
-      setCameraActive(true);
-    } catch (err) {
-      console.error("Camera access error:", err);
-      toast({ 
-        variant: "destructive", 
-        title: "Camera access denied", 
-        description: "Aura needs camera access for identity verification. Please enable it in your browser settings." 
-      });
-    }
-  }, [stopCamera, toast]);
 
-  useEffect(() => {
-    if (step === 6 && !formData.photo && !cameraActive && !loading) {
-      startCamera();
-    }
-    return () => stopCamera();
-  }, [step, formData.photo, cameraActive, startCamera, stopCamera, loading]);
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext("2d");
-      const video = videoRef.current;
-      const size = Math.min(video.videoWidth, video.videoHeight);
-      const startX = (video.videoWidth - size) / 2;
-      const startY = (video.videoHeight - size) / 2;
-      
-      canvasRef.current.width = 512;
-      canvasRef.current.height = 512;
-      
-      if (context) {
-        context.translate(512, 0);
-        context.scale(-1, 1);
-        context.drawImage(video, startX, startY, size, size, 0, 0, 512, 512);
-        const dataUrl = canvasRef.current.toDataURL("image/jpeg", 0.8);
-        setFormData(prev => ({ ...prev, photo: dataUrl }));
-        stopCamera();
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, documentPhoto: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const saveProfileToFirestore = async (uid: string, verificationStatus: string) => {
+  const saveProfileToFirestore = async (uid: string) => {
     if (!db) return;
     const userRef = doc(db, "users", uid);
     const profileData = {
@@ -159,20 +88,22 @@ export default function Onboarding() {
       orientation: formData.orientation,
       interestedIn: formData.interestedIn,
       age: parseInt(formData.age),
-      verificationStatus,
-      photoUrl: formData.photo,
+      verificationStatus: 'Pending',
+      photoUrl: formData.documentPhoto,
       lastActive: serverTimestamp(),
       isOnline: true,
       onboardingCompleted: true,
       updatedAt: serverTimestamp()
     };
 
-    setDoc(userRef, profileData, { merge: true })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: userRef.path, operation: 'write', requestResourceData: profileData
-        }));
-      });
+    try {
+      await setDoc(userRef, profileData, { merge: true });
+      router.replace("/dashboard");
+    } catch (error) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: userRef.path, operation: 'write', requestResourceData: profileData
+      }));
+    }
   };
 
   const nextStep = async () => {
@@ -182,39 +113,22 @@ export default function Onboarding() {
         toast({ variant: "destructive", title: "Age requirement", description: "You must be 18+ to join Aura." });
         return;
       }
+      if (!formData.name.trim()) {
+        toast({ variant: "destructive", title: "Name required", description: "Please enter your name." });
+        return;
+      }
     }
 
     if (step === 6) {
-      if (!formData.photo) {
-        toast({ variant: "destructive", title: "Photo required", description: "Please capture a selfie for verification." });
+      if (!formData.documentPhoto) {
+        toast({ variant: "destructive", title: "Document required", description: "Please upload a document for verification." });
         return;
       }
       setLoading(true);
-      try {
-        const result = await selfieVerification({
-          photoDataUri: formData.photo,
-          userName: formData.name,
-          userDescription: formData.bio
-        });
-        
-        if (result.verificationStatus === 'Rejected') {
-          toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
-          setFormData(prev => ({ ...prev, photo: null }));
-          startCamera();
-          setLoading(false);
-        } else {
-          if (authUser) {
-            await saveProfileToFirestore(authUser.uid, result.verificationStatus);
-            router.replace("/dashboard");
-          }
-        }
-      } catch (e) {
-        console.error("Verification error:", e);
-        if (authUser) {
-          await saveProfileToFirestore(authUser.uid, 'Pending');
-          router.replace("/dashboard");
-        }
+      if (authUser) {
+        await saveProfileToFirestore(authUser.uid);
       }
+      setLoading(false);
     } else {
       setStep(s => s + 1);
     }
@@ -327,7 +241,6 @@ export default function Onboarding() {
                 selected={formData.interestedIn}
                 onToggle={(i) => {
                   const isSelected = formData.interestedIn.includes(i);
-                  // Check limit BEFORE updating state to avoid render-phase side effects
                   if (!isSelected && formData.interestedIn.length >= 2) {
                     toast({
                       title: "Selection Limit",
@@ -354,44 +267,70 @@ export default function Onboarding() {
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                   <ShieldCheck size={32} />
                 </div>
-                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
-                <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
+                <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity Verification</h2>
+                <p className="text-sm text-muted-foreground font-light">Upload a valid document to verify your identity.</p>
               </div>
-              <div className="relative aspect-square rounded-[40px] overflow-hidden bg-muted border border-border aura-glow shadow-2xl">
-                {formData.photo ? (
-                  <motion.img initial={{ scale: 1.1, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} src={formData.photo} alt="Selfie" className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <video ref={videoRef} autoPlay playsInline muted className={cn("w-full h-full object-cover scale-x-[-1]", !cameraActive && "hidden")} />
-                    {!cameraActive && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-4">
-                        <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Waking Secure Camera</p>
+              
+              <div className="flex-1 flex flex-col gap-6">
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={cn(
+                    "relative aspect-square rounded-[40px] overflow-hidden bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center p-8 text-center cursor-pointer transition-all hover:border-primary/50",
+                    formData.documentPhoto && "border-solid border-primary/20"
+                  )}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/*,.pdf" 
+                    className="hidden" 
+                  />
+                  
+                  {formData.documentPhoto ? (
+                    <div className="relative w-full h-full">
+                      <img src={formData.documentPhoto} alt="Document Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-background/20 backdrop-blur-[2px] flex items-center justify-center">
+                        <div className="bg-background/80 p-4 rounded-2xl shadow-xl flex items-center gap-2">
+                          <Check className="text-primary" size={20} />
+                          <span className="text-sm font-semibold">Document Selected</span>
+                        </div>
                       </div>
-                    )}
-                  </>
-                )}
-                {loading && (
-                  <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
-                    <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-                    <p className="text-sm font-bold text-foreground">AI Identity Check...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                        <Upload size={28} />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-foreground">Tap to upload document</p>
+                        <p className="text-xs text-muted-foreground">ID Card, Driver's License or Passport</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                    <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Verification Requirement</p>
+                      <p className="text-xs text-foreground font-medium leading-relaxed">
+                        The name on your document must exactly match your profile name: <span className="text-primary font-bold">"{formData.name}"</span>
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-3 mt-6">
-                {!formData.photo ? (
-                  <Button onClick={capturePhoto} disabled={!cameraActive || loading} className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20">
-                    <Camera className="mr-2" size={20} /> Capture Selfie
+                </div>
+
+                {formData.documentPhoto && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-10 text-muted-foreground hover:text-foreground text-xs font-bold"
+                  >
+                    Replace document
                   </Button>
-                ) : (
-                  <button onClick={() => { setFormData({ ...formData, photo: null }); startCamera(); }} disabled={loading} className="w-full h-12 flex items-center justify-center gap-2 text-sm text-foreground font-bold hover:underline">
-                    <RefreshCcw size={16} /> Retake photo
-                  </button>
                 )}
-              </div>
-              <div className="mt-4 flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
-                <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">Gallery uploads are strictly prohibited. Our AI scans for face presence and capture liveness.</p>
               </div>
             </div>
           )}
@@ -408,7 +347,7 @@ export default function Onboarding() {
             (step === 3 && !formData.gender) || 
             (step === 4 && !formData.orientation) || 
             (step === 5 && formData.interestedIn.length === 0) || 
-            (step === 6 && !formData.photo)
+            (step === 6 && !formData.documentPhoto)
           }
           className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
