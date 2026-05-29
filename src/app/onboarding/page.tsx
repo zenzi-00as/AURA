@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -215,8 +214,7 @@ export default function Onboarding() {
           router.replace("/dashboard");
         }
       } finally {
-        // Redirection will happen via Root Switcher usually, 
-        // but we use router.replace as a backup.
+        // Redirection handled by router.replace backup
       }
     } else {
       setStep(s => s + 1);
@@ -329,17 +327,19 @@ export default function Onboarding() {
               <InterestedInSelector 
                 selected={formData.interestedIn}
                 onToggle={(i) => {
+                  const isSelected = formData.interestedIn.includes(i);
+                  if (!isSelected && formData.interestedIn.length >= 2) {
+                    toast({
+                      title: "Selection Limit",
+                      description: "You can select a maximum of 2 categories.",
+                    });
+                    return;
+                  }
+                  
                   setFormData(prev => {
-                    const isSelected = prev.interestedIn.includes(i);
-                    if (isSelected) {
+                    const alreadySelected = prev.interestedIn.includes(i);
+                    if (alreadySelected) {
                       return { ...prev, interestedIn: prev.interestedIn.filter(item => item !== i) };
-                    }
-                    if (prev.interestedIn.length >= 2) {
-                      toast({
-                        title: "Selection Limit",
-                        description: "You can select a maximum of 2 categories.",
-                      });
-                      return prev;
                     }
                     return { ...prev, interestedIn: [...prev.interestedIn, i] };
                   });

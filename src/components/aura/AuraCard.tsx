@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -11,8 +10,6 @@ interface AuraCardProps {
 }
 
 export function AuraCard({ user, onClick }: AuraCardProps) {
-  // Identity Privacy Protocol: NEVER show photoUrl to other users.
-  // We strictly use initials placeholders for everyone except the self profile.
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
@@ -25,7 +22,6 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
       <div className="relative space-y-5">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
-            {/* Privacy Placeholder: Initials only for discovery feed */}
             <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center relative shrink-0">
               <span className="text-xl font-bold text-foreground/30 uppercase">{user.name[0]}</span>
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-background border border-border flex items-center justify-center">
