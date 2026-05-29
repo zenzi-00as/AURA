@@ -49,21 +49,18 @@ export default function Onboarding() {
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
-  // Deterministic Auth Guard
   useEffect(() => {
     if (!authLoading && !authUser) {
       router.replace("/auth");
     }
   }, [authUser, authLoading, router]);
 
-  // Prevent looping if already completed
   useEffect(() => {
     if (profile && profile.onboardingCompleted) {
       router.replace("/dashboard");
     }
   }, [profile, router]);
 
-  // Smart Auto-Selection for Interests
   useEffect(() => {
     if (!formData.gender || !formData.orientation) return;
 
@@ -278,10 +275,10 @@ export default function Onboarding() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Bio</h2>
-                <p className="text-sm text-muted-foreground font-light">Let people know who you are and what you're looking for.</p>
+                <p className="text-sm text-muted-foreground font-light">Describe yourself to show your desires match with...</p>
               </div>
               <Textarea 
-                placeholder="Describe yourself to show your desires match with..." 
+                placeholder="Write a few lines..." 
                 value={formData.bio} 
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
                 className="min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
@@ -320,22 +317,26 @@ export default function Onboarding() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-3xl font-semibold text-foreground tracking-tight">Interested In</h2>
-                <p className="text-sm text-muted-foreground font-light">Who would you like to connect with?</p>
+                <p className="text-sm text-muted-foreground font-light">Who would you like to connect with? Choose up to 2.</p>
               </div>
               <InterestedInSelector 
-                gender={formData.gender}
-                orientation={formData.orientation}
                 selected={formData.interestedIn}
                 onToggle={(i) => {
                   setFormData(prev => {
-                    if (prev.interestedIn.includes("Everyone")) return { ...prev, interestedIn: [i] };
-                    const updated = prev.interestedIn.includes(i)
-                      ? prev.interestedIn.filter(item => item !== i)
-                      : [...prev.interestedIn, i];
-                    return { ...prev, interestedIn: updated };
+                    const isSelected = prev.interestedIn.includes(i);
+                    if (isSelected) {
+                      return { ...prev, interestedIn: prev.interestedIn.filter(item => item !== i) };
+                    }
+                    if (prev.interestedIn.length >= 2) {
+                      toast({
+                        title: "Selection Limit",
+                        description: "You can select a maximum of 2 categories.",
+                      });
+                      return prev;
+                    }
+                    return { ...prev, interestedIn: [...prev.interestedIn, i] };
                   });
                 }}
-                onBulkSelect={(list) => setFormData({ ...formData, interestedIn: list })}
               />
             </div>
           )}
