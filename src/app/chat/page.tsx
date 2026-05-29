@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, Edit3, X, MessageSquare } from "lucide-react";
+import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
@@ -20,7 +20,6 @@ export default function ChatList() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch rooms where the current user is a participant
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
     return query(
@@ -33,7 +32,6 @@ export default function ChatList() {
 
   const { data: rooms, loading: roomsLoading } = useCollection<ChatRoom>(roomsQuery);
 
-  // Fetch profiles of all users to join with rooms (simplified for prototype)
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, "users"), limit(100)) as Query<UserProfile>;
@@ -55,7 +53,7 @@ export default function ChatList() {
         lastMsg: room.lastMessage || "Start a conversation",
         time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
         verified: otherUser?.verificationStatus === 'Verified',
-        unread: false, // In a real app, track unread counts in the room or a separate collection
+        unread: false,
         otherUid: otherParticipantId
       };
     });
@@ -66,7 +64,7 @@ export default function ChatList() {
   );
 
   const handleChatClick = (id: string) => {
-    router.push(`/chat/${id}`);
+    router.replace(`/chat/${id}`);
   };
 
   return (
@@ -144,8 +142,11 @@ export default function ChatList() {
                   className="group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center relative">
+                    {/* Identity Guard: initials only for others */}
                     <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>
-                    {chat.unread && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary border-4 border-background" />}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-background border border-border flex items-center justify-center">
+                      <Lock size={8} className="text-muted-foreground" />
+                    </div>
                   </div>
                   
                   <div className="flex-1 flex flex-col min-w-0">

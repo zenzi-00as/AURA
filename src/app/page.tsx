@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,10 +13,12 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
+  // Initialize mounted state to handle hydration safely
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Unconditional hook calls at the top level
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -24,6 +27,7 @@ export default function Home() {
   const { data: profile, loading: profileLoading } = useDoc(profileRef as any);
 
   useEffect(() => {
+    // Only proceed once mounted and initial identity data is resolved
     if (!mounted || authLoading || profileLoading) return;
 
     if (!user) {

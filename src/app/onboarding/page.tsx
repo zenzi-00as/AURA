@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -60,7 +61,7 @@ export default function Onboarding() {
     }
   }, [profile, router]);
 
-  // Smart Pre-selection Logic
+  // Smart Pre-selection Logic for Interests
   useEffect(() => {
     if (!formData.gender || !formData.orientation) return;
 
@@ -99,8 +100,8 @@ export default function Onboarding() {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: "user", 
-          width: { ideal: 1024 }, 
-          height: { ideal: 1024 } 
+          width: { ideal: 512 }, 
+          height: { ideal: 512 } 
         } 
       });
       streamRef.current = stream;
@@ -213,8 +214,6 @@ export default function Onboarding() {
           await saveProfileToFirestore(authUser.uid, 'Pending');
           router.replace("/dashboard");
         }
-      } finally {
-        // Redirection handled by router.replace backup
       }
     } else {
       setStep(s => s + 1);
@@ -328,6 +327,7 @@ export default function Onboarding() {
                 selected={formData.interestedIn}
                 onToggle={(i) => {
                   const isSelected = formData.interestedIn.includes(i);
+                  // Check limit BEFORE updating state to avoid render-phase side effects
                   if (!isSelected && formData.interestedIn.length >= 2) {
                     toast({
                       title: "Selection Limit",
