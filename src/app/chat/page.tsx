@@ -9,8 +9,8 @@ import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react"
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
-import { collection, query, where, limit, Query, orderBy, doc } from "firebase/firestore";
-import { ChatRoom, UserProfile } from "@/lib/types";
+import { collection, query, where, limit, Query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { ChatRoom, UserProfile, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function ChatList() {
@@ -27,6 +27,19 @@ export default function ChatList() {
   }, [db, authUser]);
 
   const { data: profile } = useDoc<UserProfile>(profileRef as any);
+
+  // Fetch 'message' notifications to highlight unread chats
+  const messageNotifsQuery = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return query(
+      collection(db, "notifications"),
+      where("userId", "==", authUser.uid),
+      where("type", "==", "message"),
+      where("read", "==", false)
+    ) as Query<Notification>;
+  }, [db, authUser]);
+
+  const { data: unreadMessageNotifs } = useCollection<Notification>(messageNotifsQuery);
 
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -53,6 +66,11 @@ export default function ChatList() {
     return rooms.map(room => {
       const otherParticipantId = room.participants.find(id => id !== authUser.uid);
       
+      const isUnread = unreadMessageNotifs.some(n => 
+        (room.isSystem && n.title === "AURA Team") || 
+        (!room.isSystem && n.body.includes(room.lastMessage || ""))
+      );
+
       if (room.isSystem || otherParticipantId === "system") {
         return {
           id: room.id,
@@ -61,7 +79,7 @@ export default function ChatList() {
           lastMsg: room.lastMessage || "Welcome to AURA ❤️",
           time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
           verified: true,
-          unread: false,
+          unread: isUnread,
           isSystem: true,
           otherUid: "system"
         };
@@ -76,19 +94,31 @@ export default function ChatList() {
         lastMsg: room.lastMessage || "Start a conversation",
         time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
         verified: otherUser?.verificationStatus === 'Verified',
-        unread: false,
+        unread: isUnread,
         isSystem: false,
         otherUid: otherParticipantId
       };
     });
-  }, [rooms, profiles, authUser]);
+  }, [rooms, profiles, authUser, unreadMessageNotifs]);
 
   const filteredChats = chatItems.filter(chat => 
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleChatClick = (id: string) => {
-    router.replace(`/chat/${id}`);
+  const handleChatClick = async (room: any) => {
+    // Clear the unread notification for this specific chat
+    if (room.unread && db && authUser) {
+      const targetNotifs = unreadMessageNotifs.filter(n => 
+        (room.isSystem && n.title === "AURA Team") || 
+        (!room.isSystem && n.body.includes(room.lastMsg))
+      );
+      
+      for (const n of targetNotifs) {
+        const ref = doc(db, "notifications", n.id);
+        updateDoc(ref, { read: true });
+      }
+    }
+    router.replace(`/chat/${room.id}`);
   };
 
   return (
@@ -150,16 +180,16 @@ export default function ChatList() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-2 p-4 glass-card rounded-[24px] border-primary/20 bg-primary/5 space-y-2"
+            className="mb-2 p-3 glass-card rounded-[20px] border-primary/20 bg-primary/5 space-y-1"
           >
              <div className="flex items-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest">
                 <BadgeCheck size={12} />
                 Identity Verified
              </div>
-             <div className="space-y-1">
-               <h2 className="text-base font-semibold text-foreground">Welcome, {profile.name}!</h2>
-               <p className="text-[11px] text-muted-foreground font-light leading-relaxed">
-                 Successfully verified. Your profile is now live and secure. Start connecting with real people in the Aura community.
+             <div className="space-y-0.5">
+               <h2 className="text-sm font-semibold text-foreground">Welcome, {profile.name}!</h2>
+               <p className="text-[10px] text-muted-foreground font-light leading-snug">
+                 Successfully verified. Your profile is now live and secure.
                </p>
              </div>
           </motion.div>
@@ -182,8 +212,11 @@ export default function ChatList() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: idx * 0.05 }}
-                  onClick={() => handleChatClick(chat.id)}
-                  className="group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border"
+                  onClick={() => handleChatClick(chat)}
+                  className={cn(
+                    "group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border",
+                    chat.unread && "bg-primary/5 border-primary/10"
+                  )}
                 >
                   <div className={cn(
                     "w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative",
@@ -204,13 +237,27 @@ export default function ChatList() {
                       <div className="flex items-center gap-1.5">
                         <h3 className={cn(
                           "font-semibold truncate",
-                          chat.isSystem ? "text-primary" : "text-foreground"
+                          chat.isSystem ? "text-primary" : "text-foreground",
+                          chat.unread && "font-bold"
                         )}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
                         {chat.verified && <BadgeCheck size={14} className="text-primary" />}
+                        {chat.unread && (
+                          <motion.div 
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="w-1.5 h-1.5 rounded-full bg-primary ml-1" 
+                          />
+                        )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground font-medium">{chat.time}</span>
+                      <span className={cn(
+                        "text-[10px] font-medium",
+                        chat.unread ? "text-primary" : "text-muted-foreground"
+                      )}>{chat.time}</span>
                     </div>
-                    <p className={`text-sm truncate ${chat.unread ? "text-foreground font-medium" : "text-muted-foreground font-light"}`}>
+                    <p className={cn(
+                      "text-sm truncate",
+                      chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light"
+                    )}>
                       {chat.lastMsg}
                     </p>
                   </div>

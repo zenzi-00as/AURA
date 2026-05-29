@@ -6,9 +6,8 @@ import { motion } from "framer-motion";
 import { Compass, MessageCircle, User, Bell } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, Query, doc, writeBatch } from "firebase/firestore";
+import { collection, query, where, Query } from "firebase/firestore";
 import { Notification } from "@/lib/types";
-import { useEffect, useRef } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -16,7 +15,6 @@ export function BottomNav() {
   const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser } = useUser();
-  const isClearingRef = useRef(false);
 
   const unreadQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -32,37 +30,6 @@ export function BottomNav() {
   const hasUnreadMessages = unreadNotifications.some(n => n.type === 'message');
   const hasUnreadAlerts = unreadNotifications.some(n => n.type !== 'message');
 
-  useEffect(() => {
-    if (!db || !authUser || unreadNotifications.length === 0 || isClearingRef.current) return;
-
-    const clearNotifications = async (types: string[]) => {
-      const notificationsToClear = unreadNotifications.filter(n => types.includes(n.type));
-      if (notificationsToClear.length === 0) return;
-
-      isClearingRef.current = true;
-      const batch = writeBatch(db);
-      
-      notificationsToClear.forEach(n => {
-        const ref = doc(db, "notifications", n.id);
-        batch.update(ref, { read: true });
-      });
-
-      try {
-        await batch.commit();
-      } catch (err) {
-        console.error("Failed to clear notifications:", err);
-      } finally {
-        isClearingRef.current = false;
-      }
-    };
-
-    if (pathname === "/chat") {
-      clearNotifications(['message']);
-    } else if (pathname === "/notifications") {
-      clearNotifications(['verification', 'proximity', 'welcome']);
-    }
-  }, [pathname, unreadNotifications, db, authUser]);
-
   const navItems = [
     { icon: Compass, path: "/dashboard", label: t('discovery'), hasBadge: false },
     { icon: MessageCircle, path: "/chat", label: t('chats'), hasBadge: hasUnreadMessages },
@@ -75,7 +42,7 @@ export function BottomNav() {
       <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          const showBadge = item.hasBadge && !isActive;
+          const showBadge = item.hasBadge;
 
           return (
             <button

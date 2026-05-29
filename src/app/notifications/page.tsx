@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/aura/BottomNav";
 import { Bell, ShieldCheck, MapPin, MessageCircle, Info, Sparkles, Heart } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, limit, Query } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, Query, doc, updateDoc } from "firebase/firestore";
 import { Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -21,12 +21,24 @@ export default function NotificationsPage() {
     return query(
       collection(db, "notifications"),
       where("userId", "==", authUser.uid),
+      where("type", "!=", "message"), // Separate: Don't show message alerts in the general notification page
+      orderBy("type"), // Required for inequality filter in some cases, but typically ordered by timestamp
       orderBy("timestamp", "desc"),
       limit(50)
     ) as Query<Notification>;
   }, [db, authUser]);
 
   const { data: notifications, loading } = useCollection<Notification>(notifsQuery);
+
+  const handleNotifClick = async (notifId: string, isRead: boolean) => {
+    if (isRead || !db) return;
+    try {
+      const ref = doc(db, "notifications", notifId);
+      await updateDoc(ref, { read: true });
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -85,8 +97,9 @@ export default function NotificationsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
+                    onClick={() => handleNotifClick(notif.id, notif.read)}
                     className={cn(
-                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border",
+                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border cursor-pointer",
                       notif.read ? "opacity-70 grayscale-[0.5] border-border" : "border-primary/20 bg-primary/5"
                     )}
                   >
@@ -100,7 +113,13 @@ export default function NotificationsPage() {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5">
                           <h3 className="font-semibold text-foreground">{notif.title}</h3>
-                          {!notif.read && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                          {!notif.read && (
+                            <motion.div 
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ repeat: Infinity, duration: 2 }}
+                              className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
+                            />
+                          )}
                         </div>
                         <span className="text-[10px] text-muted-foreground font-medium">{timeStr}</span>
                       </div>
