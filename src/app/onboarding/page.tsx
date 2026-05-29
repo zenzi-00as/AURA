@@ -331,7 +331,15 @@ export default function Onboarding() {
                   <div className="space-y-4">
                     <div className="relative group">
                       <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input placeholder="Enter your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
+                      <Input 
+                        placeholder="Enter your name" 
+                        value={formData.name} 
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                          setFormData({ ...formData, name: val });
+                        }} 
+                        className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" 
+                      />
                     </div>
                     <div>
                       <div className="relative group">
@@ -428,7 +436,7 @@ export default function Onboarding() {
                       <ShieldCheck size={32} />
                     </div>
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
-                    <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
+                    <p className="text-sm text-muted-foreground font-light"> a live selfie ensures every profile is real.</p>
                   </div>
                   
                   <div className="flex-1 flex flex-col">
