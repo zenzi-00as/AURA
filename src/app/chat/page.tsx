@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
 import { collection, query, where, limit, Query, orderBy, doc } from "firebase/firestore";
 import { ChatRoom, UserProfile } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export default function ChatList() {
   const router = useRouter();
