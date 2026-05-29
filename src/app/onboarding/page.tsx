@@ -293,7 +293,7 @@ export default function Onboarding() {
     (step === 6 && !formData.documentPhoto);
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background max-w-md mx-auto min-h-screen">
+    <div className="flex-1 flex flex-col p-8 pt-10 relative overflow-hidden bg-background max-w-md mx-auto min-h-screen">
       {authLoading || profileLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow flex items-center justify-center mb-8 shadow-2xl shadow-primary/20">
@@ -304,7 +304,7 @@ export default function Onboarding() {
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-6">
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5, 6].map(s => (
                 <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
@@ -323,7 +323,7 @@ export default function Onboarding() {
               className="flex-1 flex flex-col"
             >
               {step === 1 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">What's your name?</h2>
                     <p className="text-sm text-muted-foreground font-light">It's nice to meet you. Aura is about real identity.</p>
@@ -363,7 +363,7 @@ export default function Onboarding() {
               )}
 
               {step === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Bio</h2>
                     <p className="text-sm text-muted-foreground font-light">Describe yourself to show your desires match with...</p>
@@ -378,7 +378,7 @@ export default function Onboarding() {
               )}
 
               {step === 3 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity</h2>
                     <p className="text-sm text-muted-foreground font-light">How do you identify? Aura celebrates the spectrum.</p>
@@ -391,7 +391,7 @@ export default function Onboarding() {
               )}
 
               {step === 4 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">Orientation</h2>
                     <p className="text-sm text-muted-foreground font-light">Choose the orientation that best fits you.</p>
@@ -405,7 +405,7 @@ export default function Onboarding() {
               )}
 
               {step === 5 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold text-foreground tracking-tight">Interested In</h2>
                     <p className="text-sm text-muted-foreground font-light">Who would you like to connect with? Choose up to 2.</p>
@@ -435,36 +435,36 @@ export default function Onboarding() {
               )}
 
               {step === 6 && (
-                <div className="space-y-6 flex-1 flex flex-col">
-                  <div className="space-y-2 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
-                      <ShieldCheck size={32} />
+                <div className="space-y-4 flex-1 flex flex-col">
+                  <div className="space-y-1 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-2">
+                      <ShieldCheck size={28} />
                     </div>
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
-                    <p className="text-sm text-muted-foreground font-light"> a live selfie ensures every profile is real.</p>
+                    <h2 className="text-2xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
+                    <p className="text-xs text-muted-foreground font-light px-4">A live selfie ensures every profile is real and verified.</p>
                   </div>
                   
                   <div className="flex-1 flex flex-col">
                     <div className={cn(
-                      "relative aspect-square rounded-[40px] overflow-hidden bg-black border-2 border-border aura-glow transition-all duration-500 mb-8",
+                      "relative aspect-square max-h-[340px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-border aura-glow transition-all duration-500 mb-4",
                       !formData.documentPhoto && "border-dashed"
                     )}>
                       {formData.documentPhoto ? (
                         <div className="relative w-full h-full">
                           <img src={formData.documentPhoto} alt="Selfie Preview" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-background/20 backdrop-blur-[2px] flex items-center justify-center">
-                            <div className="bg-background/80 p-4 rounded-2xl shadow-xl flex items-center gap-2">
-                              <Check className="text-primary" size={20} />
-                              <span className="text-sm font-semibold">Selfie Captured</span>
+                            <div className="bg-background/80 p-3 rounded-2xl shadow-xl flex items-center gap-2">
+                              <Check className="text-primary" size={18} />
+                              <span className="text-xs font-semibold">Selfie Captured</span>
                             </div>
                           </div>
                         </div>
                       ) : (
                         <div className="relative w-full h-full flex items-center justify-center">
                            {isCameraLoading ? (
-                             <div className="flex flex-col items-center gap-3">
-                               <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                               <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Waking Secure Camera</span>
+                             <div className="flex flex-col items-center gap-2">
+                               <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                               <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Initializing Camera</span>
                              </div>
                            ) : (
                              <video 
@@ -480,16 +480,16 @@ export default function Onboarding() {
                       <canvas ref={canvasRef} className="hidden" />
                     </div>
 
-                    <div className="flex flex-col items-center gap-6 mt-auto">
+                    <div className="flex flex-col items-center gap-4 mt-auto">
                       {!formData.documentPhoto && !isCameraLoading && (
                         <motion.button 
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           onClick={captureSelfie}
-                          className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
+                          className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
                         >
-                          <div className="w-16 h-16 rounded-full bg-white group-hover:scale-90 transition-transform flex items-center justify-center">
-                            <Camera className="text-primary" size={32} />
+                          <div className="w-14 h-14 rounded-full bg-white group-hover:scale-90 transition-transform flex items-center justify-center">
+                            <Camera className="text-primary" size={28} />
                           </div>
                         </motion.button>
                       )}
@@ -498,19 +498,19 @@ export default function Onboarding() {
                         <Button 
                           variant="ghost" 
                           onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))}
-                          className="h-12 px-8 rounded-2xl text-muted-foreground hover:text-foreground text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                          className="h-10 px-6 rounded-xl text-muted-foreground hover:text-foreground text-[10px] font-bold flex items-center justify-center gap-2 transition-colors"
                         >
-                          <RefreshCcw size={16} />
+                          <RefreshCcw size={14} />
                           Retake Selfie
                         </Button>
                       )}
 
-                      <div className="w-full flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                        <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Liveness Check</p>
-                          <p className="text-xs text-foreground font-medium leading-relaxed">
-                            Gallery uploads are strictly prohibited. AI scans for face presence and capture authenticity.
+                      <div className="w-full flex items-start gap-3 p-3 bg-primary/5 rounded-2xl border border-primary/10">
+                        <ShieldAlert size={16} className="text-primary mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <p className="text-[9px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Liveness Check</p>
+                          <p className="text-[11px] text-foreground font-medium leading-relaxed">
+                            Gallery uploads are prohibited. AI scans for authentic live captures.
                           </p>
                         </div>
                       </div>
@@ -521,11 +521,11 @@ export default function Onboarding() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-8 pb-4">
+          <div className="mt-6 pb-4">
             <Button
               onClick={nextStep}
               disabled={isNextDisabled}
-              className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
