@@ -329,17 +329,22 @@ export default function Onboarding() {
                     <p className="text-sm text-muted-foreground font-light">It's nice to meet you. Aura is about real identity.</p>
                   </div>
                   <div className="space-y-4">
-                    <div className="relative group">
-                      <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input 
-                        placeholder="Enter your name" 
-                        value={formData.name} 
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                          setFormData({ ...formData, name: val });
-                        }} 
-                        className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" 
-                      />
+                    <div>
+                      <div className="relative group">
+                        <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input 
+                          placeholder="Enter your name" 
+                          value={formData.name} 
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                            setFormData({ ...formData, name: val });
+                          }} 
+                          className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" 
+                        />
+                      </div>
+                      <p className="text-[10px] px-4 mt-1.5 font-medium uppercase tracking-wider text-muted-foreground">
+                        Alphabets Only
+                      </p>
                     </div>
                     <div>
                       <div className="relative group">
