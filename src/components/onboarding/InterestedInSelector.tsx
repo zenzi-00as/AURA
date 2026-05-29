@@ -22,7 +22,7 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Preferences</label>
           <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{selected.length} / 2 Selected</span>
         </div>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           {GENDER_CATEGORIES.map((opt) => {
             const isSelected = selected.includes(opt);
             return (
@@ -31,14 +31,14 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onToggle(opt)}
                 className={cn(
-                  "h-14 px-6 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
+                  "h-14 px-4 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
                   isSelected 
                     ? "fuchsia-gradient text-white border-transparent shadow-lg shadow-primary/20" 
                     : "bg-muted border-border text-foreground hover:border-primary/30"
                 )}
               >
-                <span>{opt}</span>
-                {isSelected && <Check size={16} className="text-white" />}
+                <span className="truncate mr-1">{opt}</span>
+                {isSelected && <Check size={16} className="text-white shrink-0" />}
               </motion.button>
             );
           })}
