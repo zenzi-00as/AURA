@@ -81,7 +81,7 @@ export default function Dashboard() {
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
         if (!withinAge) return false;
 
-        // 3. Mutual Matching Logic (Requirement #7)
+        // 3. Mutual Matching Logic
         // Current user must be interested in their gender category
         const iAmInterestedInThem = currentUserProfile.interestedIn.some(cat => {
             if (cat === "Man") return user.gender === "Man" || user.gender === "Trans Man";
