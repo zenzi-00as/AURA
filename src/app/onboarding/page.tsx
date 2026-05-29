@@ -50,6 +50,10 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInitializingRef = useRef(false);
 
+  // Age validation logic for reactive styling
+  const ageNum = parseInt(formData.age);
+  const isAgeInvalid = formData.age !== "" && (isNaN(ageNum) || ageNum < 18 || ageNum > 80);
+
   useEffect(() => {
     if (step === 5 && formData.interestedIn.length === 0) {
       let suggestions: string[] = [];
@@ -334,7 +338,12 @@ export default function Onboarding() {
                         <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input type="number" min={18} max={80} placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
                       </div>
-                      <p className="text-[10px] text-muted-foreground px-4 mt-1.5 font-medium uppercase tracking-wider">Must be between 18 and 80</p>
+                      <p className={cn(
+                        "text-[10px] px-4 mt-1.5 font-medium uppercase tracking-wider transition-colors",
+                        isAgeInvalid ? "text-destructive" : "text-muted-foreground"
+                      )}>
+                        Must be between 18 and 80
+                      </p>
                     </div>
                   </div>
                 </div>
