@@ -19,8 +19,8 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
-import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, limit, Query } from "firebase/firestore";
+import { useCollection, useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { collection, query, limit, Query, doc } from "firebase/firestore";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -37,6 +37,13 @@ export default function Dashboard() {
     distance: 15,
     ageRange: [18, 35]
   });
+
+  const currentUserRef = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return doc(db, "users", authUser.uid);
+  }, [db, authUser]);
+
+  const { data: currentUserProfile } = useDoc<UserProfile>(currentUserRef as any);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -56,20 +63,42 @@ export default function Dashboard() {
     if (!db) return null;
     return query(
       collection(db, "users"),
-      limit(20)
+      limit(50)
     ) as Query<UserProfile>;
   }, [db]);
 
   const { data: firestoreUsers, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   const filteredUsers = useMemo(() => {
-    if (!firestoreUsers) return [];
+    if (!firestoreUsers || !currentUserProfile) return [];
     
     return firestoreUsers
       .filter(user => {
-        if (authUser && user.uid === authUser.uid) return false;
+        // 1. Exclude self
+        if (user.uid === currentUserProfile.uid) return false;
+
+        // 2. Filter by Age Range
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
-        return withinAge;
+        if (!withinAge) return false;
+
+        // 3. Mutual Matching Logic (Requirement #7)
+        // Current user must be interested in their gender category
+        const iAmInterestedInThem = currentUserProfile.interestedIn.some(cat => {
+            if (cat === "Man") return user.gender === "Man" || user.gender === "Trans Man";
+            if (cat === "Woman") return user.gender === "Woman" || user.gender === "Trans Woman";
+            if (cat === "Non-binary") return user.gender === "Non-binary";
+            return user.gender === cat;
+        });
+
+        // They must be interested in current user's gender category
+        const theyAreInterestedInMe = user.interestedIn.some(cat => {
+            if (cat === "Man") return currentUserProfile.gender === "Man" || currentUserProfile.gender === "Trans Man";
+            if (cat === "Woman") return currentUserProfile.gender === "Woman" || currentUserProfile.gender === "Trans Woman";
+            if (cat === "Non-binary") return currentUserProfile.gender === "Non-binary";
+            return currentUserProfile.gender === cat;
+        });
+
+        return iAmInterestedInThem && theyAreInterestedInMe;
       })
       .map(user => {
         let distanceStr = "";
@@ -98,12 +127,13 @@ export default function Dashboard() {
         };
       })
       .filter(user => {
+        // 4. Filter by Distance
         if (currentLocation && user.location) {
           return user.distanceKm! <= activeFilters.distance;
         }
         return true;
       });
-  }, [firestoreUsers, activeFilters, authUser, currentLocation]);
+  }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
   const handleApplyFilters = () => {
     setActiveFilters({
