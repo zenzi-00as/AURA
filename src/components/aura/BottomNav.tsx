@@ -8,6 +8,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where, Query } from "firebase/firestore";
 import { Notification } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -39,37 +40,53 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-2 p-2 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
+      <nav className="flex items-center gap-1.5 p-1.5 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          // Only show badge if tab is not active
           const showBadge = item.hasBadge && !isActive;
 
           return (
             <button
               key={item.path}
               onClick={() => router.replace(item.path)}
-              className={`relative px-6 py-3 rounded-[24px] flex items-center justify-center transition-all ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className={cn(
+                "relative px-6 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
               aria-label={item.label}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 fuchsia-gradient rounded-[24px] shadow-lg shadow-primary/20"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="absolute inset-0 bg-primary/10 rounded-[24px]"
+                  transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 />
               )}
+              
               <div className="relative z-10 flex items-center justify-center">
-                <item.icon size={22} className={`relative z-10 ${isActive ? 'text-foreground' : ''}`} />
+                <item.icon 
+                  size={20} 
+                  className={cn(
+                    "transition-all duration-300",
+                    isActive ? "scale-110" : "scale-100"
+                  )} 
+                />
                 
                 {showBadge && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(217,70,239,0.8)] border-2 border-background z-20"
+                    className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_8px_rgba(217,70,239,0.6)]"
                   />
                 )}
               </div>
+
+              {isActive && (
+                <motion.div 
+                  layoutId="activeDot"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_4px_rgba(217,70,239,0.8)]"
+                />
+              )}
             </button>
           );
         })}
