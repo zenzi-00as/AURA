@@ -166,10 +166,8 @@ export default function Onboarding() {
       updatedAt: serverTimestamp()
     };
 
-    // 1. Update User Profile
     batch.set(userRef, profileData, { merge: true });
 
-    // 2. Create System Chat Room
     const roomId = `system_${uid}`;
     const roomRef = doc(db, "chatRooms", roomId);
     batch.set(roomRef, {
@@ -180,7 +178,6 @@ export default function Onboarding() {
       isSystem: true
     });
 
-    // 3. Send Welcome Message
     const messageRef = doc(collection(db, "chatRooms", roomId, "messages"));
     const dateStr = new Date().toLocaleDateString();
     const welcomeText = `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully created on ${dateStr}.\n\nYou can now:\n• Explore matches\n• Complete your profile\n• Upload photos\n• Start connecting with people nearby\n\nStay respectful and enjoy your experience ✨`;
@@ -193,7 +190,6 @@ export default function Onboarding() {
       seen: false
     });
 
-    // 4. Create Verification Notification
     const notifRef = doc(collection(db, "notifications"));
     batch.set(notifRef, {
       id: notifRef.id,
@@ -205,7 +201,6 @@ export default function Onboarding() {
       read: false
     });
 
-    // 5. Create Message Notification (to trigger badge in BottomNav)
     const msgNotifRef = doc(collection(db, "notifications"));
     batch.set(msgNotifRef, {
       id: msgNotifRef.id,
@@ -230,8 +225,12 @@ export default function Onboarding() {
   const nextStep = async () => {
     if (step === 1) {
       const ageNum = parseInt(formData.age);
-      if (isNaN(ageNum) || ageNum < 18) {
-        toast({ variant: "destructive", title: "Age requirement", description: "You must be 18+ to join Aura." });
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 80) {
+        toast({ 
+          variant: "destructive", 
+          title: "Age requirement", 
+          description: ageNum < 18 ? "You must be 18+ to join Aura." : "Age must be below 80." 
+        });
         return;
       }
       if (!formData.name.trim()) {
@@ -282,7 +281,7 @@ export default function Onboarding() {
 
   const isNextDisabled = 
     isSubmitting || 
-    (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18)) || 
+    (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18 || parseInt(formData.age) > 80)) || 
     (step === 2 && !formData.bio) || 
     (step === 3 && !formData.gender) || 
     (step === 4 && !formData.orientation) || 
@@ -332,7 +331,7 @@ export default function Onboarding() {
                     </div>
                     <div className="relative group">
                       <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input type="number" placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
+                      <Input type="number" min={18} max={80} placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" />
                     </div>
                   </div>
                 </div>
