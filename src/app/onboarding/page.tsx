@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -7,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2 } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -88,19 +87,14 @@ export default function Onboarding() {
       const s = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
-          width: { ideal: 1024 },
-          height: { ideal: 1024 }
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         } 
       });
       
-      // Check if user is still on step 6 before setting
-      if (step === 6) {
-        setStream(s);
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-        }
-      } else {
-        s.getTracks().forEach(t => t.stop());
+      setStream(s);
+      if (videoRef.current) {
+        videoRef.current.srcObject = s;
       }
     } catch (err) {
       console.error("Camera access failed:", err);
@@ -113,7 +107,7 @@ export default function Onboarding() {
       setIsCameraLoading(false);
       cameraInitializingRef.current = false;
     }
-  }, [stream, toast, step]);
+  }, [stream, toast]);
 
   useEffect(() => {
     if (step === 6 && !formData.documentPhoto) {
@@ -365,7 +359,7 @@ export default function Onboarding() {
               )}
 
               {step === 6 && (
-                <div className="space-y-8 flex-1 flex flex-col">
+                <div className="space-y-6 flex-1 flex flex-col">
                   <div className="space-y-2 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                       <ShieldCheck size={32} />
@@ -374,9 +368,9 @@ export default function Onboarding() {
                     <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
                   </div>
                   
-                  <div className="flex-1 flex flex-col gap-10">
+                  <div className="flex-1 flex flex-col">
                     <div className={cn(
-                      "relative aspect-square rounded-[40px] overflow-hidden bg-black border-2 border-border aura-glow transition-all duration-500",
+                      "relative aspect-square rounded-[40px] overflow-hidden bg-black border-2 border-border aura-glow transition-all duration-500 mb-8",
                       !formData.documentPhoto && "border-dashed"
                     )}>
                       {formData.documentPhoto ? (
@@ -410,15 +404,17 @@ export default function Onboarding() {
                       <canvas ref={canvasRef} className="hidden" />
                     </div>
 
-                    <div className="flex flex-col items-center gap-6">
+                    <div className="flex flex-col items-center gap-6 mt-auto">
                       {!formData.documentPhoto && !isCameraLoading && (
                         <motion.button 
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           onClick={captureSelfie}
-                          className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
+                          className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
                         >
-                          <div className="w-14 h-14 rounded-full bg-white group-hover:scale-90 transition-transform" />
+                          <div className="w-16 h-16 rounded-full bg-white group-hover:scale-90 transition-transform flex items-center justify-center">
+                            <Camera className="text-primary" size={32} />
+                          </div>
                         </motion.button>
                       )}
 

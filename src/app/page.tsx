@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -13,7 +12,7 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
-  // Hooks must be called unconditionally at the top level
+  // Hooks must be called unconditionally at the top level to satisfy Rules of Hooks
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -28,13 +27,13 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || authLoading || profileLoading) return;
 
-    // Deterministic Routing: Single source of truth
+    // Deterministic Routing: Single source of truth for identity navigation
     if (!user) {
       router.replace('/auth');
     } else if (profile && (profile as any).onboardingCompleted) {
       router.replace('/dashboard');
     } else {
-      // New user or incomplete onboarding
+      // New user or incomplete onboarding flow
       router.replace('/onboarding');
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
