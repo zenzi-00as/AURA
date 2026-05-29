@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const GENDER_CATEGORIES = [
-  "Everyone", "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman"
+  "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman"
 ];
 
 interface InterestedInSelectorProps {
@@ -44,6 +44,9 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
           })}
         </div>
       </div>
+      <p className="text-[10px] text-muted-foreground text-center font-medium uppercase tracking-tighter">
+        Select up to 2 categories to find your ideal matches.
+      </p>
     </div>
   );
 }

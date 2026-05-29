@@ -61,6 +61,7 @@ export default function Onboarding() {
     }
   }, [profile, router]);
 
+  // Smart Pre-selection Logic
   useEffect(() => {
     if (!formData.gender || !formData.orientation) return;
 
@@ -70,21 +71,17 @@ export default function Onboarding() {
     
     let suggested: string[] = [];
 
-    if (["Bisexual", "Pansexual", "Queer"].includes(o)) {
-      suggested = ["Everyone"];
-    } else if (isMan) {
+    if (isMan) {
       if (o === "Gay") suggested = ["Man", "Trans Man"];
       else if (o === "Straight") suggested = ["Woman", "Trans Woman"];
-      else suggested = ["Everyone"];
     } else if (isWoman) {
       if (o === "Lesbian") suggested = ["Woman", "Trans Woman"];
       else if (o === "Straight") suggested = ["Man", "Trans Man"];
-      else suggested = ["Everyone"];
-    } else {
-      suggested = ["Everyone"];
     }
 
-    setFormData(prev => ({ ...prev, interestedIn: suggested }));
+    if (suggested.length > 0) {
+      setFormData(prev => ({ ...prev, interestedIn: suggested }));
+    }
   }, [formData.gender, formData.orientation]);
 
   const stopCamera = useCallback(() => {
