@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock, Sparkles, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
@@ -150,15 +150,15 @@ export default function ChatList() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-6 glass-card rounded-[32px] border-primary/20 bg-primary/5 space-y-3"
+            className="mb-2 p-4 glass-card rounded-[24px] border-primary/20 bg-primary/5 space-y-2"
           >
-             <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
-                <BadgeCheck size={14} />
+             <div className="flex items-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest">
+                <BadgeCheck size={12} />
                 Identity Verified
              </div>
              <div className="space-y-1">
-               <h2 className="text-xl font-semibold text-foreground">Welcome, {profile.name}!</h2>
-               <p className="text-xs text-muted-foreground font-light leading-relaxed">
+               <h2 className="text-base font-semibold text-foreground">Welcome, {profile.name}!</h2>
+               <p className="text-[11px] text-muted-foreground font-light leading-relaxed">
                  Successfully verified. Your profile is now live and secure. Start connecting with real people in the Aura community.
                </p>
              </div>
