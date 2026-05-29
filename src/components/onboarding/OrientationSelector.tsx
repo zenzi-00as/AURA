@@ -29,26 +29,26 @@ export function OrientationSelector({ gender, selected, onSelect }: OrientationS
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <AnimatePresence mode="popLayout">
           {filteredOrientations.map((opt) => (
             <motion.button
               key={opt}
               layout
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelect(opt)}
               className={cn(
-                "h-14 px-6 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
+                "h-14 px-4 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
                 selected === opt 
                   ? "fuchsia-gradient text-white border-transparent shadow-lg shadow-primary/20" 
                   : "bg-muted border-border text-foreground hover:border-primary/30"
               )}
             >
-              <span>{opt}</span>
-              {selected === opt && <Check size={16} className="text-white" />}
+              <span className="truncate mr-2">{opt}</span>
+              {selected === opt && <Check size={16} className="text-white shrink-0" />}
             </motion.button>
           ))}
         </AnimatePresence>
