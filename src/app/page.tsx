@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -27,15 +28,13 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || authLoading || profileLoading) return;
 
-    // Single source of truth for routing decisions
+    // Deterministic Routing: Single source of truth
     if (!user) {
       router.replace('/auth');
     } else if (profile && (profile as any).onboardingCompleted) {
       router.replace('/dashboard');
-    } else if (profile) {
-      router.replace('/onboarding');
     } else {
-      // User exists but profile doesn't - likely fresh sign up
+      // New user or incomplete onboarding
       router.replace('/onboarding');
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);

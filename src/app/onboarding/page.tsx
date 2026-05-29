@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -6,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Camera, Loader2 } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -47,6 +48,27 @@ export default function Onboarding() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cameraInitializingRef = useRef(false);
+
+  // Auto-suggestion logic for Interests
+  useEffect(() => {
+    if (step === 5 && formData.interestedIn.length === 0) {
+      let suggestions: string[] = [];
+      if (formData.gender === "Man" || formData.gender === "Trans Man") {
+        if (formData.orientation === "Gay") suggestions = ["Man"];
+        else if (formData.orientation === "Straight") suggestions = ["Woman"];
+        else if (["Bisexual", "Pansexual", "Queer"].includes(formData.orientation)) suggestions = ["Man", "Woman"];
+      } else if (formData.gender === "Woman" || formData.gender === "Trans Woman") {
+        if (formData.orientation === "Lesbian") suggestions = ["Woman"];
+        else if (formData.orientation === "Straight") suggestions = ["Man"];
+        else if (["Bisexual", "Pansexual", "Queer"].includes(formData.orientation)) suggestions = ["Woman", "Man"];
+      }
+      
+      if (suggestions.length > 0) {
+        setFormData(prev => ({ ...prev, interestedIn: suggestions }));
+      }
+    }
+  }, [step, formData.gender, formData.orientation]);
 
   const stopCamera = useCallback(() => {
     if (stream) {
@@ -54,35 +76,44 @@ export default function Onboarding() {
       setStream(null);
     }
     setIsCameraLoading(false);
+    cameraInitializingRef.current = false;
   }, [stream]);
 
   const startCamera = useCallback(async () => {
-    if (stream) return; // Already running
+    if (stream || cameraInitializingRef.current) return;
     
+    cameraInitializingRef.current = true;
     setIsCameraLoading(true);
     try {
       const s = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
-          width: { ideal: 720 },
-          height: { ideal: 720 }
+          width: { ideal: 1024 },
+          height: { ideal: 1024 }
         } 
       });
-      setStream(s);
-      if (videoRef.current) {
-        videoRef.current.srcObject = s;
+      
+      // Check if user is still on step 6 before setting
+      if (step === 6) {
+        setStream(s);
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+        }
+      } else {
+        s.getTracks().forEach(t => t.stop());
       }
     } catch (err) {
       console.error("Camera access failed:", err);
       toast({
         variant: "destructive",
         title: "Camera Access Error",
-        description: "Aura requires camera access for identity verification. Please check your browser permissions."
+        description: "Aura requires camera access for identity verification. Please check permissions."
       });
     } finally {
       setIsCameraLoading(false);
+      cameraInitializingRef.current = false;
     }
-  }, [stream, toast]);
+  }, [stream, toast, step]);
 
   useEffect(() => {
     if (step === 6 && !formData.documentPhoto) {
@@ -216,11 +247,11 @@ export default function Onboarding() {
     <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background max-w-md mx-auto min-h-screen">
       {authLoading || profileLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow flex items-center justify-center mb-8">
+          <div className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow flex items-center justify-center mb-8 shadow-2xl shadow-primary/20">
             <span className="text-4xl font-bold text-white">A</span>
           </div>
           <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-          <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Synchronizing Identity</p>
+          <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Synchronizing Identity</p>
         </div>
       ) : (
         <>
@@ -268,7 +299,7 @@ export default function Onboarding() {
                     <p className="text-sm text-muted-foreground font-light">Describe yourself to show your desires match with...</p>
                   </div>
                   <Textarea 
-                    placeholder="Write a few lines..." 
+                    placeholder="Describe yourself to show your desires match with..." 
                     value={formData.bio} 
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
                     className="min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
@@ -334,7 +365,7 @@ export default function Onboarding() {
               )}
 
               {step === 6 && (
-                <div className="space-y-6">
+                <div className="space-y-8 flex-1 flex flex-col">
                   <div className="space-y-2 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                       <ShieldCheck size={32} />
@@ -343,9 +374,9 @@ export default function Onboarding() {
                     <p className="text-sm text-muted-foreground font-light">A live selfie ensures every profile is real.</p>
                   </div>
                   
-                  <div className="flex-1 flex flex-col gap-6">
+                  <div className="flex-1 flex flex-col gap-10">
                     <div className={cn(
-                      "relative aspect-square rounded-[40px] overflow-hidden bg-muted border-2 border-border aura-glow",
+                      "relative aspect-square rounded-[40px] overflow-hidden bg-black border-2 border-border aura-glow transition-all duration-500",
                       !formData.documentPhoto && "border-dashed"
                     )}>
                       {formData.documentPhoto ? (
@@ -359,58 +390,59 @@ export default function Onboarding() {
                           </div>
                         </div>
                       ) : (
-                        <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        <div className="relative w-full h-full flex items-center justify-center">
                            {isCameraLoading ? (
                              <div className="flex flex-col items-center gap-3">
                                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                               <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Securing Access</span>
+                               <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Waking Secure Camera</span>
                              </div>
                            ) : (
-                             <>
-                               <video 
-                                 ref={videoRef} 
-                                 autoPlay 
-                                 playsInline 
-                                 muted 
-                                 className="w-full h-full object-cover mirror-x" 
-                               />
-                               <div className="absolute inset-x-0 bottom-6 flex justify-center">
-                                 <button 
-                                   onClick={captureSelfie}
-                                   className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border-4 border-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
-                                 >
-                                   <div className="w-10 h-10 rounded-full bg-white" />
-                                 </button>
-                               </div>
-                             </>
+                             <video 
+                               ref={videoRef} 
+                               autoPlay 
+                               playsInline 
+                               muted 
+                               className="w-full h-full object-cover mirror-x" 
+                             />
                            )}
                         </div>
                       )}
                       <canvas ref={canvasRef} className="hidden" />
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                    <div className="flex flex-col items-center gap-6">
+                      {!formData.documentPhoto && !isCameraLoading && (
+                        <motion.button 
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          onClick={captureSelfie}
+                          className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
+                        >
+                          <div className="w-14 h-14 rounded-full bg-white group-hover:scale-90 transition-transform" />
+                        </motion.button>
+                      )}
+
+                      {formData.documentPhoto && (
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))}
+                          className="h-12 px-8 rounded-2xl text-muted-foreground hover:text-foreground text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <RefreshCcw size={16} />
+                          Retake Selfie
+                        </Button>
+                      )}
+
+                      <div className="w-full flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                         <ShieldAlert size={18} className="text-primary mt-0.5 shrink-0" />
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground leading-relaxed font-bold uppercase tracking-wider">Liveness Check</p>
                           <p className="text-xs text-foreground font-medium leading-relaxed">
-                            Gallery uploads are strictly prohibited. Our AI scans for face presence and capture liveness.
+                            Gallery uploads are strictly prohibited. AI scans for face presence and capture authenticity.
                           </p>
                         </div>
                       </div>
                     </div>
-
-                    {formData.documentPhoto && (
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))}
-                        className="w-full h-10 text-muted-foreground hover:text-foreground text-xs font-bold flex items-center justify-center gap-2"
-                      >
-                        <RefreshCcw size={14} />
-                        Retake Selfie
-                      </Button>
-                    )}
                   </div>
                 </div>
               )}
