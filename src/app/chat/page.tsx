@@ -5,11 +5,11 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react";
+import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock, Sparkles } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
-import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, limit, Query, orderBy } from "firebase/firestore";
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from "@/firebase";
+import { collection, query, where, limit, Query, orderBy, doc } from "firebase/firestore";
 import { ChatRoom, UserProfile } from "@/lib/types";
 
 export default function ChatList() {
@@ -19,6 +19,13 @@ export default function ChatList() {
   const { user: authUser } = useUser();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return doc(db, "users", authUser.uid);
+  }, [db, authUser]);
+
+  const { data: profile } = useDoc<UserProfile>(profileRef as any);
 
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -120,7 +127,27 @@ export default function ChatList() {
         </div>
       </header>
 
-      <div className="px-6 space-y-2 mt-4">
+      <div className="px-6 space-y-4 mt-4">
+        {/* Welcome & Verification Banner */}
+        {profile && !roomsLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-6 glass-card rounded-[32px] border-primary/20 bg-primary/5 space-y-3"
+          >
+             <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
+                <BadgeCheck size={14} />
+                Identity Verified
+             </div>
+             <div className="space-y-1">
+               <h2 className="text-xl font-semibold text-foreground">Welcome, {profile.name}!</h2>
+               <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                 Successfully verified. Your profile is now live and secure. Start connecting with real people in the Aura community.
+               </p>
+             </div>
+          </motion.div>
+        )}
+
         {roomsLoading ? (
           <div className="space-y-4 px-2">
             {[1, 2, 3].map(i => (
@@ -142,7 +169,6 @@ export default function ChatList() {
                   className="group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center relative">
-                    {/* Identity Guard: initials only for others */}
                     <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-background border border-border flex items-center justify-center">
                       <Lock size={8} className="text-muted-foreground" />
