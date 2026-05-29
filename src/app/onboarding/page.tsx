@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -93,9 +94,6 @@ export default function Onboarding() {
       });
       
       setStream(s);
-      if (videoRef.current) {
-        videoRef.current.srcObject = s;
-      }
     } catch (err) {
       console.error("Camera access failed:", err);
       toast({
@@ -108,6 +106,13 @@ export default function Onboarding() {
       cameraInitializingRef.current = false;
     }
   }, [stream, toast]);
+
+  // Handle stream binding to video element
+  useEffect(() => {
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream, step]);
 
   useEffect(() => {
     if (step === 6 && !formData.documentPhoto) {
