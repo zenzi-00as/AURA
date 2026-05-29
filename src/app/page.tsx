@@ -12,6 +12,7 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const [mounted, setMounted] = useState(false);
 
+  // Hooks must be called unconditionally at the top level
   const profileRef = useMemoFirebase(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -26,11 +27,15 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || authLoading || profileLoading) return;
 
+    // Single source of truth for routing decisions
     if (!user) {
       router.replace('/auth');
     } else if (profile && (profile as any).onboardingCompleted) {
       router.replace('/dashboard');
+    } else if (profile) {
+      router.replace('/onboarding');
     } else {
+      // User exists but profile doesn't - likely fresh sign up
       router.replace('/onboarding');
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);

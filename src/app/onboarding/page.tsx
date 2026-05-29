@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Camera } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Camera, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -32,7 +32,8 @@ export default function Onboarding() {
   const { data: profile, loading: profileLoading } = useDoc(profileRef as any);
 
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -47,7 +48,18 @@ export default function Onboarding() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const stopCamera = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraLoading(false);
+  }, [stream]);
+
   const startCamera = useCallback(async () => {
+    if (stream) return; // Already running
+    
+    setIsCameraLoading(true);
     try {
       const s = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -64,18 +76,13 @@ export default function Onboarding() {
       console.error("Camera access failed:", err);
       toast({
         variant: "destructive",
-        title: "Camera Error",
+        title: "Camera Access Error",
         description: "Aura requires camera access for identity verification. Please check your browser permissions."
       });
+    } finally {
+      setIsCameraLoading(false);
     }
-  }, [toast]);
-
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-  }, [stream]);
+  }, [stream, toast]);
 
   useEffect(() => {
     if (step === 6 && !formData.documentPhoto) {
@@ -99,7 +106,7 @@ export default function Onboarding() {
   }, [profile, router]);
 
   const captureSelfie = () => {
-    if (videoRef.current && canvasRef.current) {
+    if (videoRef.current && canvasRef.current && stream) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
@@ -161,7 +168,7 @@ export default function Onboarding() {
         toast({ variant: "destructive", title: "Selfie required", description: "Please capture a live selfie to proceed." });
         return;
       }
-      setLoading(true);
+      setIsSubmitting(true);
       try {
         const result = await selfieVerification({
           photoDataUri: formData.documentPhoto,
@@ -176,7 +183,7 @@ export default function Onboarding() {
             description: result.reason
           });
           setFormData(prev => ({ ...prev, documentPhoto: null }));
-          setLoading(false);
+          setIsSubmitting(false);
           return;
         }
 
@@ -189,12 +196,21 @@ export default function Onboarding() {
           await saveProfileToFirestore(authUser.uid, 'Pending');
         }
       } finally {
-        setLoading(false);
+        setIsSubmitting(false);
       }
     } else {
       setStep(s => s + 1);
     }
   };
+
+  const isNextDisabled = 
+    isSubmitting || 
+    (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18)) || 
+    (step === 2 && !formData.bio) || 
+    (step === 3 && !formData.gender) || 
+    (step === 4 && !formData.orientation) || 
+    (step === 5 && formData.interestedIn.length === 0) || 
+    (step === 6 && !formData.documentPhoto);
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-16 relative overflow-hidden bg-background max-w-md mx-auto min-h-screen">
@@ -343,22 +359,31 @@ export default function Onboarding() {
                           </div>
                         </div>
                       ) : (
-                        <div className="relative w-full h-full">
-                           <video 
-                             ref={videoRef} 
-                             autoPlay 
-                             playsInline 
-                             muted 
-                             className="w-full h-full object-cover mirror-x" 
-                           />
-                           <div className="absolute inset-x-0 bottom-6 flex justify-center">
-                             <button 
-                               onClick={captureSelfie}
-                               className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border-4 border-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
-                             >
-                               <div className="w-10 h-10 rounded-full bg-white" />
-                             </button>
-                           </div>
+                        <div className="relative w-full h-full flex items-center justify-center bg-black">
+                           {isCameraLoading ? (
+                             <div className="flex flex-col items-center gap-3">
+                               <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                               <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Securing Access</span>
+                             </div>
+                           ) : (
+                             <>
+                               <video 
+                                 ref={videoRef} 
+                                 autoPlay 
+                                 playsInline 
+                                 muted 
+                                 className="w-full h-full object-cover mirror-x" 
+                               />
+                               <div className="absolute inset-x-0 bottom-6 flex justify-center">
+                                 <button 
+                                   onClick={captureSelfie}
+                                   className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border-4 border-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
+                                 >
+                                   <div className="w-10 h-10 rounded-full bg-white" />
+                                 </button>
+                               </div>
+                             </>
+                           )}
                         </div>
                       )}
                       <canvas ref={canvasRef} className="hidden" />
@@ -395,18 +420,10 @@ export default function Onboarding() {
           <div className="mt-8 pb-4">
             <Button
               onClick={nextStep}
-              disabled={
-                loading || 
-                (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18)) || 
-                (step === 2 && !formData.bio) || 
-                (step === 3 && !formData.gender) || 
-                (step === 4 && !formData.orientation) || 
-                (step === 5 && formData.interestedIn.length === 0) || 
-                (step === 6 && !formData.documentPhoto)
-              }
+              disabled={isNextDisabled}
               className="w-full h-16 rounded-3xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {isSubmitting ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
               ) : (
                 <>
