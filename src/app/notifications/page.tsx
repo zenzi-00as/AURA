@@ -77,11 +77,11 @@ export default function NotificationsPage() {
         </button>
       </header>
 
-      <div className="px-6 space-y-4 mt-4">
+      <div className="px-6 space-y-3 mt-4">
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-24 w-full rounded-[32px] bg-muted animate-pulse" />
+              <div key={i} className="h-20 w-full rounded-3xl bg-muted animate-pulse" />
             ))}
           </div>
         ) : (
@@ -103,31 +103,34 @@ export default function NotificationsPage() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
                     className={cn(
-                      "p-6 glass-card rounded-[32px] flex items-start gap-4 transition-all border",
+                      "p-4 glass-card rounded-3xl flex items-center gap-4 transition-all border",
                       notif.read ? "opacity-70 grayscale-[0.5] border-border" : "border-primary/20 bg-primary/5"
                     )}
                   >
                     <div className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
+                      "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0",
                       colorClasses
                     )}>
                       <Icon size={22} />
                     </div>
-                    <div className="flex-1 space-y-1">
+                    <div className="flex-1 space-y-0.5 min-w-0">
                       <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-semibold text-foreground">{notif.title}</h3>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h3 className={cn(
+                            "font-semibold text-foreground truncate",
+                            !notif.read && "text-primary"
+                          )}>{notif.title}</h3>
                           {!notif.read && (
                             <motion.div 
                               animate={{ scale: [1, 1.2, 1] }}
                               transition={{ repeat: Infinity, duration: 2 }}
-                              className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
+                              className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
                             />
                           )}
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-medium">{timeStr}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                      <p className="text-xs text-muted-foreground font-light leading-relaxed truncate">
                         {notif.body}
                       </p>
                     </div>
