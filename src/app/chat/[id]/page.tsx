@@ -98,7 +98,7 @@ export default function ChatRoomPage() {
         const snapshot = await getDocs(notifQuery);
         snapshot.docs.forEach(notifDoc => {
           const data = notifDoc.data() as Notification;
-          // Heuristic: If it's a system room or contains recent msg text
+          // Identify if notification belongs to this specific room or other context
           const isRelevant = room?.isSystem 
             ? data.title === "AURA Team"
             : messages.some(m => data.body.includes(m.text.slice(0, 10)));
@@ -191,7 +191,7 @@ export default function ChatRoomPage() {
     <div className="flex-1 flex flex-col bg-background h-screen overflow-hidden transition-colors">
       <header className="px-6 h-16 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
             <ArrowLeft size={22} />
           </button>
           <div className="flex flex-col">
@@ -346,7 +346,7 @@ export default function ChatRoomPage() {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col pt-1">
+          <DialogFooter className="flex flex-col gap-2 pt-1">
             <Button 
               onClick={handleSubmitReport}
               disabled={isReporting || !reportReason}

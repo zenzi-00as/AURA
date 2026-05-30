@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { Bell, ShieldCheck, MapPin, MessageCircle, Info, Sparkles, Heart } from "lucide-react";
+import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, limit, Query, doc, updateDoc, writeBatch } from "firebase/firestore";
@@ -21,7 +21,7 @@ export default function NotificationsPage() {
     return query(
       collection(db, "notifications"),
       where("userId", "==", authUser.uid),
-      where("type", "!=", "message"), // Separate: Don't show message alerts in the general notification page
+      where("type", "!=", "message"),
       orderBy("type"), 
       orderBy("timestamp", "desc"),
       limit(50)
@@ -69,12 +69,12 @@ export default function NotificationsPage() {
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
       <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('activity')}</h1>
-        <button className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative">
+        <div className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative">
           <Bell size={18} />
           {notifications.some(n => !n.read) && (
             <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
           )}
-        </button>
+        </div>
       </header>
 
       <div className="px-6 space-y-3 mt-4">
@@ -117,20 +117,13 @@ export default function NotificationsPage() {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <h3 className={cn(
-                            "font-semibold text-foreground truncate",
-                            !notif.read && "text-primary"
+                            "font-semibold text-foreground truncate text-sm",
+                            !notif.read && "text-primary font-bold"
                           )}>{notif.title}</h3>
-                          {!notif.read && (
-                            <motion.div 
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ repeat: Infinity, duration: 2 }}
-                              className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
-                            />
-                          )}
                         </div>
                         <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground font-light leading-relaxed truncate">
+                      <p className="text-[11px] text-muted-foreground font-light leading-snug line-clamp-2">
                         {notif.body}
                       </p>
                     </div>
