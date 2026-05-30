@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -18,10 +18,12 @@ import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function Onboarding() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser, loading: authLoading } = useUser();
   
@@ -42,7 +44,8 @@ export default function Onboarding() {
     orientation: "",
     interestedIn: [] as string[],
     age: "",
-    documentPhoto: null as string | null
+    documentPhoto: null as string | null,
+    verificationStatus: 'Pending'
   });
 
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -50,7 +53,7 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInitializingRef = useRef(false);
 
-  // Age validation logic for reactive styling
+  // Age validation logic
   const ageNum = parseInt(formData.age);
   const isAgeInvalid = formData.age !== "" && (isNaN(ageNum) || ageNum < 18 || ageNum > 80);
 
@@ -148,11 +151,18 @@ export default function Onboarding() {
     }
   };
 
-  const saveProfileToFirestore = async (uid: string, verificationStatus: string = 'Pending') => {
-    if (!db) return;
+  const finalizeProfile = async () => {
+    if (!db || !authUser) return;
+    setIsSubmitting(true);
+    
     const batch = writeBatch(db);
+    const uid = authUser.uid;
     const userRef = doc(db, "users", uid);
     
+    // Calculate subscription end date (28 days from now)
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 28);
+
     const profileData = {
       uid,
       name: formData.name,
@@ -161,7 +171,10 @@ export default function Onboarding() {
       orientation: formData.orientation,
       interestedIn: formData.interestedIn,
       age: parseInt(formData.age),
-      verificationStatus,
+      verificationStatus: formData.verificationStatus,
+      subscriptionStatus: 'Active',
+      subscriptionPrice: 1,
+      subscriptionEndDate: endDate,
       photoUrl: formData.documentPhoto,
       lastActive: serverTimestamp(),
       isOnline: true,
@@ -172,6 +185,7 @@ export default function Onboarding() {
 
     batch.set(userRef, profileData, { merge: true });
 
+    // System welcome logic
     const roomId = `system_${uid}`;
     const roomRef = doc(db, "chatRooms", roomId);
     batch.set(roomRef, {
@@ -184,7 +198,7 @@ export default function Onboarding() {
 
     const messageRef = doc(collection(db, "chatRooms", roomId, "messages"));
     const dateStr = new Date().toLocaleDateString();
-    const welcomeText = `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully created on ${dateStr}.\n\nYou can now:\n• Explore matches\n• Complete your profile\n• Upload photos\n• Start connecting with people nearby\n\nStay respectful and enjoy your experience ✨`;
+    const welcomeText = `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully created and verified on ${dateStr}.\n\nYou are now an AURA Premium member (28-day access).\n\nStay respectful and enjoy your experience ✨`;
     
     batch.set(messageRef, {
       id: messageRef.id,
@@ -194,17 +208,19 @@ export default function Onboarding() {
       seen: false
     });
 
+    // Verification Notification
     const notifRef = doc(collection(db, "notifications"));
     batch.set(notifRef, {
       id: notifRef.id,
       userId: uid,
-      title: "✅ Verification Successful",
-      body: `Hi ${formData.name}, your account has been successfully verified on ${dateStr}. Your profile now gets better visibility and a trusted badge.`,
+      title: "✅ Identity Verified",
+      body: `Hi ${formData.name}, you are now a verified member of the Aura community. Your profile has received a trusted badge.`,
       type: "verification",
       timestamp: serverTimestamp(),
       read: false
     });
 
+    // Welcome Message Notification
     const msgNotifRef = doc(collection(db, "notifications"));
     batch.set(msgNotifRef, {
       id: msgNotifRef.id,
@@ -223,6 +239,8 @@ export default function Onboarding() {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: userRef.path, operation: 'write', requestResourceData: profileData
       }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -267,17 +285,17 @@ export default function Onboarding() {
           return;
         }
 
-        if (authUser) {
-          await saveProfileToFirestore(authUser.uid, result.verificationStatus);
-        }
+        setFormData(prev => ({ ...prev, verificationStatus: result.verificationStatus }));
+        setStep(7); // Move to Subscription
       } catch (error) {
         console.error("Verification failed:", error);
-        if (authUser) {
-          await saveProfileToFirestore(authUser.uid, 'Pending');
-        }
+        setFormData(prev => ({ ...prev, verificationStatus: 'Pending' }));
+        setStep(7);
       } finally {
         setIsSubmitting(false);
       }
+    } else if (step === 7) {
+      await finalizeProfile();
     } else {
       setStep(s => s + 1);
     }
@@ -306,11 +324,11 @@ export default function Onboarding() {
         <>
           <div className="flex justify-between items-center mb-6">
             <div className="flex gap-1">
-              {[1, 2, 3, 4, 5, 6].map(s => (
+              {[1, 2, 3, 4, 5, 6, 7].map(s => (
                 <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
               ))}
             </div>
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 6</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 7</span>
           </div>
 
           <AnimatePresence mode="wait">
@@ -518,6 +536,61 @@ export default function Onboarding() {
                   </div>
                 </div>
               )}
+
+              {step === 7 && (
+                <div className="space-y-8 flex-1 flex flex-col items-center justify-center py-4">
+                  <div className="space-y-3 text-center">
+                    <motion.div 
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-20 h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mx-auto mb-4"
+                    >
+                      <Sparkles className="text-white" size={40} />
+                    </motion.div>
+                    <h2 className="text-3xl font-bold text-foreground tracking-tight">{t('premium_subscription')}</h2>
+                    <p className="text-sm text-muted-foreground font-light px-6">{t('premium_desc')}</p>
+                  </div>
+
+                  <div className="w-full space-y-6">
+                    <div className="glass-card p-6 rounded-[32px] border-primary/20 bg-primary/5 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Plan Details</p>
+                          <h3 className="text-xl font-bold text-foreground">{t('price_28_days')}</h3>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                          <CreditCard size={24} />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 pt-2 border-t border-primary/10">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Check size={14} className="text-primary" />
+                          <span>Unlimited Messages</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Check size={14} className="text-primary" />
+                          <span>Advanced Discovery Filters</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Check size={14} className="text-primary" />
+                          <span>Identity Verified Badge</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-2xl border border-border">
+                      <Lock size={16} className="text-muted-foreground mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('autopay_notice')}</p>
+                        <p className="text-[11px] text-muted-foreground/60 leading-snug">
+                          Secure, encrypted transaction. Cancel anytime in Settings.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -531,7 +604,7 @@ export default function Onboarding() {
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
               ) : (
                 <>
-                  {step === 6 ? "Complete Verification" : "Continue"}
+                  {step === 7 ? t('subscribe_now') : step === 6 ? "Verify Selfie" : "Continue"}
                   <ChevronRight size={20} />
                 </>
               )}

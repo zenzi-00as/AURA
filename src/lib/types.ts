@@ -1,5 +1,6 @@
 
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
+export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired';
 
 export type UserProfile = {
   uid: string;
@@ -10,6 +11,9 @@ export type UserProfile = {
   orientation: string;
   interestedIn: string[];
   verificationStatus: VerificationStatus;
+  subscriptionStatus?: SubscriptionStatus;
+  subscriptionEndDate?: any;
+  subscriptionPrice?: number;
   location?: {
     lat: number;
     lng: number;

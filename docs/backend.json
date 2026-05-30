@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -12,6 +13,8 @@
         "gender": { "type": "string" },
         "orientation": { "type": "string" },
         "verificationStatus": { "type": "string", "enum": ["Verified", "Pending", "Rejected"] },
+        "subscriptionStatus": { "type": "string", "enum": ["Active", "Inactive", "Expired"] },
+        "subscriptionEndDate": { "type": "string", "format": "date-time" },
         "location": {
           "type": "object",
           "properties": {
