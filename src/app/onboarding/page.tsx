@@ -368,7 +368,7 @@ export default function Onboarding() {
                         />
                       </div>
                       <p className="text-[10px] px-4 mt-1.5 font-medium uppercase tracking-wider text-muted-foreground">
-                        Alphabets Only
+                        (Alphabets Only)
                       </p>
                     </div>
                     <div>
@@ -389,9 +389,18 @@ export default function Onboarding() {
 
               {step === 2 && (
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Bio</h2>
-                    <p className="text-sm text-muted-foreground font-light">Describe yourself to show your desires match with...</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-semibold text-foreground tracking-tight">Your Bio</h2>
+                      <p className="text-sm text-muted-foreground font-light">Describe yourself to show your desires match with...</p>
+                    </div>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   <Textarea 
                     placeholder="Describe yourself to show your desires match with..." 
@@ -404,9 +413,18 @@ export default function Onboarding() {
 
               {step === 3 && (
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity</h2>
-                    <p className="text-sm text-muted-foreground font-light">How do you identify? Aura celebrates the spectrum.</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-semibold text-foreground tracking-tight">Identity</h2>
+                      <p className="text-sm text-muted-foreground font-light">How do you identify? Aura celebrates the spectrum.</p>
+                    </div>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   <GenderSelector 
                     selected={formData.gender} 
@@ -417,9 +435,18 @@ export default function Onboarding() {
 
               {step === 4 && (
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Orientation</h2>
-                    <p className="text-sm text-muted-foreground font-light">Choose the orientation that best fits you.</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-semibold text-foreground tracking-tight">Orientation</h2>
+                      <p className="text-sm text-muted-foreground font-light">Choose the orientation that best fits you.</p>
+                    </div>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   <OrientationSelector 
                     gender={formData.gender}
@@ -470,12 +497,21 @@ export default function Onboarding() {
 
               {step === 6 && (
                 <div className="space-y-4 flex-1 flex flex-col">
-                  <div className="space-y-1 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-2">
-                      <ShieldCheck size={28} />
+                  <div className="flex justify-between items-start px-1">
+                    <div className="space-y-1 text-center flex-1">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-2">
+                        <ShieldCheck size={28} />
+                      </div>
+                      <h2 className="text-2xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
+                      <p className="text-xs text-muted-foreground font-light px-4">A live selfie ensures every profile is real and verified.</p>
                     </div>
-                    <h2 className="text-2xl font-semibold text-foreground tracking-tight">Selfie Guard</h2>
-                    <p className="text-xs text-muted-foreground font-light px-4">A live selfie ensures every profile is real and verified.</p>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   
                   <div className="flex-1 flex flex-col">
@@ -554,7 +590,16 @@ export default function Onboarding() {
               )}
 
               {step === 7 && (
-                <div className="space-y-6 flex-1 flex flex-col items-center justify-center py-2">
+                <div className="space-y-6 flex-1 flex flex-col items-center justify-center py-2 relative">
+                  <div className="absolute top-0 right-0">
+                    <button 
+                      onClick={prevStep}
+                      className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
+                  </div>
                   <div className="space-y-2 text-center">
                     <motion.div 
                       initial={{ scale: 0.8, opacity: 0 }}
