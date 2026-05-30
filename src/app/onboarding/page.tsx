@@ -538,52 +538,52 @@ export default function Onboarding() {
               )}
 
               {step === 7 && (
-                <div className="space-y-8 flex-1 flex flex-col items-center justify-center py-4">
-                  <div className="space-y-3 text-center">
+                <div className="space-y-6 flex-1 flex flex-col items-center justify-center py-2">
+                  <div className="space-y-2 text-center">
                     <motion.div 
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className="w-20 h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mx-auto mb-4"
+                      className="w-14 h-14 rounded-[22px] fuchsia-gradient aura-glow flex items-center justify-center mx-auto mb-3"
                     >
-                      <Sparkles className="text-white" size={40} />
+                      <Sparkles className="text-white" size={28} />
                     </motion.div>
-                    <h2 className="text-3xl font-bold text-foreground tracking-tight">{t('premium_subscription')}</h2>
-                    <p className="text-sm text-muted-foreground font-light px-6">{t('premium_desc')}</p>
+                    <h2 className="text-2xl font-bold text-foreground tracking-tight">{t('premium_subscription')}</h2>
+                    <p className="text-xs text-muted-foreground font-light px-6">{t('premium_desc')}</p>
                   </div>
 
-                  <div className="w-full space-y-6">
-                    <div className="glass-card p-6 rounded-[32px] border-primary/20 bg-primary/5 space-y-4">
+                  <div className="w-full space-y-4">
+                    <div className="glass-card p-5 rounded-[28px] border-primary/20 bg-primary/5 space-y-3">
                       <div className="flex justify-between items-center">
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Plan Details</p>
-                          <h3 className="text-xl font-bold text-foreground">{t('price_28_days')}</h3>
+                        <div className="space-y-0.5">
+                          <p className="text-[9px] font-bold text-primary uppercase tracking-widest">Plan Details</p>
+                          <h3 className="text-lg font-bold text-foreground">{t('price_28_days')}</h3>
                         </div>
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                          <CreditCard size={24} />
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <CreditCard size={20} />
                         </div>
                       </div>
                       
-                      <div className="space-y-2 pt-2 border-t border-primary/10">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Check size={14} className="text-primary" />
+                      <div className="space-y-1.5 pt-2 border-t border-primary/10">
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <Check size={12} className="text-primary" />
                           <span>Unlimited Messages</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Check size={14} className="text-primary" />
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <Check size={12} className="text-primary" />
                           <span>Advanced Discovery Filters</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Check size={14} className="text-primary" />
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <Check size={12} className="text-primary" />
                           <span>Identity Verified Badge</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-2xl border border-border">
-                      <Lock size={16} className="text-muted-foreground mt-0.5" />
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('autopay_notice')}</p>
-                        <p className="text-[11px] text-muted-foreground/60 leading-snug">
+                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-xl border border-border">
+                      <Lock size={14} className="text-muted-foreground mt-0.5" />
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t('autopay_notice')}</p>
+                        <p className="text-[10px] text-muted-foreground/60 leading-snug">
                           Secure, encrypted transaction. Cancel anytime in Settings.
                         </p>
                       </div>
