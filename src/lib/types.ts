@@ -5,6 +5,8 @@ export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired';
 export type UserProfile = {
   uid: string;
   name: string;
+  email?: string;
+  phoneNumber: string;
   age: number;
   bio: string;
   gender: string;

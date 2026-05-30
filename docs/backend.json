@@ -8,6 +8,8 @@
       "properties": {
         "uid": { "type": "string" },
         "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
         "age": { "type": "number" },
         "bio": { "type": "string" },
         "gender": { "type": "string" },
@@ -29,7 +31,7 @@
         "photoUrl": { "type": "string" },
         "onboardingCompleted": { "type": "boolean" }
       },
-      "required": ["uid", "name", "age"]
+      "required": ["uid", "name", "age", "phoneNumber"]
     },
     "BlockedUser": {
       "title": "Blocked User",
@@ -79,7 +81,7 @@
     }
   },
   "auth": {
-    "providers": ["phone"]
+    "providers": ["email"]
   },
   "firestore": {
     "/users/{userId}": {

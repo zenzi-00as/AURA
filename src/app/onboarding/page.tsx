@@ -53,6 +53,16 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInitializingRef = useRef(false);
 
+  useEffect(() => {
+    if (profile && !profileLoading) {
+      setFormData(prev => ({
+        ...prev,
+        name: (profile as any).name || "",
+        // Pick up existing values if any
+      }));
+    }
+  }, [profile, profileLoading]);
+
   const ageNum = parseInt(formData.age);
   const isAgeInvalid = formData.age !== "" && (isNaN(ageNum) || ageNum < 18 || ageNum > 80);
 
