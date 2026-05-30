@@ -597,14 +597,18 @@ export default function Onboarding() {
           <div className="mt-6 pb-4">
             <Button
               onClick={nextStep}
-              disabled={isNextDisabled}
+              disabled={isSubmitting}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin-fast" />
               ) : (
                 <>
-                  {step === 7 ? t('subscribe_now') : step === 6 ? "Verify Selfie" : "Continue"}
+                  {step === 7 ? (
+                    <span className="flex items-center gap-1">
+                      Subscribe - ₹ <strong className="font-bold">1/- Only</strong>
+                    </span>
+                  ) : step === 6 ? "Verify Selfie" : "Continue"}
                   <ChevronRight size={20} />
                 </>
               )}
