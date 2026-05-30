@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -397,7 +397,7 @@ export default function Onboarding() {
                 <div className="space-y-2 flex-1 flex flex-col">
                   <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Bio (Mandatory)</label>
                   <Textarea 
-                    placeholder="Tell others about yourself..." 
+                    placeholder="Write about your desires to know the reel feel's match with..." 
                     value={formData.bio} 
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
                     className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none focus:ring-primary" 
