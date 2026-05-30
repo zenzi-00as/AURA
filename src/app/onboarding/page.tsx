@@ -272,26 +272,6 @@ export default function Onboarding() {
     }
   }, [step, stopCamera, router]);
 
-  const handleQuickSelectInterests = () => {
-    let suggestions: string[] = [];
-    if (formData.gender === "Man" || formData.gender === "Trans Man") {
-      if (formData.orientation === "Gay") suggestions = ["Man"];
-      else if (formData.orientation === "Straight") suggestions = ["Woman"];
-      else suggestions = ["Man", "Woman"];
-    } else if (formData.gender === "Woman" || formData.gender === "Trans Woman") {
-      if (formData.orientation === "Lesbian") suggestions = ["Woman"];
-      else if (formData.orientation === "Straight") suggestions = ["Man"];
-      else suggestions = ["Woman", "Man"];
-    } else {
-      suggestions = ["Non-binary", "Genderfluid", "Agender"];
-    }
-    setFormData(prev => ({ ...prev, interestedIn: suggestions.slice(0, 2) }));
-    toast({
-      title: "Quick-Select Active",
-      description: "Preferences aligned with your identity."
-    });
-  };
-
   const isNextDisabled = 
     isSubmitting || 
     (step === 1 && (!formData.name.trim() || !formData.age || isAgeInvalid)) || 
@@ -440,7 +420,6 @@ export default function Onboarding() {
                         return { ...prev, interestedIn: [...prev.interestedIn, i] };
                       });
                     }}
-                    onQuickSelect={handleQuickSelectInterests}
                   />
                 </div>
               )}
