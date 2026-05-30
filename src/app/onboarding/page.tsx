@@ -319,7 +319,7 @@ export default function Onboarding() {
                 {step === 7 && t('premium_desc')}
               </p>
             </div>
-            {step > 1 && step < 7 && (
+            {step < 7 && (
               <button 
                 onClick={prevStep}
                 className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
