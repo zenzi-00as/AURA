@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, ShieldAlert, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -301,6 +301,13 @@ export default function Onboarding() {
     }
   };
 
+  const prevStep = useCallback(() => {
+    if (step > 1) {
+      if (step === 6) stopCamera();
+      setStep(s => s - 1);
+    }
+  }, [step, stopCamera]);
+
   const isNextDisabled = 
     isSubmitting || 
     (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18 || parseInt(formData.age) > 80)) || 
@@ -424,9 +431,18 @@ export default function Onboarding() {
 
               {step === 5 && (
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">Interested In</h2>
-                    <p className="text-sm text-muted-foreground font-light">Who would you like to connect with? Choose up to 2.</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-semibold text-foreground tracking-tight">Interested In</h2>
+                      <p className="text-sm text-muted-foreground font-light">Who would you like to connect with? Choose up to 2.</p>
+                    </div>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   <InterestedInSelector 
                     selected={formData.interestedIn}
