@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -24,19 +25,22 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || authLoading || (user && profileLoading)) return;
+    if (!mounted || authLoading) return;
 
-    const timer = setTimeout(() => {
-      if (!user) {
-        router.replace('/auth');
-      } else if (profile && (profile as any).onboardingCompleted) {
+    // If we've confirmed there's no user, go to auth immediately
+    if (!user) {
+      router.replace('/auth');
+      return;
+    }
+
+    // If we have a user, wait for their profile to resolve before deciding next step
+    if (!profileLoading) {
+      if (profile && (profile as any).onboardingCompleted) {
         router.replace('/dashboard');
       } else {
         router.replace('/onboarding');
       }
-    }, 800);
-
-    return () => clearTimeout(timer);
+    }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
   return (
@@ -52,12 +56,18 @@ export default function Home() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative z-10"
           >
-            <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse">
-              <span className="text-3xl font-bold text-white tracking-tighter">A</span>
+            <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse">
+              <span className="text-4xl font-bold text-white tracking-tighter">A</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <div className="absolute bottom-12 left-0 right-0 text-center">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold opacity-40">
+          Minimalist • Private • Real
+        </p>
+      </div>
     </div>
   );
 }

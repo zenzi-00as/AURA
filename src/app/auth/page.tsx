@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore, useUser } from "@/firebase";
@@ -13,15 +14,13 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-
-const DEMO_EMAIL = "demo@aura.com";
-const DEMO_OTP = "123456";
 
 export default function AuthPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -61,6 +60,14 @@ export default function AuthPage() {
         });
         return;
       }
+      if (phone.length < 10) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Phone",
+          description: "Please enter a mandatory contact number.",
+        });
+        return;
+      }
       if (!agreedToTerms) {
         toast({
           variant: "destructive",
@@ -74,6 +81,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
+        // Simulate sending OTP to email
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
@@ -92,11 +100,14 @@ export default function AuthPage() {
           await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             email: email,
+            phoneNumber: phone,
             onboardingCompleted: false,
-            createdAt: new Date()
+            createdAt: serverTimestamp(),
+            lastActive: serverTimestamp(),
+            isOnline: true
           }, { merge: true });
 
-          toast({ title: "Verified", description: "Identity synchronized." });
+          toast({ title: "Verified", description: "Email identity synchronized." });
           router.replace("/onboarding");
         } catch (err: any) {
           if (err.code === 'auth/email-already-in-use') {
@@ -183,6 +194,19 @@ export default function AuthPage() {
                       className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
                     />
                   </div>
+
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Phone size={18} />
+                    </div>
+                    <Input
+                      type="tel"
+                      placeholder="Phone Number (Mandatory)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-start space-x-3 px-1">
@@ -211,7 +235,7 @@ export default function AuthPage() {
                 <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
                   <Info size={16} className="text-primary mt-0.5 shrink-0" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed uppercase tracking-wider font-medium">
-                    <span className="font-bold text-primary">Demo:</span> Use <strong>demo@aura.com</strong> with <strong>123456</strong>
+                    <span className="font-bold text-primary">Demo Mode:</span> Use any email with OTP <strong>123456</strong>
                   </p>
                 </div>
               </div>
@@ -247,7 +271,7 @@ export default function AuthPage() {
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1"
                   >
                     <ChevronLeft size={12} />
-                    Change email
+                    Change details
                   </button>
                 </div>
               </div>
@@ -255,7 +279,7 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || !agreedToTerms) : otp.length < 6)}
+              disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? (
