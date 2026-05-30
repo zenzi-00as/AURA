@@ -202,17 +202,6 @@ export default function Onboarding() {
       read: false
     });
 
-    const msgNotifRef = doc(collection(db, "notifications"));
-    batch.set(msgNotifRef, {
-      id: msgNotifRef.id,
-      userId: uid,
-      title: "AURA Team",
-      body: "Welcome to AURA ❤️",
-      type: "message",
-      timestamp: serverTimestamp(),
-      read: false
-    });
-
     try {
       await batch.commit();
       router.replace("/dashboard");
