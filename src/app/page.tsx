@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
@@ -36,28 +35,6 @@ export default function Home() {
     }
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden">
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-secondary/5 rounded-full blur-[100px]" />
-
-      <div className="z-10 flex flex-col items-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="w-24 h-24 rounded-[32px] fuchsia-gradient aura-glow mb-8 flex items-center justify-center shadow-2xl shadow-primary/30"
-        >
-          <span className="text-4xl font-bold text-white tracking-tighter">A</span>
-        </motion.div>
-
-        <div className="flex flex-col items-center text-center space-y-4">
-          <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin-fast" />
-          <p className="text-[9px] text-muted-foreground/40 uppercase tracking-[0.2em] font-bold">
-            Synchronizing
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  // Silent router for high-velocity startup
+  return null;
 }
