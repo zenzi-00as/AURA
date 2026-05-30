@@ -53,7 +53,6 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraInitializingRef = useRef(false);
 
-  // Age validation logic
   const ageNum = parseInt(formData.age);
   const isAgeInvalid = formData.age !== "" && (isNaN(ageNum) || ageNum < 18 || ageNum > 80);
 
@@ -159,7 +158,6 @@ export default function Onboarding() {
     const uid = authUser.uid;
     const userRef = doc(db, "users", uid);
     
-    // Calculate subscription end date (28 days from now)
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 28);
 
@@ -185,7 +183,6 @@ export default function Onboarding() {
 
     batch.set(userRef, profileData, { merge: true });
 
-    // System welcome logic
     const roomId = `system_${uid}`;
     const roomRef = doc(db, "chatRooms", roomId);
     batch.set(roomRef, {
@@ -208,7 +205,6 @@ export default function Onboarding() {
       seen: false
     });
 
-    // Verification Notification
     const notifRef = doc(collection(db, "notifications"));
     batch.set(notifRef, {
       id: notifRef.id,
@@ -220,7 +216,6 @@ export default function Onboarding() {
       read: false
     });
 
-    // Welcome Message Notification
     const msgNotifRef = doc(collection(db, "notifications"));
     batch.set(msgNotifRef, {
       id: msgNotifRef.id,
@@ -286,7 +281,7 @@ export default function Onboarding() {
         }
 
         setFormData(prev => ({ ...prev, verificationStatus: result.verificationStatus }));
-        setStep(7); // Move to Subscription
+        setStep(7);
       } catch (error) {
         console.error("Verification failed:", error);
         setFormData(prev => ({ ...prev, verificationStatus: 'Pending' }));
@@ -503,14 +498,6 @@ export default function Onboarding() {
                     </button>
                   </div>
                   
-                  <Button 
-                    variant="outline" 
-                    onClick={handleQuickSelectInterests}
-                    className="w-full h-11 rounded-2xl border-dashed border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/10 transition-colors"
-                  >
-                    Same as selected gender and orientation
-                  </Button>
-
                   <InterestedInSelector 
                     selected={formData.interestedIn}
                     onToggle={(i) => {
@@ -531,6 +518,7 @@ export default function Onboarding() {
                         return { ...prev, interestedIn: [...prev.interestedIn, i] };
                       });
                     }}
+                    onQuickSelect={handleQuickSelectInterests}
                   />
                 </div>
               )}
@@ -648,7 +636,7 @@ export default function Onboarding() {
                       <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
                           <p className="text-[9px] font-bold text-primary uppercase tracking-widest">Plan Details</p>
-                          <h3 className="text-lg font-bold text-foreground">{t('price_28_days')}</h3>
+                          <h3 className="text-lg font-bold text-foreground">₹ 1 / 28 Days</h3>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <CreditCard size={20} />

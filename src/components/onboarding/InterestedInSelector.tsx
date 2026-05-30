@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const GENDER_CATEGORIES = [
@@ -12,9 +12,10 @@ const GENDER_CATEGORIES = [
 interface InterestedInSelectorProps {
   selected: string[];
   onToggle: (interest: string) => void;
+  onQuickSelect?: () => void;
 }
 
-export function InterestedInSelector({ selected, onToggle }: InterestedInSelectorProps) {
+export function InterestedInSelector({ selected, onToggle, onQuickSelect }: InterestedInSelectorProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -23,6 +24,21 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
           <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{selected.length} / 2 Selected</span>
         </div>
         <div className="grid grid-cols-1 gap-2.5 max-h-[320px] overflow-y-auto pr-1">
+          {/* Integrated Quick-Select Option */}
+          {onQuickSelect && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={onQuickSelect}
+              className="h-14 px-5 rounded-2xl bg-primary/5 border border-dashed border-primary/30 text-primary transition-all flex items-center justify-between hover:bg-primary/10"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles size={16} />
+                <span className="text-sm font-semibold">Same as my profile</span>
+              </div>
+              <ChevronRight size={14} className="opacity-50" />
+            </motion.button>
+          )}
+
           {GENDER_CATEGORIES.map((opt) => {
             const isSelected = selected.includes(opt);
             return (
@@ -50,3 +66,5 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
     </div>
   );
 }
+
+import { ChevronRight } from "lucide-react";
