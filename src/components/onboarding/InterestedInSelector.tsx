@@ -2,11 +2,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const GENDER_CATEGORIES = [
-  "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman"
+  "Man", "Woman", "Non-binary", "Trans Man", "Trans Woman", "Genderfluid", "Agender"
 ];
 
 interface InterestedInSelectorProps {
@@ -29,11 +29,11 @@ export function InterestedInSelector({ selected, onToggle, onQuickSelect }: Inte
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={onQuickSelect}
-              className="h-14 px-5 rounded-2xl bg-primary/5 border border-dashed border-primary/30 text-primary transition-all flex items-center justify-between hover:bg-primary/10"
+              className="h-14 px-5 rounded-2xl bg-primary/5 border border-dashed border-primary/30 text-primary transition-all flex items-center justify-between hover:bg-primary/10 mb-2"
             >
               <div className="flex items-center gap-3">
                 <Sparkles size={16} />
-                <span className="text-sm font-semibold">Same as my profile</span>
+                <span className="text-sm font-semibold text-left">Same as my profile</span>
               </div>
               <ChevronRight size={14} className="opacity-50" />
             </motion.button>
@@ -66,5 +66,3 @@ export function InterestedInSelector({ selected, onToggle, onQuickSelect }: Inte
     </div>
   );
 }
-
-import { ChevronRight } from "lucide-react";

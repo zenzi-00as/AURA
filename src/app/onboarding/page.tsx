@@ -316,7 +316,8 @@ export default function Onboarding() {
       else if (formData.orientation === "Straight") suggestions = ["Man"];
       else suggestions = ["Woman", "Man"];
     } else {
-      suggestions = ["Non-binary"];
+      // Inclusive suggestions for other identities
+      suggestions = ["Non-binary", "Genderfluid", "Agender"];
     }
     setFormData(prev => ({ ...prev, interestedIn: suggestions.slice(0, 2) }));
     toast({
