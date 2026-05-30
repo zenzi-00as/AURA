@@ -602,15 +602,6 @@ export default function Onboarding() {
 
               {step === 7 && (
                 <div className="space-y-6 flex-1 flex flex-col items-center justify-center py-2 relative">
-                  <div className="absolute top-0 right-0">
-                    <button 
-                      onClick={prevStep}
-                      className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
-                    >
-                      <ArrowLeft size={12} />
-                      Back
-                    </button>
-                  </div>
                   <div className="space-y-2 text-center">
                     <motion.div 
                       initial={{ scale: 0.8, opacity: 0 }}
