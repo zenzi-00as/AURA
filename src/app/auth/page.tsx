@@ -33,7 +33,6 @@ export default function AuthPage() {
   const { user: authUser, loading: authLoading } = useUser();
   const { toast } = useToast();
 
-  // Redirect if already logged in and fully loaded
   useEffect(() => {
     if (!authLoading && authUser) {
       router.replace("/");
@@ -75,7 +74,6 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
-        // Professional simulation of OTP sending
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
@@ -130,7 +128,20 @@ export default function AuthPage() {
     });
   };
 
-  if (authLoading) return null;
+  if (authLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10"
+        >
+          <span className="text-3xl font-bold text-white tracking-tighter">A</span>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background min-h-screen">

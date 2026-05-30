@@ -34,14 +34,13 @@ export default function Home() {
       } else {
         router.replace('/onboarding');
       }
-    }, 800); // Slight delay for professional brand impact
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [user, authLoading, profile, profileLoading, router, mounted]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
-      {/* Background Ambience */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
       
       <AnimatePresence>
