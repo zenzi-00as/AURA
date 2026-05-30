@@ -302,11 +302,13 @@ export default function Onboarding() {
   };
 
   const prevStep = useCallback(() => {
-    if (step > 1) {
+    if (step === 1) {
+      router.replace("/auth");
+    } else {
       if (step === 6) stopCamera();
       setStep(s => s - 1);
     }
-  }, [step, stopCamera]);
+  }, [step, stopCamera, router]);
 
   const isNextDisabled = 
     isSubmitting || 
@@ -349,9 +351,18 @@ export default function Onboarding() {
             >
               {step === 1 && (
                 <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold text-foreground tracking-tight">What's your name?</h2>
-                    <p className="text-sm text-muted-foreground font-light">It's nice to meet you. Aura is about real identity.</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-semibold text-foreground tracking-tight">What's your name?</h2>
+                      <p className="text-sm text-muted-foreground font-light">It's nice to meet you. Aura is about real identity.</p>
+                    </div>
+                    <button 
+                      onClick={prevStep}
+                      className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-1.5"
+                    >
+                      <ArrowLeft size={12} />
+                      Back
+                    </button>
                   </div>
                   <div className="space-y-4">
                     <div>
