@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 const DEMO_EMAIL = "demo@aura.com";
@@ -31,7 +31,15 @@ export default function AuthPage() {
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
+  const { user: authUser, loading: authLoading } = useUser();
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && authUser) {
+      router.replace("/");
+    }
+  }, [authUser, authLoading, router]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -68,6 +76,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
+        // Simulate sending OTP via Email
         setTimeout(() => {
           setStep("otp");
           setIsLoading(false);
@@ -81,9 +90,12 @@ export default function AuthPage() {
       }
 
       if (step === "otp") {
-        if (otp === DEMO_OTP || email !== DEMO_EMAIL) {
+        // Mock verification for Demo or non-existent firebase auth for this prompt context
+        // Using email OTP logic
+        if (otp === DEMO_OTP || email !== "") {
+          const password = "aura_secure_pass_" + otp;
           try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, "aura_secure_pass_" + otp);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             await setDoc(doc(db, "users", user.uid), {
@@ -93,19 +105,19 @@ export default function AuthPage() {
               createdAt: new Date()
             }, { merge: true });
 
-            toast({
-              title: "Verified",
-              description: "Welcome to the Aura community.",
-            });
+            toast({ title: "Verified", description: "Identity synchronized." });
             router.replace("/onboarding");
           } catch (err: any) {
             if (err.code === 'auth/email-already-in-use') {
-              const userCredential = await signInWithEmailAndPassword(auth, email, "aura_secure_pass_" + otp).catch(() => {
-                return signInWithEmailAndPassword(auth, email, "aura_secure_pass_123456"); 
-              });
-              
-              if (userCredential) {
-                router.replace("/onboarding");
+              try {
+                await signInWithEmailAndPassword(auth, email, password);
+                router.replace("/");
+              } catch (signInErr) {
+                // Fallback for demo OTP 
+                if (otp === DEMO_OTP) {
+                   // This is just for demonstration purposes in this prototype
+                }
+                throw signInErr;
               }
             } else {
               throw err;
@@ -137,17 +149,19 @@ export default function AuthPage() {
     });
   };
 
+  if (authLoading) return null;
+
   return (
     <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
       <div className="mb-12">
         <h1 className="text-3xl font-semibold text-foreground mb-3">
-          {step === "details" ? "Secure Login" : "Verify Email"}
+          {step === "details" ? "Welcome back" : "Verify Email"}
         </h1>
         <p className="text-muted-foreground font-light leading-relaxed">
           {step === "details" 
-            ? "Enter your credentials to continue. Your privacy is our priority." 
+            ? "Enter your email to continue. We'll send a quick verification." 
             : `We've sent a 6-digit code to ${email}. Please enter it below.`}
         </p>
       </div>
@@ -241,7 +255,7 @@ export default function AuthPage() {
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1"
                 >
                   <ChevronLeft size={12} />
-                  Change details
+                  Change email
                 </button>
               </div>
             </div>
