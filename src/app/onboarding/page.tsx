@@ -524,7 +524,7 @@ export default function Onboarding() {
               ) : (
                 <>
                   {step === 7 ? (
-                    <span>Subscribe - ₹ <strong className="font-bold">1/- Only</strong></span>
+                    <span>Subscribe - ₹ <strong className="font-bold">1 Only</strong></span>
                   ) : step === 6 ? "Verify Selfie" : "Continue"}
                   <ChevronRight size={20} />
                 </>
