@@ -12,9 +12,11 @@
         "bio": { "type": "string" },
         "gender": { "type": "string" },
         "orientation": { "type": "string" },
+        "interestedIn": { "type": "array", "items": { "type": "string" } },
         "verificationStatus": { "type": "string", "enum": ["Verified", "Pending", "Rejected"] },
         "subscriptionStatus": { "type": "string", "enum": ["Active", "Inactive", "Expired"] },
         "subscriptionEndDate": { "type": "string", "format": "date-time" },
+        "subscriptionPrice": { "type": "number" },
         "location": {
           "type": "object",
           "properties": {
@@ -24,7 +26,8 @@
         },
         "lastActive": { "type": "string", "format": "date-time" },
         "isOnline": { "type": "boolean" },
-        "photoUrl": { "type": "string" }
+        "photoUrl": { "type": "string" },
+        "onboardingCompleted": { "type": "boolean" }
       },
       "required": ["uid", "name", "age"]
     },
@@ -46,7 +49,8 @@
         "participants": { "type": "array", "items": { "type": "string" } },
         "lastMessage": { "type": "string" },
         "lastTimestamp": { "type": "string", "format": "date-time" },
-        "typing": { "type": "object" }
+        "typing": { "type": "object" },
+        "isSystem": { "type": "boolean" }
       }
     },
     "Message": {
@@ -68,7 +72,7 @@
         "userId": { "type": "string" },
         "title": { "type": "string" },
         "body": { "type": "string" },
-        "type": { "type": "string", "enum": ["verification", "proximity", "message"] },
+        "type": { "type": "string", "enum": ["verification", "proximity", "message", "welcome"] },
         "timestamp": { "type": "string", "format": "date-time" },
         "read": { "type": "boolean" }
       }
@@ -79,23 +83,23 @@
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": "#/entities/UserProfile",
+      "schema": "#/backend/entities/UserProfile",
       "description": "User profile documents."
     },
     "/users/{userId}/blockedUsers/{blockedUserId}": {
-      "schema": "#/entities/BlockedUser",
+      "schema": "#/backend/entities/BlockedUser",
       "description": "List of users blocked by this user."
     },
     "/chatRooms/{roomId}": {
-      "schema": "#/entities/ChatRoom",
+      "schema": "#/backend/entities/ChatRoom",
       "description": "Metadata for active chats."
     },
     "/chatRooms/{roomId}/messages/{messageId}": {
-      "schema": "#/entities/Message",
+      "schema": "#/backend/entities/Message",
       "description": "Messages within a specific chat room."
     },
     "/notifications/{notificationId}": {
-      "schema": "#/entities/Notification",
+      "schema": "#/backend/entities/Notification",
       "description": "Real-time user notifications."
     }
   }

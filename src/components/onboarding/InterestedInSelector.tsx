@@ -17,14 +17,13 @@ interface InterestedInSelectorProps {
 
 export function InterestedInSelector({ selected, onToggle, onQuickSelect }: InterestedInSelectorProps) {
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-3">
         <div className="flex justify-between items-center px-1">
           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Preferences</label>
           <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{selected.length} / 2 Selected</span>
         </div>
-        <div className="grid grid-cols-1 gap-2.5 max-h-[320px] overflow-y-auto pr-1">
-          {/* Integrated Quick-Select Option */}
+        <div className="grid grid-cols-1 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
           {onQuickSelect && (
             <motion.button
               whileTap={{ scale: 0.98 }}
@@ -61,7 +60,7 @@ export function InterestedInSelector({ selected, onToggle, onQuickSelect }: Inte
         </div>
       </div>
       <p className="text-[10px] text-muted-foreground text-center font-medium uppercase tracking-tighter">
-        Select up to 2 categories to find your ideal matches.
+        Choose who you want to discover.
       </p>
     </div>
   );
