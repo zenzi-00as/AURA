@@ -310,6 +310,26 @@ export default function Onboarding() {
     }
   }, [step, stopCamera, router]);
 
+  const handleQuickSelectInterests = () => {
+    let suggestions: string[] = [];
+    if (formData.gender === "Man" || formData.gender === "Trans Man") {
+      if (formData.orientation === "Gay") suggestions = ["Man"];
+      else if (formData.orientation === "Straight") suggestions = ["Woman"];
+      else suggestions = ["Man", "Woman"];
+    } else if (formData.gender === "Woman" || formData.gender === "Trans Woman") {
+      if (formData.orientation === "Lesbian") suggestions = ["Woman"];
+      else if (formData.orientation === "Straight") suggestions = ["Man"];
+      else suggestions = ["Woman", "Man"];
+    } else {
+      suggestions = ["Non-binary"];
+    }
+    setFormData(prev => ({ ...prev, interestedIn: suggestions.slice(0, 2) }));
+    toast({
+      title: "Quick-Select Active",
+      description: "Preferences aligned with your identity."
+    });
+  };
+
   const isNextDisabled = 
     isSubmitting || 
     (step === 1 && (!formData.name || !formData.age || parseInt(formData.age) < 18 || parseInt(formData.age) > 80)) || 
@@ -482,6 +502,15 @@ export default function Onboarding() {
                       Back
                     </button>
                   </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={handleQuickSelectInterests}
+                    className="w-full h-11 rounded-2xl border-dashed border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/10 transition-colors"
+                  >
+                    Same as selected gender and orientation
+                  </Button>
+
                   <InterestedInSelector 
                     selected={formData.interestedIn}
                     onToggle={(i) => {
