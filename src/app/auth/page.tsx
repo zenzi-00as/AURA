@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Phone, Lock, Info, RefreshCw, ChevronLeft } from "lucide-react";
+import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  updateProfile
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +23,6 @@ const DEMO_OTP = "123456";
 export default function AuthPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -65,23 +63,11 @@ export default function AuthPage() {
         });
         return;
       }
-      if (phone.length < 10) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Phone",
-          description: "Please enter a valid mandatory phone number.",
-        });
-        return;
-      }
     }
 
     setIsLoading(true);
     try {
-      // Mocking the OTP flow for Email as standard Firebase doesn't have an "Email OTP" out of box without backend.
-      // We will use standard email/password or email link flows, but for the UI request we simulate OTP.
-      
       if (step === "details") {
-        // Simulation: Send OTP to email
         setTimeout(() => {
           setStep("otp");
           setIsLoading(false);
@@ -95,23 +81,14 @@ export default function AuthPage() {
       }
 
       if (step === "otp") {
-        // Simulation: Verify OTP
         if (otp === DEMO_OTP || email !== DEMO_EMAIL) {
-          // For prototype, we'll allow any OTP for non-demo emails or 123456 for demo
-          
-          // Actually perform a sign-in or create user to get UID
-          // For the sake of the prototype flow:
           try {
-            // Using a dummy password for this prototype "OTP" flow
             const userCredential = await createUserWithEmailAndPassword(auth, email, "aura_secure_pass_" + otp);
             const user = userCredential.user;
 
-            // Save the phone number to session/local or temporary firestore doc to be picked up by onboarding
-            // We'll store it in a temporary local storage for now or directly update a user doc
             await setDoc(doc(db, "users", user.uid), {
               uid: user.uid,
               email: email,
-              phoneNumber: phone,
               onboardingCompleted: false,
               createdAt: new Date()
             }, { merge: true });
@@ -122,21 +99,12 @@ export default function AuthPage() {
             });
             router.replace("/onboarding");
           } catch (err: any) {
-            // If user exists, just sign in
             if (err.code === 'auth/email-already-in-use') {
               const userCredential = await signInWithEmailAndPassword(auth, email, "aura_secure_pass_" + otp).catch(() => {
-                // If password fails (since it's a mock OTP), we just proceed for the prototype's sake
-                // In a real app, this would be a secure backend flow.
                 return signInWithEmailAndPassword(auth, email, "aura_secure_pass_123456"); 
               });
               
               if (userCredential) {
-                const user = userCredential.user;
-                // Update phone if needed
-                await setDoc(doc(db, "users", user.uid), {
-                  phoneNumber: phone
-                }, { merge: true });
-                
                 router.replace("/onboarding");
               }
             } else {
@@ -205,19 +173,6 @@ export default function AuthPage() {
                     placeholder="Email Address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
-                  />
-                </div>
-
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Phone size={18} />
-                  </div>
-                  <Input
-                    type="tel"
-                    placeholder="Phone Number (Mandatory)"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                     className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground"
                   />
                 </div>
@@ -294,7 +249,7 @@ export default function AuthPage() {
 
           <Button 
             onClick={handleNext}
-            disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
+            disabled={isLoading || (step === "details" ? (!email || !agreedToTerms) : otp.length < 6)}
             className="w-full h-14 rounded-2xl fuchsia-gradient text-foreground text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
