@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,21 +5,19 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
+import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth, useFirestore, useUser } from "@/firebase";
+import { useAuth, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -28,7 +25,6 @@ export default function AuthPage() {
   
   const router = useRouter();
   const auth = useAuth();
-  const db = useFirestore();
   const { user: authUser, loading: authLoading } = useUser();
   const { toast } = useToast();
 
@@ -49,7 +45,7 @@ export default function AuthPage() {
   }, [resendTimer]);
 
   const handleNext = async () => {
-    if (!auth || !db) return;
+    if (!auth) return;
     
     if (step === "details") {
       if (!email.includes("@")) {
@@ -57,14 +53,6 @@ export default function AuthPage() {
           variant: "destructive",
           title: "Invalid Email",
           description: "Please enter a valid email address.",
-        });
-        return;
-      }
-      if (phone.length < 10) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Phone",
-          description: "Please enter a mandatory contact number.",
         });
         return;
       }
@@ -92,21 +80,10 @@ export default function AuthPage() {
       } else if (step === "otp") {
         if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
         
+        // Use the OTP as part of a deterministic password for this demo/minimalist flow
         const password = "aura_secure_pass_" + otp;
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-
-          await setDoc(doc(db, "users", user.uid), {
-            uid: user.uid,
-            email: email,
-            phoneNumber: phone,
-            onboardingCompleted: false,
-            createdAt: serverTimestamp(),
-            lastActive: serverTimestamp(),
-            isOnline: true
-          }, { merge: true });
-
+          await createUserWithEmailAndPassword(auth, email, password);
           toast({ title: "Verified", description: "Email identity synchronized." });
           router.replace("/onboarding");
         } catch (err: any) {
@@ -181,32 +158,17 @@ export default function AuthPage() {
           >
             {step === "details" ? (
               <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Mail size={18} />
-                    </div>
-                    <Input
-                      type="email"
-                      placeholder="Email Address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
-                    />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <Mail size={18} />
                   </div>
-
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Phone size={18} />
-                    </div>
-                    <Input
-                      type="tel"
-                      placeholder="Phone Number (Mandatory)"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
-                    />
-                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                  />
                 </div>
 
                 <div className="flex items-start space-x-3 px-1">
@@ -271,7 +233,7 @@ export default function AuthPage() {
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1"
                   >
                     <ChevronLeft size={12} />
-                    Change details
+                    Change email
                   </button>
                 </div>
               </div>
@@ -279,7 +241,7 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
+              disabled={isLoading || (step === "details" ? (!email || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? (

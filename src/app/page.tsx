@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -27,13 +26,11 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || authLoading) return;
 
-    // If we've confirmed there's no user, go to auth immediately
     if (!user) {
       router.replace('/auth');
       return;
     }
 
-    // If we have a user, wait for their profile to resolve before deciding next step
     if (!profileLoading) {
       if (profile && (profile as any).onboardingCompleted) {
         router.replace('/dashboard');
@@ -47,7 +44,7 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
       
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {mounted && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}

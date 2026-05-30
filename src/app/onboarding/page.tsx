@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -7,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft } from "lucide-react";
+import { ChevronRight, User, Hash, ShieldCheck, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
@@ -39,6 +38,7 @@ export default function Onboarding() {
   const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    phoneNumber: "",
     bio: "",
     gender: "",
     orientation: "",
@@ -58,7 +58,7 @@ export default function Onboarding() {
       setFormData(prev => ({
         ...prev,
         name: (profile as any).name || "",
-        // Pick up existing values if any
+        phoneNumber: (profile as any).phoneNumber || "",
       }));
     }
   }, [profile, profileLoading]);
@@ -160,6 +160,7 @@ export default function Onboarding() {
     const profileData = {
       uid,
       name: formData.name.trim(),
+      phoneNumber: formData.phoneNumber.trim(),
       bio: formData.bio.trim(),
       gender: formData.gender,
       orientation: formData.orientation,
@@ -273,7 +274,7 @@ export default function Onboarding() {
 
   const isNextDisabled = 
     isSubmitting || 
-    (step === 1 && (!formData.name.trim() || !formData.age || isAgeInvalid)) || 
+    (step === 1 && (!formData.name.trim() || !formData.age || !formData.phoneNumber.trim() || isAgeInvalid)) || 
     (step === 2 && !formData.bio.trim()) || 
     (step === 3 && !formData.gender) || 
     (step === 4 && !formData.orientation) || 
@@ -311,7 +312,7 @@ export default function Onboarding() {
           <div className="flex justify-between items-start mb-5">
             <div className="space-y-1">
               <h2 className="text-3xl font-semibold text-foreground tracking-tight">
-                {step === 1 && "What's your name?"}
+                {step === 1 && "Basic Identity"}
                 {step === 2 && "Your Bio"}
                 {step === 3 && "Identity"}
                 {step === 4 && "Orientation"}
@@ -358,6 +359,20 @@ export default function Onboarding() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Phone (Mandatory)</label>
+                  <div className="relative group">
+                    <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input 
+                      placeholder="Contact number" 
+                      value={formData.phoneNumber} 
+                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '') })} 
+                      className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg focus:ring-primary" 
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age (Mandatory)</label>
                   <div className="relative group">
@@ -521,7 +536,7 @@ export default function Onboarding() {
           ) : (
             <>
               {step === 7 ? (
-                <span>Subscribe - ₹ <strong className="font-bold">1 Only</strong></span>
+                <span>Subscribe - ₹ <strong>1 Only</strong></span>
               ) : step === 6 ? "Verify Selfie" : "Continue"}
               <ChevronRight size={20} />
             </>
