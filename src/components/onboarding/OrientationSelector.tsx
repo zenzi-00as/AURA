@@ -24,7 +24,6 @@ export function OrientationSelector({ gender, selected, onSelect }: OrientationS
       return ["Straight", "Lesbian", ...common];
     }
     
-    // Non-binary, Genderfluid, Agender, etc.
     return ["Queer", "Bisexual", "Pansexual", "Asexual", "Gay", "Lesbian", "Straight"];
   }, [gender]);
 
