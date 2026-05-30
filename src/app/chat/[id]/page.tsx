@@ -127,8 +127,8 @@ export default function ChatRoomPage() {
     };
 
     try {
-      await addDoc(collection(db, "chatRooms", roomId as string, "messages"), messageData);
-      await updateDoc(doc(db, "chatRooms", roomId as string), {
+      addDoc(collection(db, "chatRooms", roomId as string, "messages"), messageData);
+      updateDoc(doc(db, "chatRooms", roomId as string), {
         lastMessage: input,
         lastTimestamp: serverTimestamp()
       });
@@ -278,26 +278,26 @@ export default function ChatRoomPage() {
         <div ref={scrollRef} />
       </div>
 
-      <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border pb-8">
-        <div className="relative flex items-center gap-3">
+      <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-border pb-4">
+        <div className="relative flex items-center gap-2">
           <div className="flex-1 relative">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={room?.isSystem ? "Official AURA Team Support..." : "Send a private message..."}
-              className="h-12 bg-muted border-border rounded-full px-6 text-sm placeholder:text-muted-foreground focus:ring-primary pr-12"
+              placeholder={room?.isSystem ? "AURA Support..." : "Message..."}
+              className="h-10 bg-muted border-border rounded-full px-5 text-xs placeholder:text-muted-foreground focus:ring-primary pr-12"
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] text-muted-foreground uppercase tracking-widest font-bold">
               Secure
             </div>
           </div>
           <Button 
             onClick={handleSend}
             disabled={!input.trim()}
-            className="w-12 h-12 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"
+            className="w-10 h-10 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"
           >
-            <Send size={18} className="text-white ml-0.5" />
+            <Send size={16} className="text-white ml-0.5" />
           </Button>
         </div>
       </div>
