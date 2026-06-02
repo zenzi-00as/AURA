@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useUser } from "@/firebase";
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AuthPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -53,6 +54,14 @@ export default function AuthPage() {
           variant: "destructive",
           title: "Invalid Email",
           description: "Please enter a valid email address.",
+        });
+        return;
+      }
+      if (phone.length < 10) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Phone",
+          description: "Please enter a valid mandatory phone number.",
         });
         return;
       }
@@ -120,13 +129,9 @@ export default function AuthPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10"
-        >
-          <span className="text-3xl font-bold text-white tracking-tighter">A</span>
-        </motion.div>
+        <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10">
+          <span className="text-4xl font-bold text-white tracking-tighter">A</span>
+        </div>
       </div>
     );
   }
@@ -141,7 +146,7 @@ export default function AuthPage() {
         </h1>
         <p className="text-muted-foreground font-light leading-relaxed">
           {step === "details" 
-            ? "Enter your email to continue. We'll send a quick verification." 
+            ? "Enter your details to continue. We'll verify your email." 
             : `We've sent a 6-digit code to ${email}. Please enter it below.`}
         </p>
       </div>
@@ -158,17 +163,32 @@ export default function AuthPage() {
           >
             {step === "details" ? (
               <div className="space-y-6">
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Mail size={18} />
+                <div className="space-y-4">
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Mail size={18} />
+                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                    />
                   </div>
-                  <Input
-                    type="email"
-                    placeholder="Email Address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
-                  />
+
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                      <Phone size={18} />
+                    </div>
+                    <Input
+                      type="tel"
+                      placeholder="Phone Number (Mandatory)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-start space-x-3 px-1">
@@ -233,7 +253,7 @@ export default function AuthPage() {
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1"
                   >
                     <ChevronLeft size={12} />
-                    Change email
+                    Change details
                   </button>
                 </div>
               </div>
@@ -241,7 +261,7 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || !agreedToTerms) : otp.length < 6)}
+              disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? (

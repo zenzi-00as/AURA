@@ -51,17 +51,26 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative z-10"
+            className="relative z-10 flex flex-col items-center gap-8"
           >
             <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse">
               <span className="text-4xl font-bold text-white tracking-tighter">A</span>
             </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-2 text-center"
+            >
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">Aura</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Synchronizing Identity</p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
       
       <div className="absolute bottom-12 left-0 right-0 text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold opacity-40">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold opacity-20">
           Minimalist • Private • Real
         </p>
       </div>
