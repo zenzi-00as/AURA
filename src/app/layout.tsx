@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
+import { AuthProvider } from "@/firebase/auth-context";
 
 export const metadata: Metadata = {
   title: 'Aura | Minimalist LGBTQ+ Connection',
@@ -24,14 +25,16 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground overflow-x-hidden selection:bg-primary/20">
         <FirebaseClientProvider>
-          <ThemeProvider>
-            <LanguageProvider>
-              <main className="min-h-screen flex flex-col max-w-md mx-auto relative bg-background border-x border-white/5">
-                {children}
-              </main>
-              <Toaster />
-            </LanguageProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <LanguageProvider>
+                <main className="min-h-screen flex flex-col max-w-md mx-auto relative bg-background border-x border-white/5">
+                  {children}
+                </main>
+                <Toaster />
+              </LanguageProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </FirebaseClientProvider>
       </body>
     </html>

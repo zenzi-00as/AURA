@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth } from "@/firebase";
+import { useAuthContext } from "@/firebase/auth-context";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  signInAnonymously
 } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,14 +28,18 @@ export default function AuthPage() {
   
   const router = useRouter();
   const auth = useAuth();
-  const { user: authUser, loading: authLoading } = useUser();
+  const { user, loading: authLoading, onboardingCompleted } = useAuthContext();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!authLoading && authUser) {
-      router.replace("/");
+    if (!authLoading && user) {
+      if (onboardingCompleted) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/onboarding");
+      }
     }
-  }, [authUser, authLoading, router]);
+  }, [user, authLoading, onboardingCompleted, router]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -51,27 +56,15 @@ export default function AuthPage() {
     
     if (step === "details") {
       if (!email.includes("@")) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Email",
-          description: "Please enter a valid email address.",
-        });
+        toast({ variant: "destructive", title: "Invalid Email", description: "Please enter a valid email address." });
         return;
       }
       if (phone.length < 10) {
-        toast({
-          variant: "destructive",
-          title: "Invalid Phone",
-          description: "Please enter a valid mandatory phone number.",
-        });
+        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid mandatory phone number." });
         return;
       }
       if (!agreedToTerms) {
-        toast({
-          variant: "destructive",
-          title: "Consent Required",
-          description: "Please agree to the Terms & Conditions and Privacy Policy.",
-        });
+        toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms & Conditions and Privacy Policy." });
         return;
       }
     }
@@ -79,27 +72,21 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
-        // Simulate sending OTP to email
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
-        toast({
-          title: "Verification Sent",
-          description: `A 6-digit code has been sent to ${email}`,
-        });
+        toast({ title: "Verification Sent", description: `A 6-digit code has been sent to ${email}` });
       } else if (step === "otp") {
         if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
         
-        // Use the OTP as part of a deterministic password for this demo/minimalist flow
+        // Use the OTP as part of a deterministic password for this flow
         const password = "aura_secure_pass_" + otp;
         try {
           await createUserWithEmailAndPassword(auth, email, password);
           toast({ title: "Verified", description: "Email identity synchronized." });
-          router.replace("/onboarding");
         } catch (err: any) {
           if (err.code === 'auth/email-already-in-use') {
             await signInWithEmailAndPassword(auth, email, password);
-            router.replace("/");
           } else {
             throw err;
           }
@@ -120,10 +107,7 @@ export default function AuthPage() {
   const handleResend = () => {
     if (resendTimer > 0 || isLoading) return;
     setResendTimer(60);
-    toast({
-      title: "Code Resent",
-      description: "A new verification code has been sent to your email.",
-    });
+    toast({ title: "Code Resent", description: "A new verification code has been sent to your email." });
   };
 
   if (authLoading) {
@@ -199,19 +183,11 @@ export default function AuthPage() {
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
                     className="mt-1 border-border bg-muted data-[state=checked]:bg-primary"
                   />
-                  <label 
-                    htmlFor="terms" 
-                    className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none"
-                  >
+                  <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">
-                      Terms & Conditions
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy" className="text-foreground font-semibold hover:text-primary transition-colors">
-                      Privacy Policy
-                    </Link>
-                    .
+                    <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">Terms & Conditions</Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="text-foreground font-semibold hover:text-primary transition-colors">Privacy Policy</Link>.
                   </label>
                 </div>
 
@@ -238,21 +214,11 @@ export default function AuthPage() {
                 </div>
 
                 <div className="flex justify-between items-center px-2">
-                  <button
-                    onClick={handleResend}
-                    disabled={resendTimer > 0 || isLoading}
-                    className="text-xs font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors"
-                  >
+                  <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-xs font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
                     <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
                   </button>
-                  <button 
-                    onClick={() => {
-                      setStep("details");
-                      setOtp("");
-                    }}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1"
-                  >
+                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1">
                     <ChevronLeft size={12} />
                     Change details
                   </button>
@@ -265,23 +231,17 @@ export default function AuthPage() {
               disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  {step === "details" ? "Send Code" : "Verify Identity"}
-                  <ArrowRight size={20} />
-                </>
-              )}
+              {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
+                {step === "details" ? "Send Code" : "Verify Identity"}
+                <ArrowRight size={20} />
+              </>}
             </Button>
           </motion.div>
         </AnimatePresence>
       </div>
 
       <div className="mt-auto pb-8 text-center opacity-40">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">
-          Minimalist • Private • Real
-        </p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
   );

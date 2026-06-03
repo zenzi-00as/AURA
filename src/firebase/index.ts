@@ -1,4 +1,3 @@
-
 'use client';
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
@@ -18,5 +17,6 @@ export function initializeFirebase() {
 
 export * from './provider';
 export * from './auth/use-user';
+export * from './auth-context';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
