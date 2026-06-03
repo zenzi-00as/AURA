@@ -59,7 +59,7 @@ export default function AuthPage() {
         return;
       }
       if (phone.length < 10) {
-        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid mandatory phone number." });
+        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid 10-digit phone number." });
         return;
       }
       if (!agreedToTerms) {
@@ -160,17 +160,23 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Phone size={18} />
+                  <div className="flex gap-2">
+                    <div className="flex items-center gap-2 px-4 h-14 bg-muted border border-border rounded-2xl text-base font-medium text-foreground">
+                      <span>🇮🇳</span>
+                      <span className="text-muted-foreground">+91</span>
                     </div>
-                    <Input
-                      type="tel"
-                      placeholder="Phone Number (Mandatory)"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
-                    />
+                    <div className="relative group flex-1">
+                      <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <Phone size={18} />
+                      </div>
+                      <Input
+                        type="tel"
+                        placeholder="Phone Number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -219,7 +225,7 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || !phone || !agreedToTerms) : otp.length < 6)}
+              disabled={isLoading || (step === "details" ? (!email || phone.length < 10 || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
