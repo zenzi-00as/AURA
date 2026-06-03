@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Mail, Lock, Info, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
+import { ArrowRight, Mail, Lock, RefreshCw, ChevronLeft, Loader2, Phone } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/firebase";
@@ -13,7 +13,6 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  signInAnonymously
 } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -75,11 +74,10 @@ export default function AuthPage() {
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
-        toast({ title: "Verification Sent", description: `A 6-digit code has been sent to ${email}` });
+        toast({ title: "Verification Sent", description: `A verification code has been sent to ${email}` });
       } else if (step === "otp") {
         if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
         
-        // Use the OTP as part of a deterministic password for this flow
         const password = "aura_secure_pass_" + otp;
         try {
           await createUserWithEmailAndPassword(auth, email, password);
@@ -189,13 +187,6 @@ export default function AuthPage() {
                     {" "}and{" "}
                     <Link href="/privacy" className="text-foreground font-semibold hover:text-primary transition-colors">Privacy Policy</Link>.
                   </label>
-                </div>
-
-                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
-                  <Info size={16} className="text-primary mt-0.5 shrink-0" />
-                  <p className="text-[10px] text-muted-foreground leading-relaxed uppercase tracking-wider font-medium">
-                    <span className="font-bold text-primary">Demo Mode:</span> Use any email with OTP <strong>123456</strong>
-                  </p>
                 </div>
               </div>
             ) : (
