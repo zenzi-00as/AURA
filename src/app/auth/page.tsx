@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -223,7 +224,7 @@ export default function AuthPage() {
                   <div className="flex gap-2">
                     <Select value={countryCode} onValueChange={(val) => {
                       setCountryCode(val);
-                      setPhone(""); // Clear phone on country change to avoid length issues
+                      setPhone(""); 
                     }}>
                       <SelectTrigger className="w-[110px] h-14 bg-muted border-border rounded-2xl text-base font-medium text-foreground focus:ring-primary">
                         <SelectValue placeholder="Code" />

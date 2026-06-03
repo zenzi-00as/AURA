@@ -4,25 +4,25 @@
 @tailwind utilities;
 
 :root {
-  /* Dark (Default) */
-  --background: 280 15% 4%;
+  /* True Black (OLED) Theme */
+  --background: 0 0% 0%;
   --foreground: 0 0% 98%;
-  --card: 280 15% 6%;
+  --card: 0 0% 3%;
   --card-foreground: 0 0% 98%;
-  --popover: 280 15% 5%;
+  --popover: 0 0% 2%;
   --popover-foreground: 0 0% 98%;
   --primary: 295 82% 60%;
   --primary-foreground: 0 0% 100%;
   --secondary: 270 91% 65%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 280 10% 12%;
-  --muted-foreground: 280 5% 65%;
+  --muted: 0 0% 8%;
+  --muted-foreground: 0 0% 65%;
   --accent: 270 91% 65%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 280 10% 12%;
-  --input: 280 10% 12%;
+  --border: 0 0% 12%;
+  --input: 0 0% 12%;
   --ring: 295 82% 60%;
   --radius: 1.25rem;
 }
