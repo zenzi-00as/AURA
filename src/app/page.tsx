@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -53,7 +54,7 @@ export default function Home() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative z-10 flex flex-col items-center gap-8"
           >
-            <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse">
+            <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse shadow-2xl shadow-primary/20">
               <span className="text-4xl font-bold text-white tracking-tighter">A</span>
             </div>
             <motion.div
