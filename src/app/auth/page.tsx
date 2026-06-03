@@ -15,11 +15,60 @@ import {
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const COUNTRIES = [
+  { code: "+91", flag: "🇮🇳", name: "India" },
+  { code: "+1", flag: "🇺🇸", name: "USA" },
+  { code: "+44", flag: "🇬🇧", name: "UK" },
+  { code: "+55", flag: "🇧🇷", name: "Brazil" },
+  { code: "+33", flag: "🇫🇷", name: "France" },
+  { code: "+49", flag: "🇩🇪", name: "Germany" },
+  { code: "+34", flag: "🇪🇸", name: "Spain" },
+  { code: "+61", flag: "🇦🇺", name: "Australia" },
+  { code: "+81", flag: "🇯🇵", name: "Japan" },
+  { code: "+86", flag: "🇨🇳", name: "China" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "+7", flag: "🇷🇺", name: "Russia" },
+  { code: "+27", flag: "🇿🇦", name: "South Africa" },
+  { code: "+82", flag: "🇰🇷", name: "South Korea" },
+  { code: "+39", flag: "🇮🇹", name: "Italy" },
+  { code: "+1", flag: "🇨🇦", name: "Canada" },
+  { code: "+65", flag: "🇸🇬", name: "Singapore" },
+  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
+  { code: "+62", flag: "🇮🇩", name: "Indonesia" },
+  { code: "+66", flag: "🇹🇭", name: "Thailand" },
+  { code: "+84", flag: "🇻🇳", name: "Vietnam" },
+  { code: "+31", flag: "🇳🇱", name: "Netherlands" },
+  { code: "+41", flag: "🇨🇭", name: "Switzerland" },
+  { code: "+46", flag: "🇸🇪", name: "Sweden" },
+  { code: "+47", flag: "🇳🇴", name: "Norway" },
+  { code: "+45", flag: "🇩🇰", name: "Denmark" },
+  { code: "+351", flag: "🇵🇹", name: "Portugal" },
+  { code: "+30", flag: "🇬🇷", name: "Greece" },
+  { code: "+90", flag: "🇹🇷", name: "Turkey" },
+  { code: "+972", flag: "🇮🇱", name: "Israel" },
+  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
+  { code: "+20", flag: "🇪🇬", name: "Egypt" },
+  { code: "+234", flag: "🇳🇬", name: "Nigeria" },
+  { code: "+254", flag: "🇰🇪", name: "Kenya" },
+  { code: "+52", flag: "🇲🇽", name: "Mexico" },
+  { code: "+54", flag: "🇦🇷", name: "Argentina" },
+  { code: "+56", flag: "🇨🇱", name: "Chile" },
+  { code: "+57", flag: "🇨🇴", name: "Colombia" },
+];
 
 export default function AuthPage() {
   const [step, setStep] = useState<"details" | "otp">("details");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -59,7 +108,7 @@ export default function AuthPage() {
         return;
       }
       if (phone.length < 10) {
-        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid 10-digit phone number." });
+        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid phone number." });
         return;
       }
       if (!agreedToTerms) {
@@ -161,10 +210,20 @@ export default function AuthPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <div className="flex items-center gap-2 px-4 h-14 bg-muted border border-border rounded-2xl text-base font-medium text-foreground">
-                      <span>🇮🇳</span>
-                      <span className="text-muted-foreground">+91</span>
-                    </div>
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="w-[110px] h-14 bg-muted border-border rounded-2xl text-base font-medium text-foreground focus:ring-primary">
+                        <SelectValue placeholder="Code" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border rounded-2xl max-h-[300px]">
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl">
+                            <span className="mr-2">{c.flag}</span>
+                            <span>{c.code}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
                     <div className="relative group flex-1">
                       <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
                         <Phone size={18} />
@@ -173,7 +232,7 @@ export default function AuthPage() {
                         type="tel"
                         placeholder="Phone Number"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                         className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
                       />
                     </div>
@@ -225,7 +284,7 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || phone.length < 10 || !agreedToTerms) : otp.length < 6)}
+              disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
               className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
