@@ -45,13 +45,13 @@ export default function Onboarding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (loading) return;
+    if (authLoading) return;
     if (!user) {
       router.replace('/auth');
     } else if (profile?.onboardingCompleted) {
       router.replace('/dashboard');
     }
-  }, [user, profile, loading, router]);
+  }, [user, profile, authLoading, router]);
 
   const stopCamera = useCallback(() => {
     if (stream) {
