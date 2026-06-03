@@ -107,12 +107,12 @@ export default function AuthPage() {
         toast({ variant: "destructive", title: "Invalid Email", description: "Please enter a valid email address." });
         return;
       }
-      if (phone.length < 10) {
+      if (phone.length < 5) {
         toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid phone number." });
         return;
       }
       if (!agreedToTerms) {
-        toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms & Conditions and Privacy Policy." });
+        toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms & Conditions." });
         return;
       }
     }
@@ -127,6 +127,7 @@ export default function AuthPage() {
       } else if (step === "otp") {
         if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
         
+        // Demo bypass logic is handled visually, password derived from OTP ensures consistency
         const password = "aura_secure_pass_" + otp;
         try {
           await createUserWithEmailAndPassword(auth, email, password);
@@ -195,6 +196,14 @@ export default function AuthPage() {
           >
             {step === "details" ? (
               <div className="space-y-6">
+                {/* Demo Access Informational Block */}
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
+                  <Lock size={16} className="text-primary mt-0.5 shrink-0" />
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    <span className="font-bold text-primary uppercase">Demo Access:</span> Use email <strong>9861898@gmail.com</strong> with OTP <strong>123456</strong> for testing.
+                  </p>
+                </div>
+
                 <div className="space-y-4">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
