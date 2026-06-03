@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -24,44 +24,44 @@ import {
 } from "@/components/ui/select";
 
 const COUNTRIES = [
-  { code: "+91", flag: "🇮🇳", name: "India" },
-  { code: "+1", flag: "🇺🇸", name: "USA" },
-  { code: "+44", flag: "🇬🇧", name: "UK" },
-  { code: "+55", flag: "🇧🇷", name: "Brazil" },
-  { code: "+33", flag: "🇫🇷", name: "France" },
-  { code: "+49", flag: "🇩🇪", name: "Germany" },
-  { code: "+34", flag: "🇪🇸", name: "Spain" },
-  { code: "+61", flag: "🇦🇺", name: "Australia" },
-  { code: "+81", flag: "🇯🇵", name: "Japan" },
-  { code: "+86", flag: "🇨🇳", name: "China" },
-  { code: "+971", flag: "🇦🇪", name: "UAE" },
-  { code: "+7", flag: "🇷🇺", name: "Russia" },
-  { code: "+27", flag: "🇿🇦", name: "South Africa" },
-  { code: "+82", flag: "🇰🇷", name: "South Korea" },
-  { code: "+39", flag: "🇮🇹", name: "Italy" },
-  { code: "+1", flag: "🇨🇦", name: "Canada" },
-  { code: "+65", flag: "🇸🇬", name: "Singapore" },
-  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
-  { code: "+62", flag: "🇮🇩", name: "Indonesia" },
-  { code: "+66", flag: "🇹🇭", name: "Thailand" },
-  { code: "+84", flag: "🇻🇳", name: "Vietnam" },
-  { code: "+31", flag: "🇳🇱", name: "Netherlands" },
-  { code: "+41", flag: "🇨🇭", name: "Switzerland" },
-  { code: "+46", flag: "🇸🇪", name: "Sweden" },
-  { code: "+47", flag: "🇳🇴", name: "Norway" },
-  { code: "+45", flag: "🇩🇰", name: "Denmark" },
-  { code: "+351", flag: "🇵🇹", name: "Portugal" },
-  { code: "+30", flag: "🇬🇷", name: "Greece" },
-  { code: "+90", flag: "🇹🇷", name: "Turkey" },
-  { code: "+972", flag: "🇮🇱", name: "Israel" },
-  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
-  { code: "+20", flag: "🇪🇬", name: "Egypt" },
-  { code: "+234", flag: "🇳🇬", name: "Nigeria" },
-  { code: "+254", flag: "🇰🇪", name: "Kenya" },
-  { code: "+52", flag: "🇲🇽", name: "Mexico" },
-  { code: "+54", flag: "🇦🇷", name: "Argentina" },
-  { code: "+56", flag: "🇨🇱", name: "Chile" },
-  { code: "+57", flag: "🇨🇴", name: "Colombia" },
+  { code: "+91", flag: "🇮🇳", name: "India", maxLength: 10 },
+  { code: "+1", flag: "🇺🇸", name: "USA", maxLength: 10 },
+  { code: "+44", flag: "🇬🇧", name: "UK", maxLength: 10 },
+  { code: "+55", flag: "🇧🇷", name: "Brazil", maxLength: 11 },
+  { code: "+33", flag: "🇫🇷", name: "France", maxLength: 10 },
+  { code: "+49", flag: "🇩🇪", name: "Germany", maxLength: 10 },
+  { code: "+34", flag: "🇪🇸", name: "Spain", maxLength: 9 },
+  { code: "+61", flag: "🇦🇺", name: "Australia", maxLength: 9 },
+  { code: "+81", flag: "🇯🇵", name: "Japan", maxLength: 10 },
+  { code: "+86", flag: "🇨🇳", name: "China", maxLength: 11 },
+  { code: "+971", flag: "🇦🇪", name: "UAE", maxLength: 9 },
+  { code: "+7", flag: "🇷🇺", name: "Russia", maxLength: 10 },
+  { code: "+27", flag: "🇿🇦", name: "South Africa", maxLength: 9 },
+  { code: "+82", flag: "🇰🇷", name: "South Korea", maxLength: 10 },
+  { code: "+39", flag: "🇮🇹", name: "Italy", maxLength: 10 },
+  { code: "+1", flag: "🇨🇦", name: "Canada", maxLength: 10 },
+  { code: "+65", flag: "🇸🇬", name: "Singapore", maxLength: 8 },
+  { code: "+60", flag: "🇲🇾", name: "Malaysia", maxLength: 10 },
+  { code: "+62", flag: "🇮🇩", name: "Indonesia", maxLength: 12 },
+  { code: "+66", flag: "🇹🇭", name: "Thailand", maxLength: 9 },
+  { code: "+84", flag: "🇻🇳", name: "Vietnam", maxLength: 10 },
+  { code: "+31", flag: "🇳🇱", name: "Netherlands", maxLength: 9 },
+  { code: "+41", flag: "🇨🇭", name: "Switzerland", maxLength: 9 },
+  { code: "+46", flag: "🇸🇪", name: "Sweden", maxLength: 9 },
+  { code: "+47", flag: "🇳🇴", name: "Norway", maxLength: 8 },
+  { code: "+45", flag: "🇩🇰", name: "Denmark", maxLength: 8 },
+  { code: "+351", flag: "🇵🇹", name: "Portugal", maxLength: 9 },
+  { code: "+30", flag: "🇬🇷", name: "Greece", maxLength: 10 },
+  { code: "+90", flag: "🇹🇷", name: "Turkey", maxLength: 10 },
+  { code: "+972", flag: "🇮🇱", name: "Israel", maxLength: 9 },
+  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia", maxLength: 9 },
+  { code: "+20", flag: "🇪🇬", name: "Egypt", maxLength: 10 },
+  { code: "+234", flag: "🇳🇬", name: "Nigeria", maxLength: 10 },
+  { code: "+254", flag: "🇰🇪", name: "Kenya", maxLength: 9 },
+  { code: "+52", flag: "🇲🇽", name: "Mexico", maxLength: 10 },
+  { code: "+54", flag: "🇦🇷", name: "Argentina", maxLength: 10 },
+  { code: "+56", flag: "🇨🇱", name: "Chile", maxLength: 9 },
+  { code: "+57", flag: "🇨🇴", name: "Colombia", maxLength: 10 },
 ];
 
 export default function AuthPage() {
@@ -78,6 +78,10 @@ export default function AuthPage() {
   const auth = useAuth();
   const { user, loading: authLoading, onboardingCompleted } = useAuthContext();
   const { toast } = useToast();
+
+  const currentCountry = useMemo(() => {
+    return COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
+  }, [countryCode]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -127,7 +131,6 @@ export default function AuthPage() {
       } else if (step === "otp") {
         if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
         
-        // Demo bypass logic is handled visually, password derived from OTP ensures consistency
         const password = "aura_secure_pass_" + otp;
         try {
           await createUserWithEmailAndPassword(auth, email, password);
@@ -196,7 +199,6 @@ export default function AuthPage() {
           >
             {step === "details" ? (
               <div className="space-y-6">
-                {/* Demo Access Informational Block */}
                 <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
                   <Lock size={16} className="text-primary mt-0.5 shrink-0" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
@@ -219,7 +221,10 @@ export default function AuthPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Select value={countryCode} onValueChange={setCountryCode}>
+                    <Select value={countryCode} onValueChange={(val) => {
+                      setCountryCode(val);
+                      setPhone(""); // Clear phone on country change to avoid length issues
+                    }}>
                       <SelectTrigger className="w-[110px] h-14 bg-muted border-border rounded-2xl text-base font-medium text-foreground focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
@@ -241,6 +246,7 @@ export default function AuthPage() {
                         type="tel"
                         placeholder="Phone Number"
                         value={phone}
+                        maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                         className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
                       />
