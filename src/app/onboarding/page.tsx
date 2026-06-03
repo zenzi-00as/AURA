@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronRight, User, Hash, ShieldCheck, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useFirestore } from "@/firebase";
+import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
@@ -99,6 +99,15 @@ export default function Onboarding() {
     }
   };
 
+  const handleBack = () => {
+    if (step === 1) {
+      const { auth } = initializeFirebase();
+      auth.signOut().then(() => router.replace('/auth'));
+    } else {
+      setStep(s => s - 1);
+    }
+  };
+
   const finalizeProfile = async () => {
     if (!db || !user) return;
     setIsSubmitting(true);
@@ -184,7 +193,15 @@ export default function Onboarding() {
             <h2 className="text-3xl font-semibold text-foreground tracking-tight">
               {step === 1 ? "Basic Identity" : step === 2 ? "Your Bio" : step === 3 ? "Identity" : step === 4 ? "Orientation" : step === 5 ? "Preferences" : step === 6 ? "Selfie Guard" : "Aura Premium"}
             </h2>
-            {step > 1 && step < 7 && <button onClick={() => setStep(s => s - 1)} className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5"><ArrowLeft size={12} />Back</button>}
+            {step < 7 && (
+              <button 
+                onClick={handleBack} 
+                className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-muted transition-colors"
+              >
+                <ArrowLeft size={12} />
+                Back
+              </button>
+            )}
           </div>
 
           {step === 1 && <div className="space-y-4">
