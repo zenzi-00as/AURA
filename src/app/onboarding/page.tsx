@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -30,7 +31,6 @@ export default function Onboarding() {
   const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    phoneNumber: "",
     bio: "",
     gender: "",
     orientation: "",
@@ -120,7 +120,7 @@ export default function Onboarding() {
       const profileData = {
         uid: user.uid,
         name: formData.name.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
+        phoneNumber: "", // Phone is handled at Auth stage now
         bio: formData.bio.trim(),
         gender: formData.gender,
         orientation: formData.orientation,
@@ -176,7 +176,7 @@ export default function Onboarding() {
     else setStep(s => s + 1);
   };
 
-  const isNextDisabled = isSubmitting || (step === 1 && (!formData.name.trim() || !formData.age || !formData.phoneNumber.trim())) || (step === 2 && !formData.bio.trim()) || (step === 3 && !formData.gender) || (step === 4 && !formData.orientation) || (step === 5 && formData.interestedIn.length === 0) || (step === 6 && !formData.documentPhoto);
+  const isNextDisabled = isSubmitting || (step === 1 && (!formData.name.trim() || !formData.age)) || (step === 2 && !formData.bio.trim()) || (step === 3 && !formData.gender) || (step === 4 && !formData.orientation) || (step === 5 && formData.interestedIn.length === 0) || (step === 6 && !formData.documentPhoto);
 
   if (authLoading) return <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
@@ -205,9 +205,20 @@ export default function Onboarding() {
           </div>
 
           {step === 1 && <div className="space-y-4">
-            <div className="space-y-2"><label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Name</label><div className="relative"><User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg" /></div></div>
-            <div className="space-y-2"><label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Phone</label><div className="relative"><Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Contact number" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '') })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg" /></div></div>
-            <div className="space-y-2"><label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age</label><div className="relative"><Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input type="number" min={18} max={80} placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg" /></div></div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Name</label>
+              <div className="relative">
+                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age</label>
+              <div className="relative">
+                <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input type="number" min={18} max={80} placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg" />
+              </div>
+            </div>
           </div>}
 
           {step === 2 && <Textarea placeholder="Write about yourself..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" />}
