@@ -250,7 +250,7 @@ export default function Onboarding() {
             </div>
           </div>}
 
-          {step === 2 && <Textarea placeholder="Write about yourself..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" />}
+          {step === 2 && <Textarea placeholder="Write your desires to know about yourself for best match..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" />}
           {step === 3 && <GenderSelector selected={formData.gender} onSelect={(g) => setFormData({ ...formData, gender: g })} />}
           {step === 4 && <OrientationSelector gender={formData.gender} selected={formData.orientation} onSelect={(o) => setFormData({ ...formData, orientation: o })} />}
           {step === 5 && <InterestedInSelector selected={formData.interestedIn} onToggle={(i) => {
