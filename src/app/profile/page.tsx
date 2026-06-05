@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -41,7 +41,8 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = () => {
-    const { auth } = require('@/firebase').initializeFirebase();
+    const { initializeFirebase } = require('@/firebase');
+    const { auth } = initializeFirebase();
     auth.signOut().then(() => router.replace('/auth'));
   };
 
