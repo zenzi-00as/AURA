@@ -43,7 +43,8 @@ export function BottomNav() {
       <nav className="flex items-center gap-1.5 p-1.5 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          const showBadge = item.hasBadge && !isActive;
+          // Show badge even if active to indicate unread items still exist in the section
+          const showBadge = item.hasBadge;
 
           return (
             <button
@@ -75,8 +76,9 @@ export function BottomNav() {
                 {showBadge && (
                   <motion.span
                     initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_8px_rgba(217,70,239,0.6)]"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_10px_rgba(217,70,239,0.8)]"
                   />
                 )}
               </div>
