@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -132,16 +133,6 @@ export default function ChatList() {
         </header>
 
         <div className="px-6 space-y-4 mt-4">
-          {profile && !roomsLoading && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-2 p-3 glass-card rounded-[20px] border-primary/20 bg-primary/5 space-y-1">
-               <div className="flex items-center gap-2 text-primary font-bold text-[9px] uppercase tracking-widest"><BadgeCheck size={12} />Identity Verified</div>
-               <div className="space-y-0.5">
-                 <h2 className="text-sm font-semibold text-foreground">Welcome, {profile.name}!</h2>
-                 <p className="text-[10px] text-muted-foreground font-light leading-snug">Successfully verified. Your profile is now live and secure.</p>
-               </div>
-            </motion.div>
-          )}
-
           {roomsLoading ? (
             <div className="space-y-4 px-2">{[1, 2, 3].map(i => <div key={i} className="h-20 w-full rounded-3xl bg-muted animate-pulse" />)}</div>
           ) : (
