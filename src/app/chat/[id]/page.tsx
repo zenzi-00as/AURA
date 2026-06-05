@@ -14,6 +14,7 @@ import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, up
 import { ChatRoom, UserProfile, Message, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -52,7 +53,7 @@ export default function ChatRoomPage() {
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
-  // Mark notifications as read when entering the chat
+  // Clear unread notifications when entering this specific chat
   useEffect(() => {
     if (db && authUser && roomId && room) {
       const clearNotifs = async () => {
@@ -66,14 +67,16 @@ export default function ChatRoomPage() {
         const batch = writeBatch(db);
         let count = 0;
 
+        const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
+
         snapshot.docs.forEach(notifDoc => {
           const data = notifDoc.data() as Notification;
-          // FUZZY MATCH: If it's a system room or the notification body looks like a message in this room
-          const isRelevant = room.isSystem 
+          // Match notifications by sender name (title)
+          const isFromThisRoom = room.isSystem 
             ? data.title === "AURA Team" 
-            : (otherUser && data.title === otherUser.name) || messages.some(m => data.body.includes(m.text.slice(0, 10)));
+            : (otherUser && data.title === otherUser.name);
           
-          if (isRelevant) {
+          if (isFromThisRoom) {
             batch.update(notifDoc.ref, { read: true });
             count++;
           }
@@ -83,9 +86,12 @@ export default function ChatRoomPage() {
           await batch.commit();
         }
       };
-      clearNotifs();
+      
+      // Delay slightly to ensure metadata is loaded
+      const timeout = setTimeout(clearNotifs, 500);
+      return () => clearTimeout(timeout);
     }
-  }, [db, authUser, roomId, messages, room, otherUser]);
+  }, [db, authUser, roomId, room, otherUser]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -206,5 +212,3 @@ export default function ChatRoomPage() {
     </AuthGuard>
   );
 }
-
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
