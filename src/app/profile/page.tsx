@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useAuthContext } from "@/firebase/auth-context";
-import { useFirestore } from "@/firebase";
+import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 
@@ -41,7 +41,6 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = () => {
-    const { initializeFirebase } = require('@/firebase');
     const { auth } = initializeFirebase();
     auth.signOut().then(() => router.replace('/auth'));
   };

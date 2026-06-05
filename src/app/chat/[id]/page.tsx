@@ -21,7 +21,7 @@ const REPORT_REASONS = ["Harassment or Hate Speech", "Fake Profile or Bot", "Ina
 
 export default function ChatRoomPage() {
   const params = useParams();
-  const roomId = React.use(params as any)?.id;
+  const roomId = params?.id as string;
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -37,7 +37,7 @@ export default function ChatRoomPage() {
 
   const roomRef = useMemoFirebase(() => {
     if (!db || !roomId) return null;
-    return doc(db, "chatRooms", roomId as string);
+    return doc(db, "chatRooms", roomId);
   }, [db, roomId]);
 
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
@@ -56,7 +56,7 @@ export default function ChatRoomPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!db || !roomId) return null;
-    return query(collection(db, "chatRooms", roomId as string, "messages"), orderBy("timestamp", "asc"));
+    return query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc"));
   }, [db, roomId]);
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
@@ -85,8 +85,8 @@ export default function ChatRoomPage() {
     const msg = input;
     setInput("");
     try {
-      addDoc(collection(db, "chatRooms", roomId as string, "messages"), { senderId: authUser.uid, text: msg, timestamp: serverTimestamp(), seen: false });
-      updateDoc(doc(db, "chatRooms", roomId as string), { lastMessage: msg, lastTimestamp: serverTimestamp() });
+      addDoc(collection(db, "chatRooms", roomId, "messages"), { senderId: authUser.uid, text: msg, timestamp: serverTimestamp(), seen: false });
+      updateDoc(doc(db, "chatRooms", roomId), { lastMessage: msg, lastTimestamp: serverTimestamp() });
     } catch (error) {
       toast({ variant: "destructive", title: "Message failed", description: "Your message could not be sent. Please try again." });
     }
@@ -95,7 +95,7 @@ export default function ChatRoomPage() {
   const handleDeleteConversation = async () => {
     if (!db || !roomId) return;
     try {
-      await deleteDoc(doc(db, "chatRooms", roomId as string));
+      await deleteDoc(doc(db, "chatRooms", roomId));
       toast({ title: "Conversation Deleted" });
       router.push("/chat");
     } catch (err) {
