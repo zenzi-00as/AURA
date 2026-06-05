@@ -46,6 +46,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (authLoading) return;
+    
     if (!user) {
       router.replace('/auth');
     } else if (profile?.onboardingCompleted) {
@@ -120,7 +121,7 @@ export default function Onboarding() {
       const profileData = {
         uid: user.uid,
         name: formData.name.trim(),
-        phoneNumber: "", 
+        phoneNumber: "", // Phone already captured in auth step, but field kept for schema
         bio: formData.bio.trim(),
         gender: formData.gender,
         orientation: formData.orientation,
@@ -139,10 +140,31 @@ export default function Onboarding() {
       };
 
       batch.set(userRef, profileData, { merge: true });
+      
       const roomId = `system_${user.uid}`;
-      batch.set(doc(db, "chatRooms", roomId), { id: roomId, participants: ["system", user.uid], lastMessage: "Welcome to AURA ❤️", lastTimestamp: serverTimestamp(), isSystem: true });
-      batch.set(doc(collection(db, "chatRooms", roomId, "messages")), { senderId: "system", text: `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully verified. You are now a Premium member.`, timestamp: serverTimestamp(), seen: false });
-      batch.set(doc(collection(db, "notifications")), { userId: user.uid, title: "✅ Identity Verified", body: `Hi ${formData.name}, your profile is live and secure.`, type: "verification", timestamp: serverTimestamp(), read: false });
+      batch.set(doc(db, "chatRooms", roomId), {
+        id: roomId,
+        participants: ["system", user.uid],
+        lastMessage: "Welcome to AURA ❤️",
+        lastTimestamp: serverTimestamp(),
+        isSystem: true
+      });
+
+      batch.set(doc(collection(db, "chatRooms", roomId, "messages")), {
+        senderId: "system",
+        text: `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully verified. You are now a Premium member.`,
+        timestamp: serverTimestamp(),
+        seen: false
+      });
+
+      batch.set(doc(collection(db, "notifications")), {
+        userId: user.uid,
+        title: "✅ Identity Verified",
+        body: `Hi ${formData.name}, your profile is live and secure.`,
+        type: "verification",
+        timestamp: serverTimestamp(),
+        read: false
+      });
 
       await batch.commit();
       router.replace("/dashboard");
@@ -158,7 +180,12 @@ export default function Onboarding() {
       if (!formData.documentPhoto) return;
       setIsSubmitting(true);
       try {
-        const result = await selfieVerification({ photoDataUri: formData.documentPhoto, userName: formData.name, userDescription: formData.bio });
+        const result = await selfieVerification({
+          photoDataUri: formData.documentPhoto,
+          userName: formData.name,
+          userDescription: formData.bio
+        });
+        
         if (result.verificationStatus === 'Rejected') {
           toast({ variant: "destructive", title: "Verification Denied", description: result.reason });
           setFormData(prev => ({ ...prev, documentPhoto: null }));
@@ -172,8 +199,11 @@ export default function Onboarding() {
       } finally {
         setIsSubmitting(false);
       }
-    } else if (step === 7) await finalizeProfile();
-    else setStep(s => s + 1);
+    } else if (step === 7) {
+      await finalizeProfile();
+    } else {
+      setStep(s => s + 1);
+    }
   };
 
   const ageVal = parseInt(formData.age);
@@ -188,20 +218,45 @@ export default function Onboarding() {
     (step === 5 && formData.interestedIn.length === 0) || 
     (step === 6 && !formData.documentPhoto);
 
-  if (authLoading) return <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
+  if (authLoading || !user || profile?.onboardingCompleted) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen">
+        <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
+          <span className="text-3xl font-bold text-white tracking-tighter">A</span>
+        </div>
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col p-8 pt-10 bg-background min-h-screen max-w-md mx-auto relative overflow-hidden">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-1">{[1, 2, 3, 4, 5, 6, 7].map(s => <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />)}</div>
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5, 6, 7].map(s => (
+            <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
+          ))}
+        </div>
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 7</span>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="flex-1 flex flex-col"
+        >
           <div className="flex justify-between items-start mb-5">
             <h2 className="text-3xl font-semibold text-foreground tracking-tight">
-              {step === 1 ? "Basic Identity" : step === 2 ? "Your Bio" : step === 3 ? "Identity" : step === 4 ? "Orientation" : step === 5 ? "Preferences" : step === 6 ? "Selfie Guard" : "Aura Premium"}
+              {step === 1 ? "Basic Identity" : 
+               step === 2 ? "Your Bio" : 
+               step === 3 ? "Identity" : 
+               step === 4 ? "Orientation" : 
+               step === 5 ? "Preferences" : 
+               step === 6 ? "Selfie Guard" : 
+               "Aura Premium"}
             </h2>
             {step < 7 && (
               <button 
@@ -214,79 +269,147 @@ export default function Onboarding() {
             )}
           </div>
 
-          {step === 1 && <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Name</label>
-              <div className="relative">
-                <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  placeholder="Your name" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
-                  className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary" 
-                />
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Name</label>
+                <div className="relative">
+                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input 
+                    placeholder="Your name" 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
+                    className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary" 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age</label>
+                <div className="relative">
+                  <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input 
+                    type="number" 
+                    placeholder="Your age" 
+                    value={formData.age} 
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
+                    className={cn(
+                      "pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary",
+                      formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive"
+                    )} 
+                  />
+                </div>
+                {formData.age !== "" && (ageVal < 18 || ageVal > 80) && (
+                  <p className="text-destructive text-[10px] font-bold uppercase tracking-widest px-1">
+                    Age must be 18 - 80
+                  </p>
+                )}
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age</label>
-              <div className="relative">
-                <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input 
-                  type="number" 
-                  placeholder="Your age" 
-                  value={formData.age} 
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
-                  className={cn(
-                    "pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary",
-                    formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive"
-                  )} 
-                />
+          )}
+
+          {step === 2 && (
+            <Textarea 
+              placeholder="Write your desires to know about yourself for best match..." 
+              value={formData.bio} 
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
+              className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" 
+            />
+          )}
+
+          {step === 3 && (
+            <GenderSelector 
+              selected={formData.gender} 
+              onSelect={(g) => setFormData({ ...formData, gender: g })} 
+            />
+          )}
+
+          {step === 4 && (
+            <OrientationSelector 
+              gender={formData.gender}
+              selected={formData.orientation} 
+              onSelect={(o) => setFormData({ ...formData, orientation: o })} 
+            />
+          )}
+
+          {step === 5 && (
+            <InterestedInSelector 
+              selected={formData.interestedIn} 
+              onToggle={(i) => {
+                setFormData(prev => {
+                  const exists = prev.interestedIn.includes(i);
+                  if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
+                  if (prev.interestedIn.length >= 2) return prev;
+                  return { ...prev, interestedIn: [...prev.interestedIn, i] };
+                });
+              }} 
+            />
+          )}
+          
+          {step === 6 && (
+            <div className="space-y-4">
+              <div className="relative aspect-square max-h-[300px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-border aura-glow">
+                {formData.documentPhoto ? (
+                  <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    {isCameraLoading ? (
+                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    ) : (
+                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
+                    )}
+                  </div>
+                )}
+                <canvas ref={canvasRef} className="hidden" />
               </div>
-              {formData.age !== "" && (ageVal < 18 || ageVal > 80) && (
-                <p className="text-destructive text-[10px] font-bold uppercase tracking-widest px-1">
-                  Age must be 18 - 80
-                </p>
+              {!formData.documentPhoto && !isCameraLoading && (
+                <button 
+                  onClick={captureSelfie}
+                  className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center mx-auto"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                    <Camera className="text-primary" size={20} />
+                  </div>
+                </button>
+              )}
+              {formData.documentPhoto && (
+                <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="mx-auto block text-[10px] font-bold uppercase tracking-widest">
+                  <RefreshCcw size={14} className="inline mr-2" />
+                  Retake
+                </Button>
               )}
             </div>
-          </div>}
+          )}
 
-          {step === 2 && <Textarea placeholder="Write your desires to know about yourself for best match..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" />}
-          {step === 3 && <GenderSelector selected={formData.gender} onSelect={(g) => setFormData({ ...formData, gender: g })} />}
-          {step === 4 && <OrientationSelector gender={formData.gender} selected={formData.orientation} onSelect={(o) => setFormData({ ...formData, orientation: o })} />}
-          {step === 5 && <InterestedInSelector selected={formData.interestedIn} onToggle={(i) => {
-            setFormData(prev => {
-              const exists = prev.interestedIn.includes(i);
-              if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
-              if (prev.interestedIn.length >= 2) return prev;
-              return { ...prev, interestedIn: [...prev.interestedIn, i] };
-            });
-          }} />}
-          
-          {step === 6 && <div className="space-y-4">
-            <div className="relative aspect-square max-h-[300px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-border aura-glow">
-              {formData.documentPhoto ? <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
-                {isCameraLoading ? <Loader2 className="w-6 h-6 text-primary animate-spin" /> : <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />}
-              </div>}
-              <canvas ref={canvasRef} className="hidden" />
+          {step === 7 && (
+            <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-[22px] fuchsia-gradient aura-glow flex items-center justify-center mb-2">
+                <Sparkles className="text-white" size={32} />
+              </div>
+              <div className="w-full p-6 rounded-[32px] border-primary/20 bg-primary/5 space-y-4">
+                <h3 className="text-xl font-bold">₹ 1 / 28 Days</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Identity Verified Badge • Unlimited Messages • Secure Access
+                </p>
+              </div>
             </div>
-            {!formData.documentPhoto && !isCameraLoading && <button onClick={captureSelfie} className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center mx-auto"><div className="w-10 h-10 rounded-full bg-white flex items-center justify-center"><Camera className="text-primary" size={20} /></div></button>}
-            {formData.documentPhoto && <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="mx-auto block text-[10px] font-bold uppercase tracking-widest"><RefreshCcw size={14} className="inline mr-2" />Retake</Button>}
-          </div>}
-
-          {step === 7 && <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 rounded-[22px] fuchsia-gradient aura-glow flex items-center justify-center mb-2"><Sparkles className="text-white" size={32} /></div>
-            <div className="w-full p-6 rounded-[32px] border-primary/20 bg-primary/5 space-y-4">
-              <h3 className="text-xl font-bold">₹ 1 / 28 Days</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">Identity Verified Badge • Unlimited Messages • Secure Access</p>
-            </div>
-          </div>}
+          )}
         </motion.div>
       </AnimatePresence>
 
       <div className="mt-6 pb-4">
-        <Button onClick={nextStep} disabled={isNextDisabled} className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2">
+        <Button 
+          onClick={nextStep}
+          disabled={isNextDisabled}
+          className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+        >
           {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
-            {step === 7 ? <span>Subscribe - ₹ <strong>1 Only</strong></span> : step === 6 ? "Verify Selfie" : "Continue"}
+            {step === 7 ? (
+              <span>Subscribe - ₹ <strong>1 Only</strong></span>
+            ) : step === 6 ? (
+              "Verify Selfie"
+            ) : (
+              "Continue"
+            )}
             <ChevronRight size={20} />
           </>}
         </Button>
