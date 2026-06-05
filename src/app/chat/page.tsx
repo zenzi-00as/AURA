@@ -140,18 +140,29 @@ export default function ChatList() {
                     transition={{ delay: idx * 0.05 }} 
                     onClick={() => router.push(`/chat/${chat.id}`)} 
                     className={cn(
-                      "group flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border", 
-                      chat.unread ? "bg-primary/10 border-primary/20 shadow-[0_0_15px_rgba(217,70,239,0.1)]" : "bg-card/40"
+                      "group relative flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
+                      chat.unread ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(217,70,239,0.15)]" : "bg-card/40"
                     )}
                   >
-                    <div className={cn("w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative", chat.isSystem ? "fuchsia-gradient" : "bg-muted")}>
+                    {/* Proper Visibility Highlight Bar */}
+                    {chat.unread && (
+                      <motion.div 
+                        layoutId={`highlight-${chat.id}`}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary rounded-r-full shadow-[0_0_15px_hsl(var(--primary))]"
+                        initial={{ x: -10 }}
+                        animate={{ x: 0 }}
+                      />
+                    )}
+
+                    <div className={cn("w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative shrink-0 ml-1", chat.isSystem ? "fuchsia-gradient" : "bg-muted")}>
                       {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>}
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-background border border-border flex items-center justify-center"><Lock size={8} className="text-muted-foreground" /></div>
                     </div>
+                    
                     <div className="flex-1 flex flex-col min-w-0">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className={cn("font-semibold truncate text-sm", chat.isSystem ? "text-primary" : "text-foreground", chat.unread && "font-bold")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
+                          <h3 className={cn("font-semibold truncate text-sm transition-colors", chat.unread ? "text-primary font-bold" : "text-foreground")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
                           {chat.unread && (
                             <motion.div 
@@ -161,9 +172,9 @@ export default function ChatList() {
                             />
                           )}
                         </div>
-                        <span className={cn("text-[10px] font-medium shrink-0 ml-2", chat.unread ? "text-primary font-bold" : "text-muted-foreground")}>{chat.time}</span>
+                        <span className={cn("text-[10px] font-medium shrink-0 ml-2 transition-colors", chat.unread ? "text-primary font-bold" : "text-muted-foreground")}>{chat.time}</span>
                       </div>
-                      <p className={cn("text-xs truncate", chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
+                      <p className={cn("text-xs truncate transition-colors", chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
                     </div>
                   </motion.div>
                 ))
