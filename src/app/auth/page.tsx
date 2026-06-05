@@ -33,36 +33,6 @@ const COUNTRIES = [
   { code: "+49", flag: "🇩🇪", name: "Germany", maxLength: 10 },
   { code: "+34", flag: "🇪🇸", name: "Spain", maxLength: 9 },
   { code: "+61", flag: "🇦🇺", name: "Australia", maxLength: 9 },
-  { code: "+81", flag: "🇯🇵", name: "Japan", maxLength: 10 },
-  { code: "+86", flag: "🇨🇳", name: "China", maxLength: 11 },
-  { code: "+971", flag: "🇦🇪", name: "UAE", maxLength: 9 },
-  { code: "+7", flag: "🇷🇺", name: "Russia", maxLength: 10 },
-  { code: "+27", flag: "🇿🇦", name: "South Africa", maxLength: 9 },
-  { code: "+82", flag: "🇰🇷", name: "South Korea", maxLength: 10 },
-  { code: "+39", flag: "🇮🇹", name: "Italy", maxLength: 10 },
-  { code: "+1", flag: "🇨🇦", name: "Canada", maxLength: 10 },
-  { code: "+65", flag: "🇸🇬", name: "Singapore", maxLength: 8 },
-  { code: "+60", flag: "🇲🇾", name: "Malaysia", maxLength: 10 },
-  { code: "+62", flag: "🇮🇩", name: "Indonesia", maxLength: 12 },
-  { code: "+66", flag: "🇹🇭", name: "Thailand", maxLength: 9 },
-  { code: "+84", flag: "🇻🇳", name: "Vietnam", maxLength: 10 },
-  { code: "+31", flag: "🇳🇱", name: "Netherlands", maxLength: 9 },
-  { code: "+41", flag: "🇨🇭", name: "Switzerland", maxLength: 9 },
-  { code: "+46", flag: "🇸🇪", name: "Sweden", maxLength: 9 },
-  { code: "+47", flag: "🇳🇴", name: "Norway", maxLength: 8 },
-  { code: "+45", flag: "🇩🇰", name: "Denmark", maxLength: 8 },
-  { code: "+351", flag: "🇵🇹", name: "Portugal", maxLength: 9 },
-  { code: "+30", flag: "🇬🇷", name: "Greece", maxLength: 10 },
-  { code: "+90", flag: "🇹🇷", name: "Turkey", maxLength: 10 },
-  { code: "+972", flag: "🇮🇱", name: "Israel", maxLength: 9 },
-  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia", maxLength: 9 },
-  { code: "+20", flag: "🇪🇬", name: "Egypt", maxLength: 10 },
-  { code: "+234", flag: "🇳🇬", name: "Nigeria", maxLength: 10 },
-  { code: "+254", flag: "🇰🇪", name: "Kenya", maxLength: 9 },
-  { code: "+52", flag: "🇲🇽", name: "Mexico", maxLength: 10 },
-  { code: "+54", flag: "🇦🇷", name: "Argentina", maxLength: 10 },
-  { code: "+56", flag: "🇨🇱", name: "Chile", maxLength: 9 },
-  { code: "+57", flag: "🇨🇴", name: "Colombia", maxLength: 10 },
 ];
 
 export default function AuthPage() {
@@ -125,6 +95,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
+        // Professional sync simulation
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
@@ -200,13 +171,6 @@ export default function AuthPage() {
           >
             {step === "details" ? (
               <div className="space-y-6">
-                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
-                  <Lock size={16} className="text-primary mt-0.5 shrink-0" />
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    <span className="font-bold text-primary uppercase">Demo Access:</span> Use email <strong>9861898@gmail.com</strong> with OTP <strong>123456</strong> for testing.
-                  </p>
-                </div>
-
                 <div className="space-y-4">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
