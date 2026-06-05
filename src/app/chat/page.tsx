@@ -35,17 +35,6 @@ export default function ChatList() {
 
   const { data: unreadMessageNotifs } = useCollection<Notification>(messageNotifsQuery);
 
-  useEffect(() => {
-    if (db && unreadMessageNotifs.length > 0) {
-      const batch = writeBatch(db);
-      unreadMessageNotifs.forEach(notif => {
-        const ref = doc(db, "notifications", notif.id);
-        batch.update(ref, { read: true });
-      });
-      batch.commit().catch(err => console.error("Failed to clear message notifications", err));
-    }
-  }, [db, unreadMessageNotifs]);
-
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
     return query(
@@ -70,6 +59,8 @@ export default function ChatList() {
 
     return rooms.map(room => {
       const otherParticipantId = room.participants.find(id => id !== authUser.uid);
+      
+      // Check if this room has any unread notifications
       const isUnread = unreadMessageNotifs.some(n => 
         (room.isSystem && n.title === "AURA Team") || 
         (!room.isSystem && n.body.includes(room.lastMessage || ""))
@@ -149,7 +140,13 @@ export default function ChatList() {
                         <div className="flex items-center gap-1.5 min-w-0">
                           <h3 className={cn("font-semibold truncate text-sm", chat.isSystem ? "text-primary" : "text-foreground", chat.unread && "font-bold")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                          {chat.unread && <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-1.5 h-1.5 rounded-full bg-primary ml-1" />}
+                          {chat.unread && (
+                            <motion.div 
+                              animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }} 
+                              transition={{ repeat: Infinity, duration: 2 }} 
+                              className="w-2 h-2 rounded-full bg-primary ml-1 shadow-[0_0_8px_rgba(217,70,239,0.5)]" 
+                            />
+                          )}
                         </div>
                         <span className={cn("text-[10px] font-medium shrink-0 ml-2", chat.unread ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>
                       </div>

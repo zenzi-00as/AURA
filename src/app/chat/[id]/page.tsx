@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -6,18 +7,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert, Phone, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs } from "firebase/firestore";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch } from "firebase/firestore";
 import { ChatRoom, UserProfile, Message, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-
-const REPORT_REASONS = ["Harassment or Hate Speech", "Fake Profile or Bot", "Inappropriate Content", "Spam or Scamming", "Underage User", "Other"];
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -25,14 +21,9 @@ export default function ChatRoomPage() {
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
-  const { user: authUser } = useAuthContext();
+  const { user: authUser, profile } = useAuthContext();
   
   const [input, setInput] = useState("");
-  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportDescription, setReportDescription] = useState("");
-  const [isReporting, setIsReporting] = useState(false);
-  
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const roomRef = useMemoFirebase(() => {
@@ -61,32 +52,75 @@ export default function ChatRoomPage() {
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
+  // Mark notifications as read when entering the chat
   useEffect(() => {
-    if (db && authUser && roomId && messages.length > 0) {
+    if (db && authUser && roomId && room) {
       const clearNotifs = async () => {
-        const notifQuery = query(collection(db, "notifications"), where("userId", "==", authUser.uid), where("type", "==", "message"), where("read", "==", false));
+        const notifQuery = query(
+          collection(db, "notifications"), 
+          where("userId", "==", authUser.uid), 
+          where("type", "==", "message"), 
+          where("read", "==", false)
+        );
         const snapshot = await getDocs(notifQuery);
+        const batch = writeBatch(db);
+        let count = 0;
+
         snapshot.docs.forEach(notifDoc => {
           const data = notifDoc.data() as Notification;
-          const isRelevant = room?.isSystem ? data.title === "AURA Team" : messages.some(m => data.body.includes(m.text.slice(0, 10)));
-          if (isRelevant) updateDoc(notifDoc.ref, { read: true });
+          // FUZZY MATCH: If it's a system room or the notification body looks like a message in this room
+          const isRelevant = room.isSystem 
+            ? data.title === "AURA Team" 
+            : (otherUser && data.title === otherUser.name) || messages.some(m => data.body.includes(m.text.slice(0, 10)));
+          
+          if (isRelevant) {
+            batch.update(notifDoc.ref, { read: true });
+            count++;
+          }
         });
+
+        if (count > 0) {
+          await batch.commit();
+        }
       };
       clearNotifs();
     }
-  }, [db, authUser, roomId, messages, room]);
+  }, [db, authUser, roomId, messages, room, otherUser]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || !db || !roomId || !authUser) return;
+    if (!input.trim() || !db || !roomId || !authUser || !otherUid) return;
     const msg = input;
     setInput("");
     try {
-      addDoc(collection(db, "chatRooms", roomId, "messages"), { senderId: authUser.uid, text: msg, timestamp: serverTimestamp(), seen: false });
-      updateDoc(doc(db, "chatRooms", roomId), { lastMessage: msg, lastTimestamp: serverTimestamp() });
+      // Add message
+      addDoc(collection(db, "chatRooms", roomId, "messages"), { 
+        senderId: authUser.uid, 
+        text: msg, 
+        timestamp: serverTimestamp(), 
+        seen: false 
+      });
+
+      // Update room metadata
+      updateDoc(doc(db, "chatRooms", roomId), { 
+        lastMessage: msg, 
+        lastTimestamp: serverTimestamp() 
+      });
+
+      // Create notification for the other user if they are not system
+      if (otherUid !== 'system') {
+        addDoc(collection(db, "notifications"), {
+          userId: otherUid,
+          title: profile?.name || "Aura Message",
+          body: msg,
+          type: "message",
+          timestamp: serverTimestamp(),
+          read: false
+        });
+      }
     } catch (error) {
       toast({ variant: "destructive", title: "Message failed", description: "Your message could not be sent. Please try again." });
     }
@@ -172,3 +206,5 @@ export default function ChatRoomPage() {
     </AuthGuard>
   );
 }
+
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
