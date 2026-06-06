@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Compass, MessageCircle, User, Bell } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
-import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, where, Query } from "firebase/firestore";
 import { Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ export function BottomNav() {
   const router = useRouter();
   const { t } = useTranslation();
   const db = useFirestore();
-  const { user: authUser } = useUser();
+  const { user: authUser } = useAuthContext();
 
   const unreadQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -43,7 +44,6 @@ export function BottomNav() {
       <nav className="flex items-center gap-1.5 p-1.5 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          // Show badge even if active to indicate unread items still exist in the section
           const showBadge = item.hasBadge;
 
           return (
@@ -77,8 +77,8 @@ export function BottomNav() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_10px_rgba(217,70,239,0.8)]"
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_12px_hsl(var(--primary))]"
                   />
                 )}
               </div>
