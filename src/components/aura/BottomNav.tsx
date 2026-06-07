@@ -41,7 +41,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-1.5 p-1.5 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
+      <nav className="flex items-center gap-1 p-1 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           const showBadge = item.hasBadge;
@@ -76,9 +76,9 @@ export function BottomNav() {
                 {showBadge && (
                   <motion.span
                     initial={{ scale: 0 }}
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.9, 1, 0.9] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_15px_rgba(217,70,239,0.9)]"
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_12px_hsl(var(--primary))]"
                   />
                 )}
               </div>

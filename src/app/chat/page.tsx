@@ -125,14 +125,14 @@ export default function ChatList() {
                     transition={{ delay: idx * 0.05 }} 
                     onClick={() => router.push(`/chat/${chat.id}`)} 
                     className={cn(
-                      "group relative flex items-center gap-4 p-4 rounded-3xl hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
-                      chat.unread ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(217,70,239,0.15)]" : "bg-card/40"
+                      "group relative flex items-center gap-4 p-5 rounded-[32px] hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
+                      chat.unread ? "bg-primary/5 border-primary/20 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.1)]" : "bg-card/40"
                     )}
                   >
                     {chat.unread && (
                       <motion.div 
                         layoutId={`highlight-${chat.id}`}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary rounded-r-full shadow-[0_0_15px_hsl(var(--primary))]"
+                        className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
                         initial={{ x: -10 }}
                         animate={{ x: 0 }}
                       />
