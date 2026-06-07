@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -144,7 +143,6 @@ export default function ChatList() {
                       chat.unread ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(217,70,239,0.15)]" : "bg-card/40"
                     )}
                   >
-                    {/* Proper Visibility Highlight Bar */}
                     {chat.unread && (
                       <motion.div 
                         layoutId={`highlight-${chat.id}`}
