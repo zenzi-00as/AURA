@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
-import { Input } from "@/components/ui/input";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, where, limit, Query, orderBy, doc, writeBatch } from "firebase/firestore";

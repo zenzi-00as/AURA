@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -98,7 +99,7 @@ export default function NotificationsPage() {
                     key={notif.id}
                     layout
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
                     className={cn(
