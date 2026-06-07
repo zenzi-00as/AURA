@@ -4,14 +4,14 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch } from "firebase/firestore";
-import { ChatRoom, UserProfile, Message, Notification } from "@/lib/types";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch, setDoc } from "firebase/firestore";
+import { ChatRoom, UserProfile, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -129,6 +129,30 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleReportBlock = async () => {
+    if (!db || !authUser || !otherUid || !otherUser) return;
+    try {
+      const blockRef = doc(db, "users", authUser.uid, "blockedUsers", otherUid);
+      await setDoc(blockRef, {
+        uid: otherUid,
+        name: otherUser.name,
+        blockedAt: serverTimestamp()
+      });
+      
+      // Delete conversation after blocking
+      await deleteDoc(doc(db, "chatRooms", roomId));
+      
+      toast({ 
+        variant: "destructive", 
+        title: "User Blocked", 
+        description: `${otherUser.name} has been reported and blocked.` 
+      });
+      router.push("/chat");
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to block user." });
+    }
+  };
+
   if (roomLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen">
@@ -163,11 +187,16 @@ export default function ChatRoomPage() {
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none"><MoreVertical size={18} /></button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
               {!room?.isSystem && (
-                <DropdownMenuItem onClick={handleDeleteConversation} className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3">
-                  <Trash2 size={16} /><span className="text-sm">Delete Conversation</span>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={handleReportBlock} className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3">
+                    <ShieldAlert size={16} /><span className="text-sm">Report & Block</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDeleteConversation} className="rounded-xl px-4 py-3 text-muted-foreground hover:text-foreground focus:bg-muted cursor-pointer flex items-center gap-3">
+                    <Trash2 size={16} /><span className="text-sm">Delete Conversation</span>
+                  </DropdownMenuItem>
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
