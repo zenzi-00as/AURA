@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -66,11 +67,10 @@ export default function ChatRoomPage() {
         const batch = writeBatch(db);
         let count = 0;
 
-        const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
-
         snapshot.docs.forEach(notifDoc => {
           const data = notifDoc.data() as Notification;
           // Match notifications by sender name (title)
+          const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
           const isFromThisRoom = room.isSystem 
             ? data.title === "AURA Team" 
             : (otherUser && data.title === otherUser.name);
