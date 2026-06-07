@@ -3,8 +3,8 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Flag, ShieldAlert, Phone, Lock, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -57,37 +57,27 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (db && authUser && roomId && room) {
       const clearNotifs = async () => {
+        const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
         const notifQuery = query(
           collection(db, "notifications"), 
           where("userId", "==", authUser.uid), 
           where("type", "==", "message"), 
-          where("read", "==", false)
+          where("read", "==", false),
+          where("title", "==", otherName)
         );
+        
         const snapshot = await getDocs(notifQuery);
-        const batch = writeBatch(db);
-        let count = 0;
+        if (snapshot.empty) return;
 
+        const batch = writeBatch(db);
         snapshot.docs.forEach(notifDoc => {
-          const data = notifDoc.data() as Notification;
-          // Match notifications by sender name (title)
-          const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
-          const isFromThisRoom = room.isSystem 
-            ? data.title === "AURA Team" 
-            : (otherUser && data.title === otherUser.name);
-          
-          if (isFromThisRoom) {
-            batch.update(notifDoc.ref, { read: true });
-            count++;
-          }
+          batch.update(notifDoc.ref, { read: true });
         });
 
-        if (count > 0) {
-          await batch.commit();
-        }
+        await batch.commit();
       };
       
-      // Delay slightly to ensure metadata is loaded
-      const timeout = setTimeout(clearNotifs, 500);
+      const timeout = setTimeout(clearNotifs, 800);
       return () => clearTimeout(timeout);
     }
   }, [db, authUser, roomId, room, otherUser]);
@@ -101,7 +91,6 @@ export default function ChatRoomPage() {
     const msg = input;
     setInput("");
     try {
-      // Add message
       addDoc(collection(db, "chatRooms", roomId, "messages"), { 
         senderId: authUser.uid, 
         text: msg, 
@@ -109,13 +98,11 @@ export default function ChatRoomPage() {
         seen: false 
       });
 
-      // Update room metadata
       updateDoc(doc(db, "chatRooms", roomId), { 
         lastMessage: msg, 
         lastTimestamp: serverTimestamp() 
       });
 
-      // Create notification for the other user if they are not system
       if (otherUid !== 'system') {
         addDoc(collection(db, "notifications"), {
           userId: otherUid,
@@ -127,7 +114,7 @@ export default function ChatRoomPage() {
         });
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Message failed", description: "Your message could not be sent. Please try again." });
+      toast({ variant: "destructive", title: "Message failed", description: "Please try again." });
     }
   };
 

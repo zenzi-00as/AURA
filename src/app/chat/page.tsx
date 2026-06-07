@@ -1,24 +1,25 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, Edit3, X, MessageSquare, Lock } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Lock } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { collection, query, where, limit, Query, orderBy, doc, writeBatch } from "firebase/firestore";
+import { collection, query, where, limit, Query, orderBy } from "firebase/firestore";
 import { ChatRoom, UserProfile, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { Input } from "@/components/ui/input";
 
 export default function ChatList() {
   const router = useRouter();
   const { t } = useTranslation();
   const db = useFirestore();
-  const { user: authUser, profile } = useAuthContext();
+  const { user: authUser } = useAuthContext();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -61,35 +62,20 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      // Check if this room has any unread notifications by matching the title (sender name)
       const isUnread = unreadMessageNotifs.some(n => 
         (room.isSystem && n.title === "AURA Team") || 
         (!room.isSystem && n.title === otherName)
       );
 
-      if (room.isSystem || otherParticipantId === "system") {
-        return {
-          id: room.id,
-          name: "AURA Team",
-          age: "",
-          lastMsg: room.lastMessage || "Welcome to AURA ❤️",
-          time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
-          verified: true,
-          unread: isUnread,
-          isSystem: true,
-          otherUid: "system"
-        };
-      }
-
       return {
         id: room.id,
         name: otherName,
         age: otherUser?.age || "",
-        lastMsg: room.lastMessage || "Start a conversation",
+        lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
         time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
-        verified: otherUser?.verificationStatus === 'Verified',
+        verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
         unread: isUnread,
-        isSystem: false,
+        isSystem: room.isSystem || otherParticipantId === 'system',
         otherUid: otherParticipantId
       };
     });
@@ -110,7 +96,7 @@ export default function ChatList() {
             ) : (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "100%" }} className="flex-1 mr-4">
                 <div className="relative">
-                  <Input autoFocus placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-muted border-border rounded-2xl pl-10 pr-4 focus:ring-primary" />
+                  <Input autoFocus placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-muted border-border rounded-2xl pl-10 pr-4 focus:ring-primary" />
                   <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </motion.div>
@@ -166,7 +152,7 @@ export default function ChatList() {
                             <motion.div 
                               animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }} 
                               transition={{ repeat: Infinity, duration: 1.5 }} 
-                              className="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_10px_rgba(217,70,239,0.8)]" 
+                              className="w-2 h-2 rounded-full bg-primary ml-1 shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
                             />
                           )}
                         </div>
