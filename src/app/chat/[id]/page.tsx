@@ -164,9 +164,11 @@ export default function ChatRoomPage() {
               <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none"><MoreVertical size={18} /></button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl p-2 w-52 shadow-2xl backdrop-blur-xl">
-              <DropdownMenuItem onClick={handleDeleteConversation} className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3">
-                <Trash2 size={16} /><span className="text-sm">Delete Conversation</span>
-              </DropdownMenuItem>
+              {!room?.isSystem && (
+                <DropdownMenuItem onClick={handleDeleteConversation} className="rounded-xl px-4 py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-3">
+                  <Trash2 size={16} /><span className="text-sm">Delete Conversation</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
