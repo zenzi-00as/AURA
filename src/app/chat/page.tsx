@@ -150,7 +150,7 @@ export default function ChatList() {
                             <motion.div 
                               animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }} 
                               transition={{ repeat: Infinity, duration: 1.5 }} 
-                              className="w-2 h-2 rounded-full bg-primary ml-1 shadow-[0_0_8px_rgba(217,70,239,0.8)]" 
+                              className="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_10px_rgba(217,70,239,0.8)]" 
                             />
                           )}
                         </div>

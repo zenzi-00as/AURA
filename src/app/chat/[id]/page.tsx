@@ -76,8 +76,7 @@ export default function ChatRoomPage() {
         await batch.commit();
       };
       
-      const timeout = setTimeout(clearNotifs, 800);
-      return () => clearTimeout(timeout);
+      clearNotifs();
     }
   }, [db, authUser, roomId]);
 

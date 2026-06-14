@@ -69,7 +69,8 @@ export function BottomNav() {
                   size={20} 
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "scale-110" : "scale-100"
+                    isActive ? "scale-110" : "scale-100",
+                    showBadge && !isActive && "text-primary"
                   )} 
                 />
                 
@@ -77,16 +78,16 @@ export function BottomNav() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ 
-                      scale: [1, 1.4, 1], 
-                      opacity: [1, 0.8, 1],
+                      scale: [1, 1.5, 1], 
+                      opacity: [1, 0.7, 1],
                       boxShadow: [
                         "0 0 0px hsl(var(--primary))",
-                        "0 0 15px hsl(var(--primary))",
+                        "0 0 20px hsl(var(--primary))",
                         "0 0 0px hsl(var(--primary))"
                       ]
                     }}
                     transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background z-20"
+                    className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary rounded-full border-2 border-background z-20"
                   />
                 )}
               </div>
