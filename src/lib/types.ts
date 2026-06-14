@@ -64,4 +64,6 @@ export type Notification = {
   type: NotificationType;
   timestamp: any;
   read: boolean;
+  roomId?: string;
+  senderId?: string;
 };

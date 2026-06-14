@@ -55,15 +55,14 @@ export default function ChatRoomPage() {
 
   // Clear unread notifications when entering this specific chat
   useEffect(() => {
-    if (db && authUser && roomId && room) {
+    if (db && authUser && roomId) {
       const clearNotifs = async () => {
-        const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
         const notifQuery = query(
           collection(db, "notifications"), 
           where("userId", "==", authUser.uid), 
           where("type", "==", "message"), 
           where("read", "==", false),
-          where("title", "==", otherName)
+          where("roomId", "==", roomId)
         );
         
         const snapshot = await getDocs(notifQuery);
@@ -80,7 +79,7 @@ export default function ChatRoomPage() {
       const timeout = setTimeout(clearNotifs, 800);
       return () => clearTimeout(timeout);
     }
-  }, [db, authUser, roomId, room, otherUser]);
+  }, [db, authUser, roomId]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -110,7 +109,9 @@ export default function ChatRoomPage() {
           body: msg,
           type: "message",
           timestamp: serverTimestamp(),
-          read: false
+          read: false,
+          roomId: roomId,
+          senderId: authUser.uid
         });
       }
     } catch (error) {

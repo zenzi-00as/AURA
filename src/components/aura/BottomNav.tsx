@@ -78,7 +78,7 @@ export function BottomNav() {
                     initial={{ scale: 0 }}
                     animate={{ scale: [1, 1.2, 1], opacity: [0.9, 1, 0.9] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_12px_hsl(var(--primary))]"
+                    className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-background z-20 shadow-[0_0_12px_hsl(var(--primary))]"
                   />
                 )}
               </div>

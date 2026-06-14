@@ -62,10 +62,8 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      const isUnread = unreadMessageNotifs.some(n => 
-        (room.isSystem && n.title === "AURA Team") || 
-        (!room.isSystem && n.title === otherName)
-      );
+      // Robust check for unread messages in this room
+      const isUnread = unreadMessageNotifs.some(n => n.roomId === room.id);
 
       return {
         id: room.id,
@@ -126,7 +124,7 @@ export default function ChatList() {
                     onClick={() => router.push(`/chat/${chat.id}`)} 
                     className={cn(
                       "group relative flex items-center gap-4 p-5 rounded-[32px] hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
-                      chat.unread ? "bg-primary/5 border-primary/20 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.1)]" : "bg-card/40"
+                      chat.unread ? "bg-primary/10 border-primary/30 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.2)]" : "bg-card/40"
                     )}
                   >
                     {chat.unread && (

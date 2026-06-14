@@ -76,7 +76,9 @@
         "body": { "type": "string" },
         "type": { "type": "string", "enum": ["verification", "proximity", "message", "welcome"] },
         "timestamp": { "type": "string", "format": "date-time" },
-        "read": { "type": "boolean" }
+        "read": { "type": "boolean" },
+        "roomId": { "type": "string" },
+        "senderId": { "type": "string" }
       }
     }
   },
