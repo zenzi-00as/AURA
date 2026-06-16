@@ -78,11 +78,11 @@ export function BottomNav() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ 
-                      scale: [1, 1.5, 1], 
-                      opacity: [1, 0.7, 1],
+                      scale: [1, 1.6, 1], 
+                      opacity: [1, 0.6, 1],
                       boxShadow: [
                         "0 0 0px hsl(var(--primary))",
-                        "0 0 20px hsl(var(--primary))",
+                        "0 0 15px hsl(var(--primary))",
                         "0 0 0px hsl(var(--primary))"
                       ]
                     }}
@@ -95,7 +95,7 @@ export function BottomNav() {
               {isActive && (
                 <motion.div 
                   layoutId="activeDot"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_4px_rgba(217,70,239,0.8)]"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_rgba(217,70,239,0.9)]"
                 />
               )}
             </button>

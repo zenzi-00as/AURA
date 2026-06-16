@@ -53,7 +53,6 @@ export default function ChatRoomPage() {
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
-  // Clear unread notifications when entering this specific chat
   useEffect(() => {
     if (db && authUser && roomId) {
       const clearNotifs = async () => {
@@ -139,7 +138,6 @@ export default function ChatRoomPage() {
         blockedAt: serverTimestamp()
       });
       
-      // Delete conversation after blocking
       await deleteDoc(doc(db, "chatRooms", roomId));
       
       toast({ 

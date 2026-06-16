@@ -62,7 +62,6 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      // Robust check for unread messages in this room
       const isUnread = unreadMessageNotifs.some(n => n.roomId === room.id);
 
       return {
@@ -148,15 +147,15 @@ export default function ChatList() {
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
                           {chat.unread && (
                             <motion.div 
-                              animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }} 
+                              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }} 
                               transition={{ repeat: Infinity, duration: 1.5 }} 
-                              className="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_10px_rgba(217,70,239,0.8)]" 
+                              className="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_12px_rgba(217,70,239,0.9)]" 
                             />
                           )}
                         </div>
-                        <span className={cn("text-[10px] font-medium shrink-0 ml-2 transition-colors", chat.unread ? "text-primary font-bold" : "text-muted-foreground")}>{chat.time}</span>
+                        <span className={cn("text-[10px] font-bold shrink-0 ml-2 transition-colors uppercase tracking-widest", chat.unread ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>
                       </div>
-                      <p className={cn("text-xs truncate transition-colors", chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
+                      <p className={cn("text-xs truncate transition-colors leading-relaxed", chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
                     </div>
                   </motion.div>
                 ))
