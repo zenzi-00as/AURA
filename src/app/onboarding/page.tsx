@@ -283,7 +283,7 @@ export default function Onboarding() {
                     placeholder="Your name" 
                     value={formData.name} 
                     onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
-                    className="pl-12 h-14 bg-[#151515] border-white/10 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-[0_0_0_0_rgba(184,77,255,0)] focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
+                    className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-[0_0_0_0_rgba(184,77,255,0)] focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
                   />
                 </div>
               </div>
@@ -297,7 +297,7 @@ export default function Onboarding() {
                     value={formData.age} 
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
                     className={cn(
-                      "pl-12 h-14 bg-[#151515] border-white/10 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]",
+                      "pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]",
                       formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive focus:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
                     )} 
                   />
@@ -318,7 +318,7 @@ export default function Onboarding() {
                 placeholder="Share your desires and interests for the best match..." 
                 value={formData.bio} 
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
-                className="flex-1 min-h-[200px] bg-[#151515] border-white/10 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
+                className="flex-1 min-h-[200px] bg-[#151515] border-white/12 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
               />
             </div>
           )}
@@ -410,7 +410,7 @@ export default function Onboarding() {
               <div className="w-20 h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30">
                 <Sparkles className="text-white" size={36} />
               </div>
-              <div className="w-full p-8 rounded-[40px] border-white/10 bg-[#151515] space-y-6 shadow-xl">
+              <div className="w-full p-8 rounded-[40px] border-white/12 bg-[#151515] space-y-6 shadow-xl">
                 <div className="space-y-2">
                   <h3 className="text-2xl font-bold text-white">₹ 1 <span className="text-sm font-normal text-muted-foreground">/ 28 Days</span></h3>
                   <p className="text-[10px] text-[#B84DFF] font-bold uppercase tracking-widest">Premium Membership</p>

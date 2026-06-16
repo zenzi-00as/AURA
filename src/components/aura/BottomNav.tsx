@@ -75,20 +75,10 @@ export function BottomNav() {
                 />
                 
                 {showBadge && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ 
-                      scale: [1, 1.6, 1], 
-                      opacity: [1, 0.6, 1],
-                      boxShadow: [
-                        "0 0 0px hsl(var(--primary))",
-                        "0 0 15px hsl(var(--primary))",
-                        "0 0 0px hsl(var(--primary))"
-                      ]
-                    }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                    className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary rounded-full border-2 border-background z-20"
-                  />
+                  <div className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background"></span>
+                  </div>
                 )}
               </div>
 

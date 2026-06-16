@@ -146,11 +146,10 @@ export default function ChatList() {
                           <h3 className={cn("font-semibold truncate text-sm transition-colors", chat.unread ? "text-primary font-bold" : "text-foreground")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
                           {chat.unread && (
-                            <motion.div 
-                              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }} 
-                              transition={{ repeat: Infinity, duration: 1.5 }} 
-                              className="w-2.5 h-2.5 rounded-full bg-primary ml-1 shadow-[0_0_12px_rgba(217,70,239,0.9)]" 
-                            />
+                            <div className="relative flex h-3 w-3 ml-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary shadow-[0_0_12px_rgba(217,70,239,0.9)]"></span>
+                            </div>
                           )}
                         </div>
                         <span className={cn("text-[10px] font-bold shrink-0 ml-2 transition-colors uppercase tracking-widest", chat.unread ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>

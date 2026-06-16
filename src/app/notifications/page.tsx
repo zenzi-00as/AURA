@@ -72,7 +72,10 @@ export default function NotificationsPage() {
         <div className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative">
           <Bell size={18} />
           {notifications.some(n => !n.read) && (
-            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
+            <div className="absolute top-2 right-2 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background"></span>
+            </div>
           )}
         </div>
       </header>
