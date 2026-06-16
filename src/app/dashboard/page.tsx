@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -6,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Info } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Info, Search, RefreshCcw, Compass } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -111,6 +112,12 @@ export default function Dashboard() {
     setIsOpen(false);
   };
 
+  const handleResetFilters = () => {
+    setDistance([100]);
+    setAgeRange([18, 80]);
+    setActiveFilters({ distance: 100, ageRange: [18, 80] });
+  };
+
   const handleUserClick = (uid: string) => {
     router.push(`/chat/${uid}`);
   };
@@ -174,7 +181,7 @@ export default function Dashboard() {
               <div className="px-2 pt-2 pb-1 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary font-medium text-[10px] uppercase tracking-widest">
                   <Sparkles size={12} />
-                  {filteredUsers.length > 0 ? t('verified_nearby') : t('no_results')}
+                  {filteredUsers.length > 0 ? t('verified_nearby') : "Status"}
                 </div>
                 {filteredUsers.length > 0 && <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{filteredUsers.length} {t('found')}</span>}
               </div>
@@ -186,13 +193,51 @@ export default function Dashboard() {
                     </motion.div>
                   ))
                 ) : (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                    <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground"><Info size={32} /></div>
-                    <div className="space-y-1">
-                      <p className="text-foreground font-medium">{t('no_results')}</p>
-                      <p className="text-sm text-muted-foreground font-light">{t('try_expanding')}</p>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="flex flex-col items-center justify-center py-16 text-center space-y-8"
+                  >
+                    <div className="relative">
+                      <motion.div 
+                        animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                        className="w-24 h-24 rounded-[40px] bg-primary/10 flex items-center justify-center text-primary relative z-10"
+                      >
+                        <Search size={48} strokeWidth={1.5} />
+                      </motion.div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
                     </div>
-                    <Button variant="ghost" onClick={() => { setDistance([100]); setAgeRange([18, 80]); setActiveFilters({ distance: 100, ageRange: [18, 80] }); }} className="text-primary hover:text-primary hover:bg-primary/10">{t('reset_filters')}</Button>
+
+                    <div className="space-y-3 px-4">
+                      <h2 className="text-2xl font-bold text-foreground tracking-tight">✨ No matches found yet</h2>
+                      <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
+                        We're still searching for compatible people.
+                      </p>
+                    </div>
+
+                    <div className="w-full max-w-[240px] space-y-3 text-left bg-muted/30 p-6 rounded-[32px] border border-border">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Try:</p>
+                      <ul className="space-y-3">
+                        {['Expanding age range', 'Increasing distance', 'Updating interests'].map((tip, idx) => (
+                          <li key={idx} className="flex items-center gap-3 text-xs text-foreground/80 font-light">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            {tip}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col w-full gap-3 px-4">
+                      <Button onClick={handleResetFilters} className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-bold text-base shadow-lg shadow-primary/20">
+                        <RefreshCcw className="mr-2" size={18} />
+                        Reset Filters
+                      </Button>
+                      <Button variant="ghost" onClick={() => router.push('/dashboard')} className="w-full h-12 rounded-xl text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                        <Compass size={18} />
+                        Discover More
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
