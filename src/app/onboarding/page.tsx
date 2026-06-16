@@ -121,7 +121,7 @@ export default function Onboarding() {
       const profileData = {
         uid: user.uid,
         name: formData.name.trim(),
-        phoneNumber: "", // Phone already captured in auth step, but field kept for schema
+        phoneNumber: "", 
         bio: formData.bio.trim(),
         gender: formData.gender,
         orientation: formData.orientation,
@@ -229,6 +229,8 @@ export default function Onboarding() {
     );
   }
 
+  const progress = Math.round((step / 7) * 100);
+
   return (
     <div className="flex-1 flex flex-col p-8 pt-10 bg-background min-h-screen max-w-md mx-auto relative overflow-hidden">
       <div className="flex justify-between items-center mb-6">
@@ -237,7 +239,9 @@ export default function Onboarding() {
             <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
           ))}
         </div>
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 7</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          Step {step} of 7 ({progress}% Complete)
+        </span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -248,7 +252,7 @@ export default function Onboarding() {
           exit={{ opacity: 0, x: -20 }}
           className="flex-1 flex flex-col"
         >
-          <div className="flex justify-between items-start mb-5">
+          <div className="flex justify-between items-start mb-8">
             <h2 className="text-3xl font-semibold text-foreground tracking-tight">
               {step === 1 ? "Basic Identity" : 
                step === 2 ? "Your Bio" : 
@@ -270,31 +274,31 @@ export default function Onboarding() {
           </div>
 
           {step === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Name</label>
-                <div className="relative">
-                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Name</label>
+                <div className="relative group">
+                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
                   <Input 
                     placeholder="Your name" 
                     value={formData.name} 
                     onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
-                    className="pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary" 
+                    className="pl-12 h-14 bg-[#151515] border-white/10 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-[0_0_0_0_rgba(184,77,255,0)] focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-primary uppercase tracking-widest px-1">Age</label>
-                <div className="relative">
-                  <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Age</label>
+                <div className="relative group">
+                  <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
                   <Input 
                     type="number" 
                     placeholder="Your age" 
                     value={formData.age} 
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
                     className={cn(
-                      "pl-12 h-14 bg-muted border-border rounded-2xl text-lg text-foreground focus:ring-primary",
-                      formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive"
+                      "pl-12 h-14 bg-[#151515] border-white/10 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]",
+                      formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive focus:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
                     )} 
                   />
                 </div>
@@ -308,46 +312,59 @@ export default function Onboarding() {
           )}
 
           {step === 2 && (
-            <Textarea 
-              placeholder="Write your desires to know about yourself for best match..." 
-              value={formData.bio} 
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
-              className="flex-1 min-h-[200px] bg-muted border-border rounded-2xl p-5 text-lg resize-none" 
-            />
+            <div className="space-y-4 flex-1 flex flex-col">
+              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Bio</label>
+              <Textarea 
+                placeholder="Share your desires and interests for the best match..." 
+                value={formData.bio} 
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
+                className="flex-1 min-h-[200px] bg-[#151515] border-white/10 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
+              />
+            </div>
           )}
 
           {step === 3 && (
-            <GenderSelector 
-              selected={formData.gender} 
-              onSelect={(g) => setFormData({ ...formData, gender: g })} 
-            />
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Choose your identity</label>
+              <GenderSelector 
+                selected={formData.gender} 
+                onSelect={(g) => setFormData({ ...formData, gender: g })} 
+              />
+            </div>
           )}
 
           {step === 4 && (
-            <OrientationSelector 
-              gender={formData.gender}
-              selected={formData.orientation} 
-              onSelect={(o) => setFormData({ ...formData, orientation: o })} 
-            />
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">What is your orientation?</label>
+              <OrientationSelector 
+                gender={formData.gender}
+                selected={formData.orientation} 
+                onSelect={(o) => setFormData({ ...formData, orientation: o })} 
+              />
+            </div>
           )}
 
           {step === 5 && (
-            <InterestedInSelector 
-              selected={formData.interestedIn} 
-              onToggle={(i) => {
-                setFormData(prev => {
-                  const exists = prev.interestedIn.includes(i);
-                  if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
-                  if (prev.interestedIn.length >= 2) return prev;
-                  return { ...prev, interestedIn: [...prev.interestedIn, i] };
-                });
-              }} 
-            />
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
+              <InterestedInSelector 
+                selected={formData.interestedIn} 
+                onToggle={(i) => {
+                  setFormData(prev => {
+                    const exists = prev.interestedIn.includes(i);
+                    if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
+                    if (prev.interestedIn.length >= 2) return prev;
+                    return { ...prev, interestedIn: [...prev.interestedIn, i] };
+                  });
+                }} 
+              />
+            </div>
           )}
           
           {step === 6 && (
-            <div className="space-y-4">
-              <div className="relative aspect-square max-h-[300px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-border aura-glow">
+            <div className="space-y-6">
+              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Live Identity Verification</label>
+              <div className="relative aspect-square max-h-[300px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
                 {formData.documentPhoto ? (
                   <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
@@ -361,35 +378,57 @@ export default function Onboarding() {
                 )}
                 <canvas ref={canvasRef} className="hidden" />
               </div>
-              {!formData.documentPhoto && !isCameraLoading && (
-                <button 
-                  onClick={captureSelfie}
-                  className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center mx-auto"
-                >
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                    <Camera className="text-primary" size={20} />
-                  </div>
-                </button>
-              )}
-              {formData.documentPhoto && (
-                <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="mx-auto block text-[10px] font-bold uppercase tracking-widest">
-                  <RefreshCcw size={14} className="inline mr-2" />
-                  Retake
-                </Button>
-              )}
+              
+              <div className="flex flex-col items-center gap-4">
+                {!formData.documentPhoto && !isCameraLoading && (
+                  <button 
+                    onClick={captureSelfie}
+                    className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
+                      <Camera className="text-[#B84DFF]" size={28} />
+                    </div>
+                  </button>
+                )}
+                
+                {formData.documentPhoto && (
+                  <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10">
+                    <RefreshCcw size={14} className="inline mr-2" />
+                    Retake Identity Photo
+                  </Button>
+                )}
+                
+                <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
+                  Your live photo is analyzed securely and is never shared with other users.
+                </p>
+              </div>
             </div>
           )}
 
           {step === 7 && (
             <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-[22px] fuchsia-gradient aura-glow flex items-center justify-center mb-2">
-                <Sparkles className="text-white" size={32} />
+              <div className="w-20 h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30">
+                <Sparkles className="text-white" size={36} />
               </div>
-              <div className="w-full p-6 rounded-[32px] border-primary/20 bg-primary/5 space-y-4">
-                <h3 className="text-xl font-bold">₹ 1 / 28 Days</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Identity Verified Badge • Unlimited Messages • Secure Access
-                </p>
+              <div className="w-full p-8 rounded-[40px] border-white/10 bg-[#151515] space-y-6 shadow-xl">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-white">₹ 1 <span className="text-sm font-normal text-muted-foreground">/ 28 Days</span></h3>
+                  <p className="text-[10px] text-[#B84DFF] font-bold uppercase tracking-widest">Premium Membership</p>
+                </div>
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <Check size={14} className="text-[#B84DFF]" />
+                    <span>Identity Verified Badge</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <Check size={14} className="text-[#B84DFF]" />
+                    <span>Unlimited Messages</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <Check size={14} className="text-[#B84DFF]" />
+                    <span>Stateless Secure Access</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -400,13 +439,13 @@ export default function Onboarding() {
         <Button 
           onClick={nextStep}
           disabled={isNextDisabled}
-          className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className="w-full h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
             {step === 7 ? (
-              <span>Subscribe - ₹ <strong>1 Only</strong></span>
+              <span>Join Aura - ₹ 1 Only</span>
             ) : step === 6 ? (
-              "Verify Selfie"
+              "Verify Identity"
             ) : (
               "Continue"
             )}
