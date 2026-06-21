@@ -124,24 +124,24 @@ export default function Dashboard() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-        <header className="px-8 py-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
-                <span className="text-white font-bold text-sm">A</span>
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('discovery')}</h1>
+      <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative transition-colors overflow-hidden">
+        <header className="px-6 sm:px-8 py-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <span className="text-white font-bold text-sm">A</span>
             </div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground truncate">
+              {t('discovery')}
+            </h1>
           </div>
           
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+              <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 <SlidersHorizontal size={18} />
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="bg-popover border-border text-foreground rounded-t-[40px] px-8 pt-8 pb-12 outline-none">
+            <SheetContent side="bottom" className="bg-popover border-border text-foreground rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto">
               <SheetHeader className="mb-8">
                 <SheetTitle className="text-2xl font-semibold text-foreground">{t('filters')}</SheetTitle>
               </SheetHeader>
@@ -171,24 +171,37 @@ export default function Dashboard() {
           </Sheet>
         </header>
 
-        <div className="px-6 space-y-4 overflow-y-auto pt-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 scrollbar-hide pb-32">
           {usersLoading ? (
             <div className="flex flex-col gap-4">
               {[1, 2, 3].map(i => <div key={i} className="h-40 w-full rounded-[32px] bg-muted animate-pulse" />)}
             </div>
           ) : (
             <>
-              <div className="px-2 pt-2 pb-1 flex items-center justify-between">
+              <div className="px-2 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary font-medium text-[10px] uppercase tracking-widest">
                   <Sparkles size={12} />
                   {filteredUsers.length > 0 ? t('verified_nearby') : "Status"}
                 </div>
-                {filteredUsers.length > 0 && <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{filteredUsers.length} {t('found')}</span>}
+                {filteredUsers.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                    {filteredUsers.length} {t('found')}
+                  </span>
+                )}
               </div>
+              
               <AnimatePresence mode="popLayout">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
-                    <motion.div key={user.uid} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                    <motion.div 
+                      key={user.uid} 
+                      layout 
+                      initial={{ opacity: 0, scale: 0.9 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      exit={{ opacity: 0, scale: 0.9 }} 
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="w-full"
+                    >
                       <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
                     </motion.div>
                   ))
@@ -196,27 +209,27 @@ export default function Dashboard() {
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    className="flex flex-col items-center justify-center py-16 text-center space-y-8"
+                    className="flex flex-col items-center justify-center py-12 text-center space-y-8 px-4"
                   >
                     <div className="relative">
                       <motion.div 
                         animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                        className="w-24 h-24 rounded-[40px] bg-primary/10 flex items-center justify-center text-primary relative z-10"
+                        className="w-20 h-20 rounded-[40px] bg-primary/10 flex items-center justify-center text-primary relative z-10"
                       >
-                        <Search size={48} strokeWidth={1.5} />
+                        <Search size={40} strokeWidth={1.5} />
                       </motion.div>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-primary/5 rounded-full blur-2xl -z-10" />
                     </div>
 
-                    <div className="space-y-3 px-4">
-                      <h2 className="text-2xl font-bold text-foreground tracking-tight">✨ No matches found yet</h2>
+                    <div className="space-y-3">
+                      <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">✨ No matches found yet</h2>
                       <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
                         We're still searching for compatible people.
                       </p>
                     </div>
 
-                    <div className="w-full max-w-[240px] space-y-3 text-left bg-muted/30 p-6 rounded-[32px] border border-border">
+                    <div className="w-full max-w-[280px] space-y-3 text-left bg-muted/30 p-6 rounded-[32px] border border-border">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Try:</p>
                       <ul className="space-y-3">
                         {['Expanding age range', 'Increasing distance', 'Updating interests'].map((tip, idx) => (
@@ -228,7 +241,7 @@ export default function Dashboard() {
                       </ul>
                     </div>
 
-                    <div className="flex flex-col w-full gap-3 px-4">
+                    <div className="flex flex-col w-full max-w-[280px] gap-3">
                       <Button onClick={handleResetFilters} className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-bold text-base shadow-lg shadow-primary/20">
                         <RefreshCcw className="mr-2" size={18} />
                         Reset Filters

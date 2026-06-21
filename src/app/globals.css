@@ -54,8 +54,22 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary/30;
+    @apply bg-background text-foreground selection:bg-primary/30 antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Disable bounce on iOS for cleaner feel */
+    overscroll-behavior-y: none;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .min-h-screen-safe {
+    min-height: 100dvh;
   }
 }
 

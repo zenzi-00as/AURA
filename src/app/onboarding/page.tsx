@@ -220,7 +220,7 @@ export default function Onboarding() {
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe">
         <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
           <span className="text-3xl font-bold text-white tracking-tighter">A</span>
         </div>
@@ -232,214 +232,218 @@ export default function Onboarding() {
   const progress = Math.round((step / 7) * 100);
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-10 bg-background min-h-screen max-w-md mx-auto relative overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5, 6, 7].map(s => (
-            <div key={s} className={cn("h-1 rounded-full transition-all duration-500", step >= s ? "w-6 bg-primary" : "w-3 bg-muted")} />
-          ))}
+    <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
+      <div className="px-8 pt-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-1 flex-1">
+            {[1, 2, 3, 4, 5, 6, 7].map(s => (
+              <div key={s} className={cn("h-1 rounded-full transition-all duration-500 flex-1", step >= s ? "bg-primary" : "bg-muted")} />
+            ))}
+          </div>
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-4 shrink-0">
+            {step}/7 ({progress}%)
+          </span>
         </div>
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          Step {step} of 7 ({progress}% Complete)
-        </span>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="flex-1 flex flex-col"
-        >
-          <div className="flex justify-between items-start mb-8">
-            <h2 className="text-3xl font-semibold text-foreground tracking-tight">
-              {step === 1 ? "Basic Identity" : 
-               step === 2 ? "Your Bio" : 
-               step === 3 ? "Identity" : 
-               step === 4 ? "Orientation" : 
-               step === 5 ? "Preferences" : 
-               step === 6 ? "Selfie Guard" : 
-               "Aura Premium"}
-            </h2>
-            {step < 7 && (
-              <button 
-                onClick={handleBack} 
-                className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-muted transition-colors"
-              >
-                <ArrowLeft size={12} />
-                Back
-              </button>
+      <div className="flex-1 overflow-y-auto px-8 py-4 scrollbar-hide">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="flex flex-col min-h-full"
+          >
+            <div className="flex justify-between items-start mb-8">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+                {step === 1 ? "Basic Identity" : 
+                 step === 2 ? "Your Bio" : 
+                 step === 3 ? "Identity" : 
+                 step === 4 ? "Orientation" : 
+                 step === 5 ? "Preferences" : 
+                 step === 6 ? "Selfie Guard" : 
+                 "Aura Premium"}
+              </h2>
+              {step < 7 && (
+                <button 
+                  onClick={handleBack} 
+                  className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-muted transition-colors shrink-0"
+                >
+                  <ArrowLeft size={12} />
+                  Back
+                </button>
+              )}
+            </div>
+
+            {step === 1 && (
+              <div className="space-y-6 sm:space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Name</label>
+                  <div className="relative group">
+                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
+                    <Input 
+                      placeholder="Your name" 
+                      value={formData.name} 
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
+                      className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-none focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Age</label>
+                  <div className="relative group">
+                    <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
+                    <Input 
+                      type="number" 
+                      placeholder="Your age" 
+                      value={formData.age} 
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
+                      className={cn(
+                        "pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] shadow-none",
+                        formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive focus:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
+                      )} 
+                    />
+                  </div>
+                  {formData.age !== "" && (ageVal < 18 || ageVal > 80) && (
+                    <p className="text-destructive text-[10px] font-bold uppercase tracking-widest px-1">
+                      Age must be 18 - 80
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
-          </div>
 
-          {step === 1 && (
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Name</label>
-                <div className="relative group">
-                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
-                  <Input 
-                    placeholder="Your name" 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
-                    className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-[0_0_0_0_rgba(184,77,255,0)] focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
-                  />
-                </div>
+            {step === 2 && (
+              <div className="space-y-4 flex-1 flex flex-col">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Bio</label>
+                <Textarea 
+                  placeholder="Share your desires and interests for the best match..." 
+                  value={formData.bio} 
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
+                  className="flex-1 min-h-[160px] sm:min-h-[200px] bg-[#151515] border-white/12 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
+                />
               </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Age</label>
-                <div className="relative group">
-                  <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
-                  <Input 
-                    type="number" 
-                    placeholder="Your age" 
-                    value={formData.age} 
-                    onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
-                    className={cn(
-                      "pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]",
-                      formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive focus:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
-                    )} 
-                  />
-                </div>
-                {formData.age !== "" && (ageVal < 18 || ageVal > 80) && (
-                  <p className="text-destructive text-[10px] font-bold uppercase tracking-widest px-1">
-                    Age must be 18 - 80
-                  </p>
-                )}
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Choose your identity</label>
+                <GenderSelector 
+                  selected={formData.gender} 
+                  onSelect={(g) => setFormData({ ...formData, gender: g })} 
+                />
               </div>
-            </div>
-          )}
+            )}
 
-          {step === 2 && (
-            <div className="space-y-4 flex-1 flex flex-col">
-              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Bio</label>
-              <Textarea 
-                placeholder="Share your desires and interests for the best match..." 
-                value={formData.bio} 
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
-                className="flex-1 min-h-[200px] bg-[#151515] border-white/12 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
-              />
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Choose your identity</label>
-              <GenderSelector 
-                selected={formData.gender} 
-                onSelect={(g) => setFormData({ ...formData, gender: g })} 
-              />
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">What is your orientation?</label>
-              <OrientationSelector 
-                gender={formData.gender}
-                selected={formData.orientation} 
-                onSelect={(o) => setFormData({ ...formData, orientation: o })} 
-              />
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
-              <InterestedInSelector 
-                selected={formData.interestedIn} 
-                onToggle={(i) => {
-                  setFormData(prev => {
-                    const exists = prev.interestedIn.includes(i);
-                    if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
-                    if (prev.interestedIn.length >= 2) return prev;
-                    return { ...prev, interestedIn: [...prev.interestedIn, i] };
-                  });
-                }} 
-              />
-            </div>
-          )}
-          
-          {step === 6 && (
-            <div className="space-y-6">
-              <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Live Identity Verification</label>
-              <div className="relative aspect-square max-h-[300px] w-full mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
-                {formData.documentPhoto ? (
-                  <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    {isCameraLoading ? (
-                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                    ) : (
-                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
-                    )}
-                  </div>
-                )}
-                <canvas ref={canvasRef} className="hidden" />
+            {step === 4 && (
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">What is your orientation?</label>
+                <OrientationSelector 
+                  gender={formData.gender}
+                  selected={formData.orientation} 
+                  onSelect={(o) => setFormData({ ...formData, orientation: o })} 
+                />
               </div>
-              
-              <div className="flex flex-col items-center gap-4">
-                {!formData.documentPhoto && !isCameraLoading && (
-                  <button 
-                    onClick={captureSelfie}
-                    className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
-                      <Camera className="text-[#B84DFF]" size={28} />
+            )}
+
+            {step === 5 && (
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
+                <InterestedInSelector 
+                  selected={formData.interestedIn} 
+                  onToggle={(i) => {
+                    setFormData(prev => {
+                      const exists = prev.interestedIn.includes(i);
+                      if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
+                      if (prev.interestedIn.length >= 2) return prev;
+                      return { ...prev, interestedIn: [...prev.interestedIn, i] };
+                    });
+                  }} 
+                />
+              </div>
+            )}
+            
+            {step === 6 && (
+              <div className="space-y-6 flex-1 flex flex-col">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Live Identity Verification</label>
+                <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
+                  {formData.documentPhoto ? (
+                    <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      {isCameraLoading ? (
+                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                      ) : (
+                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
+                      )}
                     </div>
-                  </button>
-                )}
-                
-                {formData.documentPhoto && (
-                  <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10">
-                    <RefreshCcw size={14} className="inline mr-2" />
-                    Retake Identity Photo
-                  </Button>
-                )}
-                
-                <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
-                  Your live photo is analyzed securely and is never shared with other users.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {step === 7 && (
-            <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30">
-                <Sparkles className="text-white" size={36} />
-              </div>
-              <div className="w-full p-8 rounded-[40px] border-white/12 bg-[#151515] space-y-6 shadow-xl">
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-white">₹ 1 <span className="text-sm font-normal text-muted-foreground">/ 28 Days</span></h3>
-                  <p className="text-[10px] text-[#B84DFF] font-bold uppercase tracking-widest">Premium Membership</p>
+                  )}
+                  <canvas ref={canvasRef} className="hidden" />
                 </div>
-                <div className="space-y-3 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <Check size={14} className="text-[#B84DFF]" />
-                    <span>Identity Verified Badge</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <Check size={14} className="text-[#B84DFF]" />
-                    <span>Unlimited Messages</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <Check size={14} className="text-[#B84DFF]" />
-                    <span>Stateless Secure Access</span>
-                  </div>
+                
+                <div className="flex flex-col items-center gap-4 mt-auto py-4">
+                  {!formData.documentPhoto && !isCameraLoading && (
+                    <button 
+                      onClick={captureSelfie}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
+                    >
+                      <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
+                        <Camera className="text-[#B84DFF]" size={24} />
+                      </div>
+                    </button>
+                  )}
+                  
+                  {formData.documentPhoto && (
+                    <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10">
+                      <RefreshCcw size={14} className="inline mr-2" />
+                      Retake Identity Photo
+                    </Button>
+                  )}
+                  
+                  <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
+                    Your live photo is analyzed securely and is never shared with other users.
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
+            )}
 
-      <div className="mt-6 pb-4">
+            {step === 7 && (
+              <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center py-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30 shrink-0">
+                  <Sparkles className="text-white" size={32} />
+                </div>
+                <div className="w-full p-6 sm:p-8 rounded-[40px] border-white/12 bg-[#151515] space-y-6 shadow-xl">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold text-white">₹ 1 <span className="text-sm font-normal text-muted-foreground">/ 28 Days</span></h3>
+                    <p className="text-[10px] text-[#B84DFF] font-bold uppercase tracking-widest">Premium Membership</p>
+                  </div>
+                  <div className="space-y-3 pt-4 border-t border-white/5">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
+                      <Check size={14} className="text-[#B84DFF] shrink-0" />
+                      <span>Identity Verified Badge</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
+                      <Check size={14} className="text-[#B84DFF] shrink-0" />
+                      <span>Unlimited Messages</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
+                      <Check size={14} className="text-[#B84DFF] shrink-0" />
+                      <span>Stateless Secure Access</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="px-8 pb-8 pt-2">
         <Button 
           onClick={nextStep}
           disabled={isNextDisabled}
-          className="w-full h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className="w-full h-14 sm:h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
             {step === 7 ? (

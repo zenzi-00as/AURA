@@ -40,8 +40,8 @@ export function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-1 p-1 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow transition-colors">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-6">
+      <nav className="pointer-events-auto flex items-center gap-1 p-1 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow w-full max-w-[360px] mx-auto mb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           const showBadge = item.hasBadge;
@@ -51,7 +51,7 @@ export function BottomNav() {
               key={item.path}
               onClick={() => router.replace(item.path)}
               className={cn(
-                "relative px-6 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300",
+                "relative flex-1 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 active:scale-95",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               aria-label={item.label}
@@ -66,11 +66,10 @@ export function BottomNav() {
               
               <div className="relative z-10 flex items-center justify-center">
                 <item.icon 
-                  size={20} 
+                  size={22} 
                   className={cn(
                     "transition-all duration-300",
-                    isActive ? "scale-110" : "scale-100",
-                    showBadge && !isActive && "text-primary"
+                    isActive ? "scale-110" : "scale-100"
                   )} 
                 />
                 

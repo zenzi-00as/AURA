@@ -95,7 +95,6 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       if (step === "details") {
-        // Professional sync simulation
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
@@ -135,7 +134,7 @@ export default function AuthPage() {
 
   if (authLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
         <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10 shadow-2xl shadow-primary/20">
           <span className="text-4xl font-bold text-white tracking-tighter">A</span>
@@ -145,21 +144,21 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-8 pt-24 relative overflow-hidden bg-background min-h-screen">
+    <div className="flex-1 flex flex-col px-8 py-12 sm:py-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-12 relative z-10">
-        <h1 className="text-3xl font-semibold text-foreground mb-3 tracking-tight">
+      <div className="mb-8 sm:mb-12 relative z-10">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
           {step === "details" ? "Welcome back" : "Verify Email"}
         </h1>
-        <p className="text-muted-foreground font-light leading-relaxed">
+        <p className="text-muted-foreground font-light leading-relaxed text-sm sm:text-base">
           {step === "details" 
             ? "Enter your details to continue. We'll verify your email." 
             : `We've sent a 6-digit code to ${email}. Please enter it below.`}
         </p>
       </div>
 
-      <div className="flex-1 relative z-10">
+      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -167,7 +166,7 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
           >
             {step === "details" ? (
               <div className="space-y-6">
@@ -181,7 +180,7 @@ export default function AuthPage() {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-foreground transition-all"
                     />
                   </div>
 
@@ -190,7 +189,7 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[110px] h-14 bg-muted border-border rounded-2xl text-base font-medium text-foreground focus:ring-primary">
+                      <SelectTrigger className="w-[100px] sm:w-[110px] h-14 bg-muted border-border rounded-2xl text-sm sm:text-base font-medium text-foreground focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border rounded-2xl max-h-[300px]">
@@ -213,7 +212,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-lg text-foreground transition-all"
+                        className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-foreground transition-all"
                       />
                     </div>
                   </div>
@@ -228,7 +227,7 @@ export default function AuthPage() {
                   />
                   <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">Terms & Conditions</Link>
+                    <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">Terms</Link>
                     {" "}and{" "}
                     <Link href="/privacy" className="text-foreground font-semibold hover:text-primary transition-colors">Privacy Policy</Link>.
                   </label>
@@ -245,11 +244,11 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-2xl tracking-[0.5em] text-foreground transition-all"
+                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-xl sm:text-2xl tracking-[0.5em] text-foreground transition-all"
                   />
                 </div>
 
-                <div className="flex justify-between items-center px-2">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-2">
                   <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-xs font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
                     <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
@@ -276,7 +275,7 @@ export default function AuthPage() {
         </AnimatePresence>
       </div>
 
-      <div className="mt-auto pb-8 text-center opacity-40">
+      <div className="mt-auto py-8 text-center opacity-40">
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
