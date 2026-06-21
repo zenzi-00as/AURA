@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase } from './index';
 import { UserProfile } from '@/lib/types';
 
@@ -36,9 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(authUser);
       
       if (authUser) {
+        // Presence Synchronization: Set online status
+        const userRef = doc(db, 'users', authUser.uid);
+        updateDoc(userRef, {
+          isOnline: true,
+          lastActive: serverTimestamp()
+        }).catch(() => {/* Ignore if user doc doesn't exist yet */});
+
         // If user is logged in, listen to their profile
         const unsubscribeProfile = onSnapshot(
-          doc(db, 'users', authUser.uid),
+          userRef,
           (docSnap) => {
             if (docSnap.exists()) {
               setProfile(docSnap.data() as UserProfile);
@@ -54,7 +62,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             clearTimeout(timeoutId);
           }
         );
-        return () => unsubscribeProfile();
+
+        // Best effort to set offline status on disconnect (visibility state change)
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'hidden') {
+            updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() });
+          } else {
+            updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() });
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+          unsubscribeProfile();
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          // Cleanup: Set offline when session ends (best effort)
+          updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() });
+        };
       } else {
         setProfile(null);
         setLoading(false);

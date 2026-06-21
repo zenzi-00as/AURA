@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Lock } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Lock, Circle } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -14,6 +14,7 @@ import { ChatRoom, UserProfile, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
+import { formatDistanceToNow } from "date-fns";
 
 export default function ChatList() {
   const router = useRouter();
@@ -62,7 +63,12 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      const isUnread = unreadMessageNotifs.some(n => n.roomId === room.id);
+      const unreadCount = unreadMessageNotifs.filter(n => n.roomId === room.id).length;
+      const isTyping = room.typing && otherParticipantId && room.typing[otherParticipantId];
+
+      const lastActiveStr = otherUser?.lastActive?.toDate 
+        ? formatDistanceToNow(otherUser.lastActive.toDate(), { addSuffix: true })
+        : "";
 
       return {
         id: room.id,
@@ -71,9 +77,12 @@ export default function ChatList() {
         lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
         time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
         verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
-        unread: isUnread,
+        unreadCount,
         isSystem: room.isSystem || otherParticipantId === 'system',
-        otherUid: otherParticipantId
+        otherUid: otherParticipantId,
+        isOnline: otherUser?.isOnline,
+        lastActive: lastActiveStr,
+        isTyping
       };
     });
   }, [rooms, profiles, authUser, unreadMessageNotifs]);
@@ -93,7 +102,7 @@ export default function ChatList() {
             ) : (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "100%" }} className="flex-1 mr-4">
                 <div className="relative">
-                  <Input autoFocus placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-muted border-border rounded-2xl pl-10 pr-4 focus:ring-primary" />
+                  <Input autoFocus placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-muted border-border rounded-2xl pl-10 pr-4 focus:ring-primary text-foreground" />
                   <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </motion.div>
@@ -108,7 +117,7 @@ export default function ChatList() {
 
         <div className="px-6 space-y-4 mt-4">
           {roomsLoading ? (
-            <div className="space-y-4 px-2">{[1, 2, 3].map(i => <div key={i} className="h-20 w-full rounded-3xl bg-muted animate-pulse" />)}</div>
+            <div className="space-y-4 px-2">{[1, 2, 3].map(i => <div key={i} className="h-24 w-full rounded-[32px] bg-muted animate-pulse" />)}</div>
           ) : (
             <AnimatePresence mode="popLayout">
               {filteredChats.length > 0 ? (
@@ -123,10 +132,10 @@ export default function ChatList() {
                     onClick={() => router.push(`/chat/${chat.id}`)} 
                     className={cn(
                       "group relative flex items-center gap-4 p-5 rounded-[32px] hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
-                      chat.unread ? "bg-primary/10 border-primary/30 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.2)]" : "bg-card/40"
+                      chat.unreadCount > 0 ? "bg-primary/5 border-primary/20 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.1)]" : "bg-card/40"
                     )}
                   >
-                    {chat.unread && (
+                    {chat.unreadCount > 0 && (
                       <motion.div 
                         layoutId={`highlight-${chat.id}`}
                         className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
@@ -135,26 +144,51 @@ export default function ChatList() {
                       />
                     )}
 
-                    <div className={cn("w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative shrink-0 ml-1", chat.isSystem ? "fuchsia-gradient" : "bg-muted")}>
-                      {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-foreground/40">{chat.name[0]}</span>}
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-background border border-border flex items-center justify-center"><Lock size={8} className="text-muted-foreground" /></div>
+                    <div className={cn("w-16 h-16 rounded-[24px] border border-border flex items-center justify-center relative shrink-0", chat.isSystem ? "fuchsia-gradient" : "bg-muted")}>
+                      {chat.isSystem ? <span className="text-white font-bold text-2xl">A</span> : <span className="text-2xl font-semibold text-foreground/40">{chat.name[0]}</span>}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-xl bg-background border border-border flex items-center justify-center"><Lock size={10} className="text-muted-foreground" /></div>
+                      {chat.isOnline && !chat.isSystem && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
+                      )}
                     </div>
                     
                     <div className="flex-1 flex flex-col min-w-0">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center mb-0.5">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className={cn("font-semibold truncate text-sm transition-colors", chat.unread ? "text-primary font-bold" : "text-foreground")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
-                          {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                          {chat.unread && (
-                            <div className="relative flex h-3 w-3 ml-1.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary shadow-[0_0_12px_rgba(217,70,239,0.9)]"></span>
-                            </div>
+                          <h3 className={cn("font-semibold truncate text-base transition-colors", chat.unreadCount > 0 ? "text-primary font-bold" : "text-foreground")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
+                          {chat.verified && <BadgeCheck size={16} className="text-primary" />}
+                        </div>
+                        <span className={cn("text-[10px] font-bold shrink-0 ml-2 transition-colors uppercase tracking-widest", chat.unreadCount > 0 ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {chat.isTyping ? (
+                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-primary font-bold italic flex items-center gap-1.5">
+                              <span className="flex gap-0.5">
+                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                              </span>
+                              Typing...
+                            </motion.p>
+                          ) : (
+                            <p className={cn("text-xs truncate transition-colors leading-relaxed", chat.unreadCount > 0 ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
                           )}
                         </div>
-                        <span className={cn("text-[10px] font-bold shrink-0 ml-2 transition-colors uppercase tracking-widest", chat.unread ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>
+                        
+                        {chat.unreadCount > 0 && (
+                          <div className="h-5 min-w-[20px] px-1.5 rounded-full bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <span className="text-[9px] font-bold text-white">{chat.unreadCount}</span>
+                          </div>
+                        )}
                       </div>
-                      <p className={cn("text-xs truncate transition-colors leading-relaxed", chat.unread ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
+                      
+                      {!chat.isSystem && (
+                        <p className="text-[9px] text-muted-foreground/60 mt-1 uppercase tracking-tighter font-medium">
+                          {chat.isOnline ? "Active Now" : chat.lastActive ? `Active ${chat.lastActive}` : ""}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 ))

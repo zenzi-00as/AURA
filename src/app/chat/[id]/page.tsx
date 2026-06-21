@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, MoreVertical, Send, CheckCheck, BadgeCheck, Trash2, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export default function ChatRoomPage() {
   
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const roomRef = useMemoFirebase(() => {
     if (!db || !roomId) return null;
@@ -83,10 +84,33 @@ export default function ChatRoomPage() {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Typing synchronization logic
+  const setTypingState = (isTyping: boolean) => {
+    if (!db || !roomId || !authUser || room?.isSystem) return;
+    updateDoc(doc(db, "chatRooms", roomId), {
+      [`typing.${authUser.uid}`]: isTyping
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+    
+    if (!room?.isSystem) {
+      setTypingState(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        setTypingState(false);
+      }, 3000);
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim() || !db || !roomId || !authUser || !otherUid) return;
     const msg = input;
     setInput("");
+    setTypingState(false);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
     try {
       addDoc(collection(db, "chatRooms", roomId, "messages"), { 
         senderId: authUser.uid, 
@@ -161,11 +185,12 @@ export default function ChatRoomPage() {
 
   const displayName = room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
   const isVerified = room?.isSystem || otherUser?.verificationStatus === 'Verified';
+  const isOtherTyping = otherUid && room?.typing && room.typing[otherUid];
 
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background h-screen overflow-hidden transition-colors">
-        <header className="px-6 h-16 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
+        <header className="px-6 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl z-20">
           <div className="flex items-center gap-4">
             <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2"><ArrowLeft size={22} /></button>
             <div className="flex flex-col">
@@ -173,12 +198,16 @@ export default function ChatRoomPage() {
                 <span className="font-semibold text-foreground text-sm">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
               </div>
-              {!room?.isSystem && (
-                <div className="flex items-center gap-1.5">
-                  <div className={cn("w-1.5 h-1.5 rounded-full", otherUser?.isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted")} />
-                  <span className={cn("text-[8px] font-bold uppercase tracking-[0.1em]", otherUser?.isOnline ? "text-emerald-500" : "text-muted-foreground")}>{otherUser?.isOnline ? "Active Now" : "Offline"}</span>
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {isOtherTyping ? (
+                  <motion.p key="typing" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-[10px] text-primary font-bold italic">Typing...</motion.p>
+                ) : !room?.isSystem ? (
+                  <motion.div key="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5">
+                    <div className={cn("w-1.5 h-1.5 rounded-full", otherUser?.isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted")} />
+                    <span className={cn("text-[8px] font-bold uppercase tracking-[0.1em]", otherUser?.isOnline ? "text-emerald-500" : "text-muted-foreground")}>{otherUser?.isOnline ? "Active Now" : "Offline"}</span>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
           </div>
           <DropdownMenu>
@@ -217,10 +246,10 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} />
         </div>
 
-        <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-border pb-4">
+        <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-border pb-6">
           <div className="relative flex items-center gap-2">
-            <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Message..." className="h-10 bg-muted border-border rounded-full px-5 text-xs focus:ring-primary" />
-            <Button onClick={handleSend} disabled={!input.trim()} className="w-10 h-10 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"><Send size={16} className="text-white ml-0.5" /></Button>
+            <Input value={input} onChange={handleInputChange} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Message..." className="h-12 bg-muted border-border rounded-full px-5 text-sm focus:ring-primary text-foreground" />
+            <Button onClick={handleSend} disabled={!input.trim()} className="w-12 h-12 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20"><Send size={20} className="text-white ml-0.5" /></Button>
           </div>
         </div>
       </div>

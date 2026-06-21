@@ -77,7 +77,7 @@ export function BottomNav() {
                 {showBadge && (
                   <div className="absolute -top-1 -right-1 flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background shadow-[0_0_10px_rgba(217,70,239,0.8)]"></span>
                   </div>
                 )}
               </div>
