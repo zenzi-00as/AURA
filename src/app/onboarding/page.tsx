@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
