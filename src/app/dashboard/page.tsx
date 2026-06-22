@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Info, Search, RefreshCcw, Compass } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Compass } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -125,12 +125,12 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative transition-colors overflow-hidden">
-        <header className="px-6 sm:px-8 py-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+        <header className="px-6 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
               <span className="text-white font-bold text-sm">A</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground truncate">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
               {t('discovery')}
             </h1>
           </div>

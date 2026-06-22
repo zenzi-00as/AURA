@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, ShieldCheck, Check, RefreshCcw, Loader2, Camera, Sparkles, CreditCard, Lock, ArrowLeft, Phone } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
@@ -229,7 +229,7 @@ export default function Onboarding() {
     );
   }
 
-  const progress = Math.round((step / 7) * 100);
+  const progressPercentage = Math.round((step / 7) * 100);
 
   return (
     <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
@@ -241,7 +241,7 @@ export default function Onboarding() {
             ))}
           </div>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-4 shrink-0">
-            {step}/7 ({progress}%)
+            Step {step} of 7 ({progressPercentage}% Complete)
           </span>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Lock, Circle } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Lock } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -92,12 +92,14 @@ export default function ChatList() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-        <header className="px-8 pt-6 pb-6 flex flex-col gap-4 sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
+        <header className="px-8 h-20 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
           <div className="flex justify-between items-center">
             {!isSearchOpen ? (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20"><span className="text-white font-bold text-sm">A</span></div>
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('messages')}</h1>
+                <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+                  <span className="text-white font-bold text-sm">A</span>
+                </div>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('messages')}</h1>
               </motion.div>
             ) : (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "100%" }} className="flex-1 mr-4">
