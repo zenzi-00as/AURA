@@ -81,7 +81,6 @@ export default function ChatRoomPage() {
   }, [db, authUser, roomId]);
 
   useEffect(() => {
-    // Scroll to bottom on load and when messages update
     const timer = setTimeout(() => {
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
@@ -222,21 +221,21 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} className="h-2 w-full" />
         </div>
 
-        <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-border safe-bottom">
-          <div className="relative flex items-center gap-2 max-w-md mx-auto">
+        <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
+          <div className="relative flex items-center gap-2 max-w-md mx-auto h-14">
             <Input 
               value={input} 
               onChange={handleInputChange} 
               onKeyPress={(e) => e.key === 'Enter' && handleSend()} 
               placeholder="Message..." 
-              className="h-12 bg-muted border-border rounded-full px-5 text-sm focus:ring-primary text-foreground flex-1" 
+              className="h-full bg-[#151515] border-white/12 rounded-full px-6 text-sm text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] flex-1 shadow-none transition-all" 
             />
             <Button 
               onClick={handleSend} 
               disabled={!input.trim()} 
-              className="w-12 h-12 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
+              className="w-14 h-14 rounded-full fuchsia-gradient p-0 flex items-center justify-center shadow-xl shadow-[#B84DFF]/20 shrink-0 border-none transition-transform active:scale-95"
             >
-              <Send size={20} className="text-white ml-0.5" />
+              <Send size={24} className="text-white ml-0.5" />
             </Button>
           </div>
         </div>
