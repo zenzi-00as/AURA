@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info, Home, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -76,14 +77,14 @@ export default function ProfilePage() {
           </div>
 
           {profile && (
-            <div className="glass-card p-8 rounded-[40px] space-y-6 relative overflow-hidden">
+            <div className="glass-card p-8 rounded-[40px] space-y-8 relative overflow-hidden">
               <div className="space-y-4 relative">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('about_me')}</h3>
                   <Dialog open={isEditing} onOpenChange={setIsEditing}>
                     <DialogTrigger asChild><button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"><Pencil size={14} /></button></DialogTrigger>
                     <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
-                      <DialogHeader className="space-y-3"><DialogTitle className="text-2xl font-semibold">{t('edit_profile')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light">Update your bio and identity details.</DialogDescription></DialogHeader>
+                      <DialogHeader className="space-y-3"><DialogTitle className="text-2xl font-semibold">{t('edit_profile')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">Update your bio and identity details.</DialogDescription></DialogHeader>
                       <div className="space-y-6 py-4">
                         <div className="space-y-3">
                           <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Bio</Label>
@@ -99,9 +100,36 @@ export default function ProfilePage() {
                 </div>
                 <p className="text-lg leading-relaxed text-foreground font-light">{profile.bio || "No bio added yet."}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</label><div className="flex items-center gap-2 text-foreground font-medium"><Heart size={14} className="text-primary" />{profile.gender}</div></div>
-                <div className="space-y-2"><label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</label><div className="flex items-center gap-2 text-foreground font-medium"><Sparkles size={14} className="text-primary" />{profile.orientation}</div></div>
+
+              <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">POSITION</label>
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <UserCircle size={14} className="text-primary" />
+                    {profile.position || "Not specified"}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">ROOM</label>
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <Home size={14} className="text-primary" />
+                    {profile.room || "No"}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('gender')}</label>
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <Heart size={14} className="text-primary" />
+                    {profile.gender}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('orientation')}</label>
+                  <div className="flex items-center gap-2 text-foreground font-medium">
+                    <Sparkles size={14} className="text-primary" />
+                    {profile.orientation}
+                  </div>
+                </div>
               </div>
             </div>
           )}

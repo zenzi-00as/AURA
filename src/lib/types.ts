@@ -12,6 +12,8 @@ export type UserProfile = {
   gender: string;
   orientation: string;
   interestedIn: string[];
+  position?: "Top" | "Bottom" | "Versatile" | "Not specified";
+  room?: "Yes" | "No";
   verificationStatus: VerificationStatus;
   subscriptionStatus?: SubscriptionStatus;
   subscriptionEndDate?: any;

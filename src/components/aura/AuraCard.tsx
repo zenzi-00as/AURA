@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BadgeCheck, MapPin, Shield, Lock } from "lucide-react";
+import { BadgeCheck, MapPin, Shield, Lock, Home, UserCircle } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 
 interface AuraCardProps {
@@ -54,6 +54,16 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         </p>
 
         <div className="flex flex-wrap gap-2 pt-1">
+          <span className="px-3 py-1.5 rounded-xl bg-muted/50 text-[9px] font-bold text-foreground/60 uppercase tracking-widest border border-border flex items-center gap-1.5">
+            <UserCircle size={10} className="text-primary" />
+            {user.position || "Versatile"}
+          </span>
+          {user.room === "Yes" && (
+            <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-[9px] font-bold text-emerald-500 uppercase tracking-widest border border-emerald-500/20 flex items-center gap-1.5">
+              <Home size={10} />
+              ROOM
+            </span>
+          )}
           <span className="px-3 py-1.5 rounded-xl bg-muted/50 text-[9px] font-bold text-foreground/60 uppercase tracking-widest border border-border">
             {user.gender}
           </span>

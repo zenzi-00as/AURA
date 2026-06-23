@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
@@ -18,6 +18,9 @@ import { OrientationSelector } from "@/components/onboarding/OrientationSelector
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useTranslation } from "@/context/LanguageContext";
+
+const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
+const ROOM_OPTIONS = ["Yes", "No"];
 
 export default function Onboarding() {
   const router = useRouter();
@@ -35,6 +38,8 @@ export default function Onboarding() {
     gender: "",
     orientation: "",
     interestedIn: [] as string[],
+    position: "" as any,
+    room: "" as any,
     age: "",
     documentPhoto: null as string | null,
     verificationStatus: 'Pending' as 'Verified' | 'Pending' | 'Rejected'
@@ -80,7 +85,7 @@ export default function Onboarding() {
   }, [stream]);
 
   useEffect(() => {
-    if (step === 6 && !formData.documentPhoto) startCamera();
+    if (step === 7 && !formData.documentPhoto) startCamera();
     else stopCamera();
     return () => stopCamera();
   }, [step, formData.documentPhoto, startCamera, stopCamera]);
@@ -126,6 +131,8 @@ export default function Onboarding() {
         gender: formData.gender,
         orientation: formData.orientation,
         interestedIn: formData.interestedIn,
+        position: formData.position,
+        room: formData.room,
         age: parseInt(formData.age),
         verificationStatus: formData.verificationStatus,
         subscriptionStatus: 'Active',
@@ -176,7 +183,7 @@ export default function Onboarding() {
   };
 
   const nextStep = async () => {
-    if (step === 6) {
+    if (step === 7) {
       if (!formData.documentPhoto) return;
       setIsSubmitting(true);
       try {
@@ -191,15 +198,15 @@ export default function Onboarding() {
           setFormData(prev => ({ ...prev, documentPhoto: null }));
         } else {
           setFormData(prev => ({ ...prev, verificationStatus: result.verificationStatus }));
-          setStep(7);
+          setStep(8);
         }
       } catch (error) {
         setFormData(prev => ({ ...prev, verificationStatus: 'Pending' }));
-        setStep(7);
+        setStep(8);
       } finally {
         setIsSubmitting(false);
       }
-    } else if (step === 7) {
+    } else if (step === 8) {
       await finalizeProfile();
     } else {
       setStep(s => s + 1);
@@ -215,8 +222,9 @@ export default function Onboarding() {
     (step === 2 && !formData.bio.trim()) || 
     (step === 3 && !formData.gender) || 
     (step === 4 && !formData.orientation) || 
-    (step === 5 && formData.interestedIn.length === 0) || 
-    (step === 6 && !formData.documentPhoto);
+    (step === 5 && (!formData.position || !formData.room)) || 
+    (step === 6 && formData.interestedIn.length === 0) || 
+    (step === 7 && !formData.documentPhoto);
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
@@ -229,19 +237,19 @@ export default function Onboarding() {
     );
   }
 
-  const progressPercentage = Math.round((step / 7) * 100);
+  const progressPercentage = Math.round((step / 8) * 100);
 
   return (
     <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
       <div className="px-8 pt-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-1 flex-1">
-            {[1, 2, 3, 4, 5, 6, 7].map(s => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
               <div key={s} className={cn("h-1 rounded-full transition-all duration-500 flex-1", step >= s ? "bg-primary" : "bg-muted")} />
             ))}
           </div>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-4 shrink-0">
-            Step {step} of 7 ({progressPercentage}% Complete)
+            Step {step} of 8 ({progressPercentage}% Complete)
           </span>
         </div>
       </div>
@@ -261,11 +269,12 @@ export default function Onboarding() {
                  step === 2 ? "Your Bio" : 
                  step === 3 ? "Identity" : 
                  step === 4 ? "Orientation" : 
-                 step === 5 ? "Preferences" : 
-                 step === 6 ? "Selfie Guard" : 
+                 step === 5 ? "Dynamics" :
+                 step === 6 ? "Preferences" : 
+                 step === 7 ? "Selfie Guard" : 
                  "Aura Premium"}
               </h2>
-              {step < 7 && (
+              {step < 8 && (
                 <button 
                   onClick={handleBack} 
                   className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-muted transition-colors shrink-0"
@@ -348,6 +357,51 @@ export default function Onboarding() {
             )}
 
             {step === 5 && (
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">POSITION</label>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {POSITION_OPTIONS.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => setFormData({ ...formData, position: opt })}
+                        className={cn(
+                          "h-14 px-5 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
+                          formData.position === opt 
+                            ? "fuchsia-gradient text-white border-transparent" 
+                            : "bg-[#151515] border-white/12 text-white"
+                        )}
+                      >
+                        {opt}
+                        {formData.position === opt && <Check size={16} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">ROOM (CAN YOU HOST?)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {ROOM_OPTIONS.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => setFormData({ ...formData, room: opt })}
+                        className={cn(
+                          "h-14 px-5 rounded-2xl text-sm font-medium transition-all flex items-center justify-center border gap-2",
+                          formData.room === opt 
+                            ? "fuchsia-gradient text-white border-transparent" 
+                            : "bg-[#151515] border-white/12 text-white"
+                        )}
+                      >
+                        {opt === "Yes" ? <Home size={16} /> : <MapPin size={16} />}
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 6 && (
               <div className="space-y-4">
                 <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
                 <InterestedInSelector 
@@ -364,7 +418,7 @@ export default function Onboarding() {
               </div>
             )}
             
-            {step === 6 && (
+            {step === 7 && (
               <div className="space-y-6 flex-1 flex flex-col">
                 <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Live Identity Verification</label>
                 <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
@@ -408,7 +462,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 7 && (
+            {step === 8 && (
               <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center py-4">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30 shrink-0">
                   <Sparkles className="text-white" size={32} />
@@ -446,9 +500,9 @@ export default function Onboarding() {
           className="w-full h-14 sm:h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
-            {step === 7 ? (
+            {step === 8 ? (
               <span>Join Aura - ₹ 1 Only</span>
-            ) : step === 6 ? (
+            ) : step === 7 ? (
               "Verify Identity"
             ) : (
               "Continue"
