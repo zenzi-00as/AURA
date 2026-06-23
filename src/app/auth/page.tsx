@@ -134,7 +134,7 @@ export default function AuthPage() {
 
   if (authLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe relative overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe relative overflow-hidden aura-doodle">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
         <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10 shadow-2xl shadow-primary/20">
           <span className="text-4xl font-bold text-white tracking-tighter">A</span>
@@ -144,18 +144,27 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 py-12 sm:py-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom">
+    <div className="flex-1 flex flex-col px-8 pt-32 pb-12 sm:pt-48 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-8 sm:mb-12 relative z-10">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
+      <div className="mb-10 sm:mb-16 relative z-10">
+        <motion.h1 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight"
+        >
           {step === "details" ? "Welcome back" : "Verify Email"}
-        </h1>
-        <p className="text-muted-foreground font-light leading-relaxed text-sm sm:text-base">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-muted-foreground font-light leading-relaxed text-sm sm:text-base"
+        >
           {step === "details" 
             ? "Enter your details to continue. We'll verify your email." 
             : `We've sent a 6-digit code to ${email}. Please enter it below.`}
-        </p>
+        </motion.p>
       </div>
 
       <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide">
@@ -180,7 +189,7 @@ export default function AuthPage() {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-foreground transition-all"
+                      className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                     />
                   </div>
 
@@ -189,7 +198,7 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[100px] sm:w-[110px] h-14 bg-muted border-border rounded-2xl text-sm sm:text-base font-medium text-foreground focus:ring-primary">
+                      <SelectTrigger className="w-[100px] sm:w-[110px] h-14 bg-[#151515] border-white/12 rounded-2xl text-sm sm:text-base font-medium text-white focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border rounded-2xl max-h-[300px]">
@@ -212,7 +221,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-foreground transition-all"
+                        className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                       />
                     </div>
                   </div>
@@ -244,7 +253,7 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-12 h-14 bg-muted border-border rounded-2xl focus:ring-primary focus:border-primary text-xl sm:text-2xl tracking-[0.5em] text-foreground transition-all"
+                    className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xl sm:text-2xl tracking-[0.5em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                   />
                 </div>
 

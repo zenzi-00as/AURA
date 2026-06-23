@@ -245,7 +245,7 @@ export default function Onboarding() {
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe aura-doodle">
         <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
           <span className="text-3xl font-bold text-white tracking-tighter">A</span>
         </div>
@@ -257,7 +257,7 @@ export default function Onboarding() {
   const progressPercentage = Math.round((step / 8) * 100);
 
   return (
-    <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
+    <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom aura-doodle">
       <div className="px-8 pt-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-1 flex-1">
