@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
@@ -32,6 +32,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCameraLoading, setIsCameraLoading] = useState(false);
+  const [isVerifyingAI, setIsVerifyingAI] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -48,6 +49,7 @@ export default function Onboarding() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -85,10 +87,13 @@ export default function Onboarding() {
   }, [stream]);
 
   useEffect(() => {
-    if (step === 7 && !formData.documentPhoto) startCamera();
-    else stopCamera();
+    if (step === 7 && !formData.documentPhoto) {
+      // Don't auto-start, let user choose Camera or Gallery
+    } else {
+      stopCamera();
+    }
     return () => stopCamera();
-  }, [step, formData.documentPhoto, startCamera, stopCamera]);
+  }, [step, formData.documentPhoto, stopCamera]);
 
   const captureSelfie = () => {
     if (videoRef.current && canvasRef.current && stream) {
@@ -102,6 +107,18 @@ export default function Onboarding() {
         setFormData(prev => ({ ...prev, documentPhoto: canvas.toDataURL('image/jpeg', 0.8) }));
         stopCamera();
       }
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, documentPhoto: reader.result as string }));
+        stopCamera();
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -185,7 +202,7 @@ export default function Onboarding() {
   const nextStep = async () => {
     if (step === 7) {
       if (!formData.documentPhoto) return;
-      setIsSubmitting(true);
+      setIsVerifyingAI(true);
       try {
         const result = await selfieVerification({
           photoDataUri: formData.documentPhoto,
@@ -204,7 +221,7 @@ export default function Onboarding() {
         setFormData(prev => ({ ...prev, verificationStatus: 'Pending' }));
         setStep(8);
       } finally {
-        setIsSubmitting(false);
+        setIsVerifyingAI(false);
       }
     } else if (step === 8) {
       await finalizeProfile();
@@ -217,13 +234,13 @@ export default function Onboarding() {
   const isAgeValid = formData.age !== "" && ageVal >= 18 && ageVal <= 80;
   const isNameValid = formData.name.trim().length > 0;
 
-  const isNextDisabled = isSubmitting || 
+  const isNextDisabled = isSubmitting || isVerifyingAI ||
     (step === 1 && (!isNameValid || !isAgeValid)) || 
     (step === 2 && !formData.bio.trim()) || 
     (step === 3 && !formData.gender) || 
     (step === 4 && !formData.orientation) || 
-    (step === 5 && (!formData.position || !formData.room)) || 
-    (step === 6 && formData.interestedIn.length === 0) || 
+    (step === 5 && formData.interestedIn.length === 0) || 
+    (step === 6 && (!formData.position || !formData.room)) || 
     (step === 7 && !formData.documentPhoto);
 
   if (authLoading || !user || profile?.onboardingCompleted) {
@@ -269,9 +286,9 @@ export default function Onboarding() {
                  step === 2 ? "Your Bio" : 
                  step === 3 ? "Identity" : 
                  step === 4 ? "Orientation" : 
-                 step === 5 ? "Dynamics" :
-                 step === 6 ? "Preferences" : 
-                 step === 7 ? "Selfie Guard" : 
+                 step === 5 ? "Preferences" :
+                 step === 6 ? "Dynamics" : 
+                 step === 7 ? "Identity Guard" : 
                  "Aura Premium"}
               </h2>
               {step < 8 && (
@@ -357,6 +374,23 @@ export default function Onboarding() {
             )}
 
             {step === 5 && (
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
+                <InterestedInSelector 
+                  selected={formData.interestedIn} 
+                  onToggle={(i) => {
+                    setFormData(prev => {
+                      const exists = prev.interestedIn.includes(i);
+                      if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
+                      if (prev.interestedIn.length >= 2) return prev;
+                      return { ...prev, interestedIn: [...prev.interestedIn, i] };
+                    });
+                  }} 
+                />
+              </div>
+            )}
+
+            {step === 6 && (
               <div className="space-y-8">
                 <div className="space-y-4">
                   <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">POSITION</label>
@@ -400,63 +434,97 @@ export default function Onboarding() {
                 </div>
               </div>
             )}
-
-            {step === 6 && (
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
-                <InterestedInSelector 
-                  selected={formData.interestedIn} 
-                  onToggle={(i) => {
-                    setFormData(prev => {
-                      const exists = prev.interestedIn.includes(i);
-                      if (exists) return { ...prev, interestedIn: prev.interestedIn.filter(x => x !== i) };
-                      if (prev.interestedIn.length >= 2) return prev;
-                      return { ...prev, interestedIn: [...prev.interestedIn, i] };
-                    });
-                  }} 
-                />
-              </div>
-            )}
             
             {step === 7 && (
               <div className="space-y-6 flex-1 flex flex-col">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Live Identity Verification</label>
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1 block text-center">Verify Your Profile</label>
+                
                 <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
                   {formData.documentPhoto ? (
                     <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
+                  ) : stream ? (
                     <div className="w-full h-full flex items-center justify-center">
-                      {isCameraLoading ? (
-                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                      ) : (
-                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
-                      )}
+                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4 bg-muted/20">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <User size={24} />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-light">Select a source to verify your identity.</p>
                     </div>
                   )}
                   <canvas ref={canvasRef} className="hidden" />
                 </div>
                 
                 <div className="flex flex-col items-center gap-4 mt-auto py-4">
-                  {!formData.documentPhoto && !isCameraLoading && (
-                    <button 
-                      onClick={captureSelfie}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
-                    >
-                      <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
-                        <Camera className="text-[#B84DFF]" size={24} />
-                      </div>
-                    </button>
-                  )}
-                  
-                  {formData.documentPhoto && (
-                    <Button variant="ghost" onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10">
-                      <RefreshCcw size={14} className="inline mr-2" />
-                      Retake Identity Photo
-                    </Button>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {!formData.documentPhoto ? (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="w-full flex flex-col gap-3"
+                      >
+                        {stream ? (
+                          <button 
+                            onClick={captureSelfie}
+                            className="w-16 h-16 mx-auto rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                              <Camera className="text-[#B84DFF]" size={24} />
+                            </div>
+                          </button>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 w-full max-w-[320px] mx-auto">
+                            <button 
+                              onClick={startCamera}
+                              disabled={isCameraLoading}
+                              className="h-20 rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
+                            >
+                              {isCameraLoading ? <Loader2 size={20} className="animate-spin text-primary" /> : <Camera size={20} className="text-primary" />}
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Camera</span>
+                            </button>
+                            <button 
+                              onClick={() => fileInputRef.current?.click()}
+                              className="h-20 rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
+                            >
+                              <ImageIcon size={20} className="text-primary" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Gallery</span>
+                            </button>
+                            <input 
+                              type="file" 
+                              ref={fileInputRef} 
+                              className="hidden" 
+                              accept="image/*" 
+                              onChange={handleFileUpload} 
+                            />
+                          </div>
+                        )}
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-2"
+                      >
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, documentPhoto: null }));
+                            stopCamera();
+                          }} 
+                          className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
+                        >
+                          <RefreshCcw size={14} className="inline mr-2" />
+                          Try Another Photo
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   
                   <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
-                    Your live photo is analyzed securely and is never shared with other users.
+                    Your photo is analyzed securely for authenticity and is never shared without your permission.
                   </p>
                 </div>
               </div>
@@ -499,7 +567,7 @@ export default function Onboarding() {
           disabled={isNextDisabled}
           className="w-full h-14 sm:h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
-          {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
+          {isVerifyingAI || isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
             {step === 8 ? (
               <span>Join Aura - ₹ 1 Only</span>
             ) : step === 7 ? (
