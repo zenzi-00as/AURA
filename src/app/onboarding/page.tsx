@@ -88,7 +88,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (step === 7 && !formData.documentPhoto) {
-      // Don't auto-start, let user choose Camera or Gallery
+      // Verification step - camera source logic
     } else {
       stopCamera();
     }
