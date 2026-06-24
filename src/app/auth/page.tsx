@@ -167,7 +167,7 @@ export default function AuthPage() {
         </motion.p>
       </div>
 
-      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide">
+      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
