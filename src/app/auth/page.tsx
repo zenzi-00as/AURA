@@ -144,10 +144,10 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-32 pb-12 sm:pt-48 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-48 pb-12 sm:pt-64 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-10 sm:mb-16 relative z-10">
+      <div className="mb-12 sm:mb-16 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
