@@ -147,11 +147,11 @@ export default function AuthPage() {
     <div className="flex-1 flex flex-col px-8 pt-48 pb-12 sm:pt-64 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-12 sm:mb-16 relative z-10">
+      <div className="mb-10 sm:mb-12 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight"
+          className="text-xl sm:text-2xl font-semibold text-foreground mb-2 tracking-tight"
         >
           {step === "details" ? "Welcome back" : "Verify Email"}
         </motion.h1>
@@ -159,7 +159,7 @@ export default function AuthPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground font-light leading-relaxed text-sm sm:text-base"
+          className="text-muted-foreground font-light leading-relaxed text-xs sm:text-sm"
         >
           {step === "details" 
             ? "Enter your details to continue. We'll verify your email." 
@@ -175,21 +175,21 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="space-y-6 sm:space-y-8"
+            className="space-y-4 sm:space-y-6"
           >
             {step === "details" ? (
-              <div className="space-y-6">
-                <div className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Mail size={18} />
+                      <Mail size={16} />
                     </div>
                     <Input
                       type="email"
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm sm:text-base text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                     />
                   </div>
 
@@ -198,10 +198,10 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[100px] sm:w-[110px] h-14 bg-[#151515] border-white/12 rounded-2xl text-sm sm:text-base font-medium text-white focus:ring-primary">
+                      <SelectTrigger className="w-[90px] sm:w-[100px] h-12 bg-[#151515] border-white/12 rounded-2xl text-xs sm:text-sm font-medium text-white focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-border rounded-2xl max-h-[300px]">
+                      <SelectContent className="bg-popover border-border rounded-2xl max-h-[240px]">
                         {COUNTRIES.map((c) => (
                           <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl">
                             <span className="mr-2">{c.flag}</span>
@@ -213,7 +213,7 @@ export default function AuthPage() {
                     
                     <div className="relative group flex-1">
                       <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                        <Phone size={18} />
+                        <Phone size={16} />
                       </div>
                       <Input
                         type="tel"
@@ -221,7 +221,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base sm:text-lg text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm sm:text-base text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                       />
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export default function AuthPage() {
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
                     className="mt-1 border-border bg-muted data-[state=checked]:bg-primary"
                   />
-                  <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
+                  <label htmlFor="terms" className="text-[10px] text-muted-foreground leading-relaxed cursor-pointer select-none">
                     I agree to the{" "}
                     <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">Terms</Link>
                     {" "}and{" "}
@@ -243,27 +243,27 @@ export default function AuthPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Lock size={18} />
+                    <Lock size={16} />
                   </div>
                   <Input
                     type="number"
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xl sm:text-2xl tracking-[0.5em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-lg sm:text-xl tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-2">
-                  <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-xs font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
-                    <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-2">
+                  <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-[10px] font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
+                    <RefreshCw size={10} className={isLoading ? "animate-spin" : ""} />
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
                   </button>
-                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1">
-                    <ChevronLeft size={12} />
+                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1">
+                    <ChevronLeft size={10} />
                     Change details
                   </button>
                 </div>
@@ -273,11 +273,11 @@ export default function AuthPage() {
             <Button 
               onClick={handleNext}
               disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
-              className="w-full h-14 rounded-2xl fuchsia-gradient text-white text-lg font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-2xl fuchsia-gradient text-white text-base font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                 {step === "details" ? "Send Code" : "Verify Identity"}
-                <ArrowRight size={20} />
+                <ArrowRight size={18} />
               </>}
             </Button>
           </motion.div>
@@ -285,7 +285,7 @@ export default function AuthPage() {
       </div>
 
       <div className="mt-auto py-8 text-center opacity-40">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
   );
