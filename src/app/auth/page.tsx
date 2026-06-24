@@ -144,14 +144,14 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-48 pb-12 sm:pt-64 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-64 pb-12 sm:pt-80 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-10 sm:mb-12 relative z-10">
+      <div className="mb-12 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl sm:text-2xl font-semibold text-foreground mb-2 tracking-tight"
+          className="text-xl font-semibold text-foreground mb-2 tracking-tight"
         >
           {step === "details" ? "Welcome back" : "Verify Email"}
         </motion.h1>
@@ -159,7 +159,7 @@ export default function AuthPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground font-light leading-relaxed text-xs sm:text-sm"
+          className="text-muted-foreground font-light leading-relaxed text-xs"
         >
           {step === "details" 
             ? "Enter your details to continue. We'll verify your email." 
@@ -175,7 +175,7 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="space-y-4 sm:space-y-6"
+            className="space-y-4"
           >
             {step === "details" ? (
               <div className="space-y-4">
@@ -189,7 +189,7 @@ export default function AuthPage() {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm sm:text-base text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                     />
                   </div>
 
@@ -198,7 +198,7 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[90px] sm:w-[100px] h-12 bg-[#151515] border-white/12 rounded-2xl text-xs sm:text-sm font-medium text-white focus:ring-primary">
+                      <SelectTrigger className="w-[90px] h-12 bg-[#151515] border-white/12 rounded-2xl text-xs font-medium text-white focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border rounded-2xl max-h-[240px]">
@@ -221,7 +221,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm sm:text-base text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                       />
                     </div>
                   </div>
@@ -253,11 +253,11 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-lg sm:text-xl tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-lg tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-2">
+                <div className="flex flex-col justify-between items-center gap-3 px-2">
                   <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-[10px] font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
                     <RefreshCw size={10} className={isLoading ? "animate-spin" : ""} />
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
