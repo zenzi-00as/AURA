@@ -144,14 +144,14 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-24 pb-12 sm:pt-32 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
-      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
+    <div className="flex-1 flex flex-col px-8 pt-20 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="mb-8 relative z-10">
+      <div className="mb-6 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-base font-semibold text-foreground mb-1 tracking-tight"
+          className="text-lg font-semibold text-foreground mb-1 tracking-tight"
         >
           {step === "details" ? "Welcome back" : "Verify Email"}
         </motion.h1>
@@ -167,18 +167,18 @@ export default function AuthPage() {
         </motion.p>
       </div>
 
-      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-8">
+      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide py-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="space-y-4"
           >
             {step === "details" ? (
-              <div className="space-y-4">
+              <div className="space-y-4 p-0.5">
                 <div className="space-y-3">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -243,7 +243,7 @@ export default function AuthPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 p-0.5">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
                     <Lock size={14} />
@@ -284,7 +284,7 @@ export default function AuthPage() {
         </AnimatePresence>
       </div>
 
-      <div className="mt-auto py-8 text-center opacity-30">
+      <div className="mt-auto py-6 text-center opacity-30">
         <p className="text-[8px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
