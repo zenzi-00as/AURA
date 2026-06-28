@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
@@ -49,7 +49,6 @@ export default function Onboarding() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -88,7 +87,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (step === 7 && !formData.documentPhoto) {
-      // Identity Guard step
+      // Identity Guard step logic handled by UI triggers
     } else {
       stopCamera();
     }
@@ -107,18 +106,6 @@ export default function Onboarding() {
         setFormData(prev => ({ ...prev, documentPhoto: canvas.toDataURL('image/jpeg', 0.8) }));
         stopCamera();
       }
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, documentPhoto: reader.result as string }));
-        stopCamera();
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -266,7 +253,7 @@ export default function Onboarding() {
             ))}
           </div>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-4 shrink-0">
-            Step {step} of 8 ({progressPercentage}% Complete)
+            {progressPercentage}% Complete
           </span>
         </div>
       </div>
@@ -451,7 +438,7 @@ export default function Onboarding() {
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                         <User size={24} />
                       </div>
-                      <p className="text-xs text-muted-foreground font-light">Select a source to verify your identity.</p>
+                      <p className="text-xs text-muted-foreground font-light">Verification requires a live selfie capture.</p>
                     </div>
                   )}
                   <canvas ref={canvasRef} className="hidden" />
@@ -476,29 +463,15 @@ export default function Onboarding() {
                             </div>
                           </button>
                         ) : (
-                          <div className="grid grid-cols-2 gap-3 w-full max-w-[320px] mx-auto">
+                          <div className="w-full flex justify-center">
                             <button 
                               onClick={startCamera}
                               disabled={isCameraLoading}
-                              className="h-20 rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
+                              className="h-20 w-full max-w-[200px] rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
                             >
                               {isCameraLoading ? <Loader2 size={20} className="animate-spin text-primary" /> : <Camera size={20} className="text-primary" />}
-                              <span className="text-[10px] font-bold uppercase tracking-widest">Camera</span>
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Start Camera</span>
                             </button>
-                            <button 
-                              onClick={() => fileInputRef.current?.click()}
-                              className="h-20 rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
-                            >
-                              <ImageIcon size={20} className="text-primary" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest">Gallery</span>
-                            </button>
-                            <input 
-                              type="file" 
-                              ref={fileInputRef} 
-                              className="hidden" 
-                              accept="image/*" 
-                              onChange={handleFileUpload} 
-                            />
                           </div>
                         )}
                       </motion.div>
@@ -517,7 +490,7 @@ export default function Onboarding() {
                           className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
                         >
                           <RefreshCcw size={14} className="inline mr-2" />
-                          Try Another Photo
+                          Retake Photo
                         </Button>
                       </motion.div>
                     )}
