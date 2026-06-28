@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -136,22 +135,22 @@ export default function AuthPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe relative overflow-hidden aura-doodle">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] aura-pulse" />
-        <div className="w-24 h-24 rounded-[32px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10 shadow-2xl shadow-primary/20">
-          <span className="text-4xl font-bold text-white tracking-tighter">A</span>
+        <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse relative z-10 shadow-2xl shadow-primary/20">
+          <span className="text-3xl font-bold text-white tracking-tighter">A</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-80 pb-12 sm:pt-96 sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-[26rem] pb-12 sm:pt-[32rem] sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-12 relative z-10">
+      <div className="mb-10 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl font-semibold text-foreground mb-2 tracking-tight"
+          className="text-lg font-semibold text-foreground mb-1.5 tracking-tight"
         >
           {step === "details" ? "Welcome back" : "Verify Email"}
         </motion.h1>
@@ -159,7 +158,7 @@ export default function AuthPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground font-light leading-relaxed text-xs"
+          className="text-muted-foreground font-light leading-relaxed text-[10px]"
         >
           {step === "details" 
             ? "Enter your details to continue. We'll verify your email." 
@@ -167,7 +166,7 @@ export default function AuthPage() {
         </motion.p>
       </div>
 
-      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-16">
+      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -178,18 +177,18 @@ export default function AuthPage() {
             className="space-y-4"
           >
             {step === "details" ? (
-              <div className="space-y-4">
-                <div className="space-y-3">
+              <div className="space-y-3.5">
+                <div className="space-y-2.5">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                      <Mail size={16} />
+                      <Mail size={14} />
                     </div>
                     <Input
                       type="email"
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                     />
                   </div>
 
@@ -198,12 +197,12 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[90px] h-12 bg-[#151515] border-white/12 rounded-2xl text-xs font-medium text-white focus:ring-primary">
+                      <SelectTrigger className="w-[85px] h-12 bg-[#151515] border-white/12 rounded-2xl text-[10px] font-medium text-white focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border rounded-2xl max-h-[240px]">
                         {COUNTRIES.map((c) => (
-                          <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl">
+                          <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl text-[10px]">
                             <span className="mr-2">{c.flag}</span>
                             <span>{c.code}</span>
                           </SelectItem>
@@ -213,7 +212,7 @@ export default function AuthPage() {
                     
                     <div className="relative group flex-1">
                       <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                        <Phone size={16} />
+                        <Phone size={14} />
                       </div>
                       <Input
                         type="tel"
@@ -221,7 +220,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-sm text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                       />
                     </div>
                   </div>
@@ -232,9 +231,9 @@ export default function AuthPage() {
                     id="terms" 
                     checked={agreedToTerms} 
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                    className="mt-1 border-border bg-muted data-[state=checked]:bg-primary"
+                    className="mt-1 w-3.5 h-3.5 border-border bg-muted data-[state=checked]:bg-primary"
                   />
-                  <label htmlFor="terms" className="text-[10px] text-muted-foreground leading-relaxed cursor-pointer select-none">
+                  <label htmlFor="terms" className="text-[9px] text-muted-foreground leading-relaxed cursor-pointer select-none">
                     I agree to the{" "}
                     <Link href="/terms" className="text-foreground font-semibold hover:text-primary transition-colors">Terms</Link>
                     {" "}and{" "}
@@ -246,23 +245,23 @@ export default function AuthPage() {
               <div className="space-y-4">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Lock size={16} />
+                    <Lock size={14} />
                   </div>
                   <Input
                     type="number"
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-lg tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                   />
                 </div>
 
                 <div className="flex flex-col justify-between items-center gap-3 px-2">
-                  <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-[10px] font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
+                  <button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className="text-[9px] font-bold text-primary hover:text-primary/80 disabled:text-muted-foreground flex items-center gap-2 transition-colors">
                     <RefreshCw size={10} className={isLoading ? "animate-spin" : ""} />
                     {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend Code"}
                   </button>
-                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1">
+                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-[9px] text-muted-foreground hover:text-foreground transition-colors font-bold flex items-center gap-1">
                     <ChevronLeft size={10} />
                     Change details
                   </button>
@@ -273,19 +272,19 @@ export default function AuthPage() {
             <Button 
               onClick={handleNext}
               disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
-              className="w-full h-12 rounded-2xl fuchsia-gradient text-white text-base font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-2xl fuchsia-gradient text-white text-sm font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
                 {step === "details" ? "Send Code" : "Verify Identity"}
-                <ArrowRight size={18} />
+                <ArrowRight size={16} />
               </>}
             </Button>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="mt-auto py-8 text-center opacity-40">
-        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
+      <div className="mt-auto py-8 text-center opacity-30">
+        <p className="text-[8px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
   );
