@@ -75,7 +75,7 @@ export default function Onboarding() {
       const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
       setStream(s);
     } catch (err) {
-      toast({ variant: "destructive", title: "Camera Error", description: "Please allow camera access." });
+      toast({ variant: "destructive", title: "Camera Error", description: "Please allow camera access for verification." });
     } finally {
       setIsCameraLoading(false);
     }
@@ -87,12 +87,12 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (step === 7 && !formData.documentPhoto) {
-      // Identity Guard step logic handled by UI triggers
-    } else {
+      startCamera();
+    } else if (step !== 7) {
       stopCamera();
     }
     return () => stopCamera();
-  }, [step, formData.documentPhoto, stopCamera]);
+  }, [step, formData.documentPhoto, startCamera, stopCamera]);
 
   const captureSelfie = () => {
     if (videoRef.current && canvasRef.current && stream) {
@@ -188,7 +188,10 @@ export default function Onboarding() {
 
   const nextStep = async () => {
     if (step === 7) {
-      if (!formData.documentPhoto) return;
+      if (!formData.documentPhoto) {
+        toast({ title: "Selfie Required", description: "Please tap the camera to capture a verification photo." });
+        return;
+      }
       setIsVerifyingAI(true);
       try {
         const result = await selfieVerification({
@@ -426,75 +429,64 @@ export default function Onboarding() {
               <div className="space-y-6 flex-1 flex flex-col">
                 <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest block text-center">Verify Your Profile</label>
                 
-                <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)]">
+                <div 
+                  onClick={!formData.documentPhoto && stream ? captureSelfie : undefined}
+                  className={cn(
+                    "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)] transition-all",
+                    !formData.documentPhoto && stream && "cursor-pointer active:scale-95"
+                  )}
+                >
                   {formData.documentPhoto ? (
                     <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
                   ) : stream ? (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center relative">
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                        <Camera size={64} className="text-white" />
+                      </div>
+                      <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
+                        <span className="text-[10px] font-bold text-white uppercase tracking-widest bg-black/40 px-4 py-2 rounded-full backdrop-blur-md">
+                          Tap to Capture
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4 bg-muted/20">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <User size={24} />
-                      </div>
-                      <p className="text-xs text-muted-foreground font-light">Verification requires a live selfie capture.</p>
+                      {isCameraLoading ? (
+                        <Loader2 size={24} className="text-primary animate-spin" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <User size={24} />
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground font-light">
+                        {isCameraLoading ? "Activating identity guard..." : "Verification requires a live selfie capture."}
+                      </p>
                     </div>
                   )}
                   <canvas ref={canvasRef} className="hidden" />
                 </div>
                 
                 <div className="flex flex-col items-center gap-4 mt-auto py-4">
-                  <AnimatePresence mode="wait">
-                    {!formData.documentPhoto ? (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="w-full flex flex-col gap-3"
+                  {formData.documentPhoto && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex flex-col items-center gap-2"
+                    >
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, documentPhoto: null }));
+                          // startCamera() will be called by useEffect
+                        }} 
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
                       >
-                        {stream ? (
-                          <button 
-                            onClick={captureSelfie}
-                            className="w-16 h-16 mx-auto rounded-full bg-white/10 backdrop-blur-xl border-4 border-white flex items-center justify-center hover:scale-105 transition-transform"
-                          >
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                              <Camera className="text-[#B84DFF]" size={24} />
-                            </div>
-                          </button>
-                        ) : (
-                          <div className="w-full flex justify-center">
-                            <button 
-                              onClick={startCamera}
-                              disabled={isCameraLoading}
-                              className="h-20 w-full max-w-[200px] rounded-2xl bg-muted/40 border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
-                            >
-                              {isCameraLoading ? <Loader2 size={20} className="animate-spin text-primary" /> : <Camera size={20} className="text-primary" />}
-                              <span className="text-[10px] font-bold uppercase tracking-widest">Start Camera</span>
-                            </button>
-                          </div>
-                        )}
-                      </motion.div>
-                    ) : (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col items-center gap-2"
-                      >
-                        <Button 
-                          variant="ghost" 
-                          onClick={() => {
-                            setFormData(prev => ({ ...prev, documentPhoto: null }));
-                            stopCamera();
-                          }} 
-                          className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
-                        >
-                          <RefreshCcw size={14} className="inline mr-2" />
-                          Retake Photo
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <RefreshCcw size={14} className="inline mr-2" />
+                        Retake Photo
+                      </Button>
+                    </motion.div>
+                  )}
                   
                   <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
                     Your photo is analyzed securely for authenticity and is never shared without your permission.
