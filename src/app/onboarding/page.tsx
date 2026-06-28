@@ -88,7 +88,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (step === 7 && !formData.documentPhoto) {
-      // Verification step - camera source logic
+      // Identity Guard step - potential camera activation
     } else {
       stopCamera();
     }

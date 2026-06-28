@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -143,14 +144,14 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-[26rem] pb-12 sm:pt-[32rem] sm:pb-24 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-24 pb-12 sm:pt-32 relative overflow-hidden bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px]" />
       
-      <div className="mb-10 relative z-10">
+      <div className="mb-8 relative z-10">
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-lg font-semibold text-foreground mb-1.5 tracking-tight"
+          className="text-base font-semibold text-foreground mb-1 tracking-tight"
         >
           {step === "details" ? "Welcome back" : "Verify Email"}
         </motion.h1>
@@ -166,7 +167,7 @@ export default function AuthPage() {
         </motion.p>
       </div>
 
-      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-10">
+      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide mt-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -177,8 +178,8 @@ export default function AuthPage() {
             className="space-y-4"
           >
             {step === "details" ? (
-              <div className="space-y-3.5">
-                <div className="space-y-2.5">
+              <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
                       <Mail size={14} />
@@ -188,7 +189,7 @@ export default function AuthPage() {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                      className="pl-11 h-11 bg-[#151515] border-white/12 rounded-xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                     />
                   </div>
 
@@ -197,10 +198,10 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[85px] h-12 bg-[#151515] border-white/12 rounded-2xl text-[10px] font-medium text-white focus:ring-primary">
+                      <SelectTrigger className="w-[85px] h-11 bg-[#151515] border-white/12 rounded-xl text-[10px] font-medium text-white focus:ring-primary">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-border rounded-2xl max-h-[240px]">
+                      <SelectContent className="bg-popover border-border rounded-xl max-h-[240px]">
                         {COUNTRIES.map((c) => (
                           <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl text-[10px]">
                             <span className="mr-2">{c.flag}</span>
@@ -220,7 +221,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                        className="pl-11 h-11 bg-[#151515] border-white/12 rounded-xl focus:ring-primary focus:border-primary text-xs text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                       />
                     </div>
                   </div>
@@ -252,7 +253,7 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-11 h-12 bg-[#151515] border-white/12 rounded-2xl focus:ring-primary focus:border-primary text-base tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
+                    className="pl-11 h-11 bg-[#151515] border-white/12 rounded-xl focus:ring-primary focus:border-primary text-base tracking-[0.4em] text-white transition-all shadow-none placeholder:text-[#8A8A8A]"
                   />
                 </div>
 
@@ -272,11 +273,11 @@ export default function AuthPage() {
             <Button 
               onClick={handleNext}
               disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
-              className="w-full h-12 rounded-2xl fuchsia-gradient text-white text-sm font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-xl fuchsia-gradient text-white text-xs font-medium shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
                 {step === "details" ? "Send Code" : "Verify Identity"}
-                <ArrowRight size={16} />
+                <ArrowRight size={14} />
               </>}
             </Button>
           </motion.div>
