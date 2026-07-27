@@ -144,8 +144,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-24 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      
+      {/* Blank Header Structure */}
+      <header className="h-16 mb-8 relative z-10" />
       
       <div className="mb-12 relative z-10">
         <div className="flex flex-col gap-2">
