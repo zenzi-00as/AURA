@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  /* Premium Dark Theme Variables */
-  --background: 260 20% 4%; /* #090909 */
+  /* Premium Dark Theme Variables - Calibrated for OLED and Glassmorphism */
+  --background: 0 0% 0%; /* Absolute Black */
   --foreground: 0 0% 100%;
   
-  --card: 0 0% 100%;
+  --card: 0 0% 6%; /* #0F0F0F */
   --card-foreground: 0 0% 100%;
   
-  --popover: 260 20% 4%;
+  --popover: 0 0% 4%;
   --popover-foreground: 0 0% 100%;
   
   --primary: 270 91% 65%; /* #A855F7 */
@@ -19,8 +19,8 @@
   --secondary: 330 81% 60%; /* #EC4899 */
   --secondary-foreground: 0 0% 100%;
   
-  --muted: 260 10% 12%;
-  --muted-foreground: 260 5% 70%;
+  --muted: 0 0% 10%; /* #1A1A1A */
+  --muted-foreground: 0 0% 70%;
   
   --accent: 217 91% 60%; /* #3B82F6 */
   --accent-foreground: 0 0% 100%;
@@ -68,16 +68,18 @@
     background: linear-gradient(135deg, #A855F7 0%, #EC4899 50%, #3B82F6 100%);
     @apply animate-gradient;
   }
+
+  .fuchsia-gradient {
+    background: linear-gradient(135deg, #C93CFF 0%, #A855F7 100%);
+    @apply animate-gradient;
+  }
   
   /* Neon Effects */
   .neon-glow {
     box-shadow: 0 0 20px -5px rgba(168, 85, 247, 0.5);
   }
-  .neon-glow-pink {
-    box-shadow: 0 0 20px -5px rgba(236, 72, 153, 0.5);
-  }
-  .neon-glow-blue {
-    box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5);
+  .aura-glow-purple {
+    box-shadow: 0 0 15px -3px rgba(201, 60, 255, 0.4);
   }
   
   /* Safe Area Helpers */
@@ -90,6 +92,17 @@
   .min-h-screen-safe {
     min-height: 100dvh;
   }
+
+  /* Chat Specific Cards */
+  .aura-card {
+    @apply transition-all duration-300 cursor-pointer border;
+  }
+  .aura-card-unread {
+    @apply bg-[#151515] border-l-4 border-l-[#C93CFF] border-y-[#2A2A2A] border-r-[#2A2A2A] aura-glow-purple;
+  }
+  .aura-card-read {
+    @apply bg-[#0F0F0F] border-[#2A2A2A];
+  }
 }
 
 /* Global Background Layers */
@@ -97,7 +110,7 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-color: #090909;
+  background-color: #000000;
   overflow: hidden;
 }
 
@@ -113,11 +126,15 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.15;
+  opacity: 0.12;
   animation: blob-float 20s infinite alternate;
 }
 
-/* Aurora Waves Animation */
+.aura-doodle {
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
 @keyframes blob-float {
   0% { transform: translate(-20%, -20%) scale(1); }
   100% { transform: translate(20%, 20%) scale(1.2); }
@@ -129,10 +146,9 @@
   100% { background-position: 0% 50%; }
 }
 
-/* Animations */
-@keyframes orbit {
-  from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
-  to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .aurora-waves {
@@ -141,13 +157,8 @@
   height: 200%;
   top: -50%;
   left: -50%;
-  background: radial-gradient(circle at center, transparent 0%, rgba(168, 85, 247, 0.05) 30%, transparent 70%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(168, 85, 247, 0.03) 30%, transparent 70%);
   animation: rotate 60s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 ::-webkit-scrollbar {

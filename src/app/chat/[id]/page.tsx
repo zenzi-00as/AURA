@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch, setDoc, increment } from "firebase/firestore";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, updateDoc, where, getDocs, writeBatch, increment } from "firebase/firestore";
 import { ChatRoom, UserProfile, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -218,7 +217,12 @@ export default function ChatRoomPage() {
             const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             return (
               <motion.div key={msg.id} initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={cn("max-w-[85%] px-4 py-3 rounded-[22px] shadow-sm", isMe ? "fuchsia-gradient text-white rounded-br-none" : "bg-card text-foreground rounded-bl-none border border-border")}>
+                <div className={cn(
+                  "max-w-[85%] px-4 py-3 rounded-[22px] shadow-sm", 
+                  isMe 
+                    ? "fuchsia-gradient text-white rounded-br-none" 
+                    : "bg-muted/40 backdrop-blur-md text-foreground rounded-bl-none border border-white/10"
+                )}>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                   <div className="flex items-center justify-end gap-1 mt-1.5 opacity-50">
                     <span className="text-[9px] font-medium">{time}</span>
