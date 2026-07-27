@@ -94,7 +94,7 @@ export default function Onboarding() {
     return () => stopCamera();
   }, [step, formData.documentPhoto, startCamera, stopCamera]);
 
-  const captureSelfie = () => {
+  const captureSelfie = useCallback(() => {
     if (videoRef.current && canvasRef.current && stream) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -103,11 +103,14 @@ export default function Onboarding() {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        setFormData(prev => ({ ...prev, documentPhoto: canvas.toDataURL('image/jpeg', 0.8) }));
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setFormData(prev => ({ ...prev, documentPhoto: dataUrl }));
         stopCamera();
+        return dataUrl;
       }
     }
-  };
+    return null;
+  }, [stream, stopCamera]);
 
   const handleBack = () => {
     if (step === 1) {
@@ -188,14 +191,21 @@ export default function Onboarding() {
 
   const nextStep = async () => {
     if (step === 7) {
-      if (!formData.documentPhoto) {
-        toast({ title: "Selfie Required", description: "Please tap the camera to capture a verification photo." });
+      let photoToVerify = formData.documentPhoto;
+      
+      if (!photoToVerify) {
+        photoToVerify = captureSelfie();
+      }
+
+      if (!photoToVerify) {
+        toast({ title: "Selfie Required", description: "Please ensure your camera is active and tap the screen or button to capture." });
         return;
       }
+
       setIsVerifyingAI(true);
       try {
         const result = await selfieVerification({
-          photoDataUri: formData.documentPhoto,
+          photoDataUri: photoToVerify,
           userName: formData.name,
           userDescription: formData.bio
         });
@@ -230,8 +240,7 @@ export default function Onboarding() {
     (step === 3 && !formData.gender) || 
     (step === 4 && !formData.orientation) || 
     (step === 5 && formData.interestedIn.length === 0) || 
-    (step === 6 && (!formData.position || !formData.room)) || 
-    (step === 7 && !formData.documentPhoto);
+    (step === 6 && (!formData.position || !formData.room));
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
@@ -536,7 +545,7 @@ export default function Onboarding() {
             {step === 8 ? (
               <span>Join Aura - ₹ 1 Only</span>
             ) : step === 7 ? (
-              "Verify Identity"
+              formData.documentPhoto ? "Verify Identity" : "Tap to Capture & Verify"
             ) : (
               "Continue"
             )}
