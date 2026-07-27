@@ -148,7 +148,7 @@ export default function AuthPage() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="mb-12 relative z-10">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex flex-col gap-6 mb-8">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
