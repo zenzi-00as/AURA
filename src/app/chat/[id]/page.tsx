@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch, setDoc } from "firebase/firestore";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, deleteDoc, updateDoc, where, getDocs, writeBatch, setDoc, increment } from "firebase/firestore";
 import { ChatRoom, UserProfile, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -54,9 +54,13 @@ export default function ChatRoomPage() {
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
+  // Persistence: Mark as read when opening the chat
   useEffect(() => {
     if (db && authUser && roomId) {
-      const clearNotifs = async () => {
+      const markAsRead = async () => {
+        const batch = writeBatch(db);
+
+        // 1. Clear text-based notifications
         const notifQuery = query(
           collection(db, "notifications"), 
           where("userId", "==", authUser.uid), 
@@ -65,18 +69,22 @@ export default function ChatRoomPage() {
           where("roomId", "==", roomId)
         );
         
-        const snapshot = await getDocs(notifQuery);
-        if (snapshot.empty) return;
+        const notifSnapshot = await getDocs(notifQuery);
+        if (!notifSnapshot.empty) {
+          notifSnapshot.docs.forEach(notifDoc => {
+            batch.update(notifDoc.ref, { read: true });
+          });
+        }
 
-        const batch = writeBatch(db);
-        snapshot.docs.forEach(notifDoc => {
-          batch.update(notifDoc.ref, { read: true });
+        // 2. Reset the persistent unreadCount map in the room document
+        batch.update(doc(db, "chatRooms", roomId), {
+          [`unreadCount.${authUser.uid}`]: 0
         });
 
         await batch.commit();
       };
       
-      clearNotifs();
+      markAsRead();
     }
   }, [db, authUser, roomId]);
 
@@ -121,9 +129,11 @@ export default function ChatRoomPage() {
         seen: false 
       });
 
+      // Update room metadata and increment recipient's unread count
       updateDoc(doc(db, "chatRooms", roomId), { 
         lastMessage: msg, 
-        lastTimestamp: serverTimestamp() 
+        lastTimestamp: serverTimestamp(),
+        [`unreadCount.${otherUid}`]: increment(1)
       });
 
       if (otherUid !== 'system') {

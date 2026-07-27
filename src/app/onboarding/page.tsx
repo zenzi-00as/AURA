@@ -161,7 +161,10 @@ export default function Onboarding() {
         participants: ["system", user.uid],
         lastMessage: "Welcome to AURA ❤️",
         lastTimestamp: serverTimestamp(),
-        isSystem: true
+        isSystem: true,
+        unreadCount: {
+          [user.uid]: 1 // Highlight as unread initially
+        }
       });
 
       batch.set(doc(collection(db, "chatRooms", roomId, "messages")), {
@@ -198,7 +201,7 @@ export default function Onboarding() {
       }
 
       if (!photoToVerify) {
-        toast({ title: "Selfie Required", description: "Please ensure your camera is active and tap the button to capture." });
+        toast({ title: "Selfie Required", description: "Please ensure your camera is active and capture your mirror selfie." });
         return;
       }
 
@@ -436,7 +439,7 @@ export default function Onboarding() {
             
             {step === 7 && (
               <div className="space-y-6 flex-1 flex flex-col">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest block text-center">Verify Your Profile</label>
+                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest block text-center">Mirror Selfie Verification</label>
                 
                 <div 
                   className={cn(
@@ -462,7 +465,7 @@ export default function Onboarding() {
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground font-light">
-                        {isCameraLoading ? "Activating identity guard..." : "Verification requires a live selfie capture."}
+                        {isCameraLoading ? "Activating identity guard..." : "Verification requires a live mirror selfie."}
                       </p>
                     </div>
                   )}
@@ -484,13 +487,13 @@ export default function Onboarding() {
                         className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
                       >
                         <RefreshCcw size={14} className="inline mr-2" />
-                        Retake Photo
+                        Retake Mirror Photo
                       </Button>
                     </motion.div>
                   )}
                   
                   <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
-                    Your photo is analyzed securely for authenticity and is never shared without your permission.
+                    Your mirror selfie is analyzed securely for authenticity.
                   </p>
                 </div>
               </div>
@@ -537,7 +540,7 @@ export default function Onboarding() {
             {step === 8 ? (
               <span>Join Aura - ₹ 1 Only</span>
             ) : step === 7 ? (
-              formData.documentPhoto ? "Verify Identity" : "Capture & Verify"
+              formData.documentPhoto ? "Verify Identity" : "Capture Mirror Selfie"
             ) : (
               "Continue"
             )}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -13,7 +14,6 @@ import { ChatRoom, UserProfile, Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
-import { formatDistanceToNow } from "date-fns";
 
 export default function ChatList() {
   const router = useRouter();
@@ -22,18 +22,6 @@ export default function ChatList() {
   const { user: authUser } = useAuthContext();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const messageNotifsQuery = useMemoFirebase(() => {
-    if (!db || !authUser) return null;
-    return query(
-      collection(db, "notifications"),
-      where("userId", "==", authUser.uid),
-      where("type", "==", "message"),
-      where("read", "==", false)
-    ) as Query<Notification>;
-  }, [db, authUser]);
-
-  const { data: unreadMessageNotifs } = useCollection<Notification>(messageNotifsQuery);
 
   const roomsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -62,7 +50,8 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      const unreadCount = unreadMessageNotifs.filter(n => n.roomId === room.id).length;
+      // Use the unreadCount stored in the room document for persistence
+      const unreadCount = room.unreadCount?.[authUser.uid] || 0;
       const isTyping = room.typing && otherParticipantId && room.typing[otherParticipantId];
 
       return {
@@ -79,7 +68,7 @@ export default function ChatList() {
         isTyping
       };
     });
-  }, [rooms, profiles, authUser, unreadMessageNotifs]);
+  }, [rooms, profiles, authUser]);
 
   const filteredChats = chatItems.filter(chat => chat.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
