@@ -198,7 +198,7 @@ export default function Onboarding() {
       }
 
       if (!photoToVerify) {
-        toast({ title: "Selfie Required", description: "Please ensure your camera is active and tap the screen or button to capture." });
+        toast({ title: "Selfie Required", description: "Please ensure your camera is active and tap the button to capture." });
         return;
       }
 
@@ -439,10 +439,8 @@ export default function Onboarding() {
                 <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest block text-center">Verify Your Profile</label>
                 
                 <div 
-                  onClick={!formData.documentPhoto && stream ? captureSelfie : undefined}
                   className={cn(
-                    "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)] transition-all",
-                    !formData.documentPhoto && stream && "cursor-pointer active:scale-95"
+                    "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)] transition-all"
                   )}
                 >
                   {formData.documentPhoto ? (
@@ -452,11 +450,6 @@ export default function Onboarding() {
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                         <Camera size={64} className="text-white" />
-                      </div>
-                      <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
-                        <span className="text-[10px] font-bold text-white uppercase tracking-widest bg-black/40 px-4 py-2 rounded-full backdrop-blur-md">
-                          Tap to Capture
-                        </span>
                       </div>
                     </div>
                   ) : (
@@ -487,7 +480,6 @@ export default function Onboarding() {
                         variant="ghost" 
                         onClick={() => {
                           setFormData(prev => ({ ...prev, documentPhoto: null }));
-                          // startCamera() will be called by useEffect
                         }} 
                         className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
                       >
@@ -545,7 +537,7 @@ export default function Onboarding() {
             {step === 8 ? (
               <span>Join Aura - ₹ 1 Only</span>
             ) : step === 7 ? (
-              formData.documentPhoto ? "Verify Identity" : "Tap to Capture & Verify"
+              formData.documentPhoto ? "Verify Identity" : "Capture & Verify"
             ) : (
               "Continue"
             )}
