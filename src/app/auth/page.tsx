@@ -148,15 +148,7 @@ export default function AuthPage() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="mb-12 relative z-10">
-        <div className="flex flex-col gap-6 mb-8">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-12 h-12 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
-          >
-            <span className="text-xl font-bold text-white tracking-tighter">A</span>
-          </motion.div>
-          
+        <div className="flex flex-col gap-4 mb-8">
           <motion.h1 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
