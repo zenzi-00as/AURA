@@ -148,21 +148,24 @@ export default function AuthPage() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="mb-12 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-14 h-14 rounded-2xl fuchsia-gradient flex items-center justify-center mb-10 shadow-xl shadow-primary/20"
-        >
-          <span className="text-2xl font-bold text-white tracking-tighter">A</span>
-        </motion.div>
+        <div className="flex items-center gap-4 mb-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-12 h-12 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
+          >
+            <span className="text-xl font-bold text-white tracking-tighter">A</span>
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-bold text-foreground tracking-tight"
+          >
+            {step === "details" ? "Welcome back" : "Verify Email"}
+          </motion.h1>
+        </div>
         
-        <motion.h1 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground mb-2 tracking-tight"
-        >
-          {step === "details" ? "Welcome back" : "Verify Email"}
-        </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
