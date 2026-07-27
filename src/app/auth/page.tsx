@@ -144,10 +144,18 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-52 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-24 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="mb-10 relative z-10">
+      <div className="mb-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-14 h-14 rounded-2xl fuchsia-gradient flex items-center justify-center mb-10 shadow-xl shadow-primary/20"
+        >
+          <span className="text-2xl font-bold text-white tracking-tighter">A</span>
+        </motion.div>
+        
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,10 +183,10 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="space-y-6"
+            className="space-y-6 p-1"
           >
             {step === "details" ? (
-              <div className="space-y-5 p-0.5">
+              <div className="space-y-5">
                 <div className="space-y-4">
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -243,7 +251,7 @@ export default function AuthPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-6 p-0.5">
+              <div className="space-y-6">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center text-muted-foreground group-focus-within:text-primary transition-colors">
                     <Lock size={18} />
