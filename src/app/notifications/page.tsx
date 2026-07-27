@@ -1,20 +1,21 @@
-
 "use client";
 
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles } from "lucide-react";
+import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles, Settings } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, limit, Query, doc, updateDoc, writeBatch } from "firebase/firestore";
 import { Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser } = useUser();
+  const router = useRouter();
 
   const notifsQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -22,7 +23,6 @@ export default function NotificationsPage() {
       collection(db, "notifications"),
       where("userId", "==", authUser.uid),
       where("type", "!=", "message"),
-      orderBy("type"), 
       orderBy("timestamp", "desc"),
       limit(50)
     ) as Query<Notification>;
@@ -30,7 +30,6 @@ export default function NotificationsPage() {
 
   const { data: notifications, loading } = useCollection<Notification>(notifsQuery);
 
-  // Clear all unread general notifications when viewing the list
   useEffect(() => {
     if (db && notifications.length > 0) {
       const unreadNotifs = notifications.filter(n => !n.read);
@@ -57,26 +56,30 @@ export default function NotificationsPage() {
 
   const getColor = (type: string) => {
     switch (type) {
-      case 'verification': return "text-emerald-500 bg-emerald-500/10";
-      case 'proximity': return "text-secondary bg-secondary/10";
-      case 'message': return "text-primary bg-primary/10";
-      case 'welcome': return "text-amber-500 bg-amber-500/10";
-      default: return "text-muted-foreground bg-muted";
+      case 'verification': return "text-emerald-400 bg-emerald-400/10";
+      case 'proximity': return "text-amber-400 bg-amber-400/10";
+      case 'message': return "text-[#C93CFF] bg-[#C93CFF]/10";
+      case 'welcome': return "text-[#C93CFF] bg-[#C93CFF]/10";
+      default: return "text-[#8F8F8F] bg-[#151515]";
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-8 pt-6 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('activity')}</h1>
-        <div className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors relative">
-          <Bell size={18} />
-          {notifications.some(n => !n.read) && (
-            <div className="absolute top-2 right-2 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background"></span>
-            </div>
-          )}
+    <div className="flex-1 flex flex-col bg-background pb-32 aura-doodle min-h-screen">
+      <header className="px-8 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-[#2A2A2A] safe-top">
+        <h1 className="text-xl font-semibold tracking-tight text-white">{t('activity')}</h1>
+        <div className="flex gap-2">
+          <button onClick={() => router.push('/settings/notifications')} className="w-10 h-10 rounded-full bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F] hover:text-white transition-colors">
+            <Settings size={18} />
+          </button>
+          <div className="w-10 h-10 rounded-full bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F] relative">
+            <Bell size={18} />
+            {notifications.some(n => !n.read) && (
+              <div className="absolute top-2 right-2 flex h-2 w-2">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C93CFF] shadow-[0_0_8px_#C93CFF]"></span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -84,7 +87,7 @@ export default function NotificationsPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-20 w-full rounded-3xl bg-muted animate-pulse" />
+              <div key={i} className="h-20 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />
             ))}
           </div>
         ) : (
@@ -101,32 +104,38 @@ export default function NotificationsPage() {
                   <motion.div
                     key={notif.id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.05 }}
+                    transition={{ delay: idx * 0.05, duration: 0.25 }}
                     className={cn(
-                      "p-4 glass-card rounded-3xl flex items-center gap-4 transition-all border",
-                      notif.read ? "opacity-70 grayscale-[0.5] border-border" : "border-primary/20 bg-primary/5"
+                      "aura-card p-4 flex items-center gap-4 group active:scale-[0.98]",
+                      !notif.read ? "aura-card-unread" : "aura-card-read"
                     )}
                   >
                     <div className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0",
+                      "w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 border border-[#2A2A2A]",
                       colorClasses
                     )}>
-                      <Icon size={22} />
+                      <Icon size={20} />
                     </div>
                     <div className="flex-1 space-y-0.5 min-w-0">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <h3 className={cn(
-                            "font-semibold text-foreground truncate text-sm",
-                            !notif.read && "text-primary font-bold"
+                            "truncate text-sm transition-colors",
+                            !notif.read ? "text-white font-bold" : "text-[#8F8F8F] font-normal"
                           )}>{notif.title}</h3>
+                          {!notif.read && (
+                            <span className="bg-[#C93CFF]/20 text-[#C93CFF] text-[7px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter aura-glow-purple">NEW</span>
+                          )}
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
+                        <span className="text-[10px] text-[#8F8F8F] font-medium shrink-0 ml-2">{timeStr}</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground font-light leading-snug line-clamp-2">
+                      <p className={cn(
+                        "text-[11px] leading-snug line-clamp-2",
+                        !notif.read ? "text-white font-semibold" : "text-[#8F8F8F] font-light"
+                      )}>
                         {notif.body}
                       </p>
                     </div>
@@ -139,13 +148,13 @@ export default function NotificationsPage() {
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center py-20 text-center space-y-4"
               >
-                <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
+                <div className="w-16 h-16 rounded-3xl bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F]">
                   <Bell size={32} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-foreground font-medium">No alerts yet</p>
-                  <p className="text-sm text-muted-foreground font-light">
-                    Check back later for updates on your matches and activity.
+                  <p className="text-white font-medium">No alerts yet</p>
+                  <p className="text-sm text-[#8F8F8F] font-light">
+                    Check back later for updates on your activity.
                   </p>
                 </div>
               </motion.div>

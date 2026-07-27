@@ -1,6 +1,32 @@
-
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired';
+
+export type UserNotificationSettings = {
+  newMessages: boolean;
+  groupMessages: boolean;
+  mentions: boolean;
+  likes: boolean;
+  comments: boolean;
+  newFollowers: boolean;
+  friendRequests: boolean;
+  calls: boolean;
+  promotions: boolean;
+  updates: boolean;
+  securityAlerts: boolean;
+  loginAlerts: boolean;
+  sound: boolean;
+  vibration: boolean;
+  popupNotification: boolean;
+  ledFlash: boolean;
+  lockScreenPreview: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  dndSchedule: boolean;
+  notificationPreview: boolean;
+  muteIndividualChats: boolean;
+  notificationTone: string;
+  badgeCount: boolean;
+};
 
 export type UserProfile = {
   uid: string;
@@ -30,6 +56,7 @@ export type UserProfile = {
   onboardingCompleted: boolean;
   welcomeSent?: boolean;
   updatedAt?: any;
+  notificationSettings?: UserNotificationSettings;
 };
 
 export type BlockedUser = {
@@ -54,6 +81,7 @@ export type ChatRoom = {
   lastTimestamp?: any;
   typing?: Record<string, boolean>;
   isSystem?: boolean;
+  unreadCount?: Record<string, number>;
 };
 
 export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome';

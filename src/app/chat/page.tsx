@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Lock } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Lock, Sparkles } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -66,10 +65,6 @@ export default function ChatList() {
       const unreadCount = unreadMessageNotifs.filter(n => n.roomId === room.id).length;
       const isTyping = room.typing && otherParticipantId && room.typing[otherParticipantId];
 
-      const lastActiveStr = otherUser?.lastActive?.toDate 
-        ? formatDistanceToNow(otherUser.lastActive.toDate(), { addSuffix: true })
-        : "";
-
       return {
         id: room.id,
         name: otherName,
@@ -81,7 +76,6 @@ export default function ChatList() {
         isSystem: room.isSystem || otherParticipantId === 'system',
         otherUid: otherParticipantId,
         isOnline: otherUser?.isOnline,
-        lastActive: lastActiveStr,
         isTyping
       };
     });
@@ -91,35 +85,33 @@ export default function ChatList() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-        <header className="px-8 h-20 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors aura-doodle min-h-screen">
+        <header className="px-8 h-20 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-[#2A2A2A] safe-top">
           <div className="flex justify-between items-center">
             {!isSearchOpen ? (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+                <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-[#C93CFF]/20">
                   <span className="text-white font-bold text-sm">A</span>
                 </div>
-                <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('messages')}</h1>
+                <h1 className="text-xl font-semibold tracking-tight text-white">{t('messages')}</h1>
               </motion.div>
             ) : (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "100%" }} className="flex-1 mr-4">
                 <div className="relative">
-                  <Input autoFocus placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-muted border-border rounded-2xl pl-10 pr-4 focus:ring-primary text-foreground" />
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input autoFocus placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-11 bg-[#0F0F0F] border-[#2A2A2A] rounded-2xl pl-10 pr-4 focus:ring-[#C93CFF] text-white" />
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8F8F8F]" />
                 </div>
               </motion.div>
             )}
-            <div className="flex items-center gap-2">
-              <button onClick={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchTerm(""); }} className={cn("w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center transition-colors", isSearchOpen ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
-                {isSearchOpen ? <X size={18} /> : <Search size={18} />}
-              </button>
-            </div>
+            <button onClick={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchTerm(""); }} className={cn("w-10 h-10 rounded-full bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center transition-colors", isSearchOpen ? "text-[#C93CFF]" : "text-[#8F8F8F] hover:text-white")}>
+              {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+            </button>
           </div>
         </header>
 
-        <div className="px-6 space-y-4 mt-4">
+        <div className="px-6 space-y-3 mt-4">
           {roomsLoading ? (
-            <div className="space-y-4 px-2">{[1, 2, 3].map(i => <div key={i} className="h-24 w-full rounded-[32px] bg-muted animate-pulse" />)}</div>
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-24 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />)}</div>
           ) : (
             <AnimatePresence mode="popLayout">
               {filteredChats.length > 0 ? (
@@ -127,79 +119,68 @@ export default function ChatList() {
                   <motion.div 
                     key={chat.id} 
                     layout 
-                    initial={{ opacity: 0, x: -10 }} 
-                    animate={{ opacity: 1, x: 0 }} 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
                     exit={{ opacity: 0, scale: 0.95 }} 
-                    transition={{ delay: idx * 0.05 }} 
+                    transition={{ delay: idx * 0.05, duration: 0.25 }} 
                     onClick={() => router.push(`/chat/${chat.id}`)} 
                     className={cn(
-                      "group relative flex items-center gap-4 p-5 rounded-[32px] hover:bg-muted cursor-pointer transition-all border border-transparent hover:border-border overflow-hidden", 
-                      chat.unreadCount > 0 ? "bg-primary/5 border-primary/20 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.1)]" : "bg-card/40"
+                      "aura-card p-[18px] flex items-center gap-4 relative overflow-hidden group active:scale-[0.98]", 
+                      chat.unreadCount > 0 ? "aura-card-unread" : "aura-card-read"
                     )}
                   >
-                    {chat.unreadCount > 0 && (
-                      <motion.div 
-                        layoutId={`highlight-${chat.id}`}
-                        className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary shadow-[0_0_15px_hsl(var(--primary))]"
-                        initial={{ x: -10 }}
-                        animate={{ x: 0 }}
-                      />
-                    )}
-
-                    <div className={cn("w-16 h-16 rounded-[24px] border border-border flex items-center justify-center relative shrink-0", chat.isSystem ? "fuchsia-gradient" : "bg-muted")}>
-                      {chat.isSystem ? <span className="text-white font-bold text-2xl">A</span> : <span className="text-2xl font-semibold text-foreground/40">{chat.name[0]}</span>}
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-xl bg-background border border-border flex items-center justify-center"><Lock size={10} className="text-muted-foreground" /></div>
+                    <div className={cn("w-14 h-14 rounded-[14px] border border-[#2A2A2A] flex items-center justify-center relative shrink-0", chat.isSystem ? "fuchsia-gradient" : "bg-[#151515]")}>
+                      {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-[#8F8F8F]">{chat.name[0]}</span>}
                       {chat.isOnline && !chat.isSystem && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm animate-pulse" />
+                        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#0F0F0F] shadow-sm animate-pulse" />
                       )}
                     </div>
                     
                     <div className="flex-1 flex flex-col min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className={cn("font-semibold truncate text-base transition-colors", chat.unreadCount > 0 ? "text-primary font-bold" : "text-foreground")}>{chat.name}{chat.age ? `, ${chat.age}` : ""}</h3>
-                          {chat.verified && <BadgeCheck size={16} className="text-primary" />}
+                          <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-white font-bold" : "text-[#8F8F8F] font-normal")}>
+                            {chat.name}{chat.age ? `, ${chat.age}` : ""}
+                          </h3>
+                          {chat.verified && <BadgeCheck size={14} className="text-[#C93CFF]" />}
+                          {chat.unreadCount > 0 && (
+                            <span className="bg-[#C93CFF]/20 text-[#C93CFF] text-[8px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter aura-glow-purple">NEW</span>
+                          )}
                         </div>
-                        <span className={cn("text-[10px] font-bold shrink-0 ml-2 transition-colors uppercase tracking-widest", chat.unreadCount > 0 ? "text-primary" : "text-muted-foreground")}>{chat.time}</span>
+                        <span className={cn("text-[10px] shrink-0 ml-2 transition-colors", chat.unreadCount > 0 ? "text-[#C93CFF] font-bold" : "text-[#8F8F8F]")}>
+                          {chat.time}
+                        </span>
                       </div>
                       
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           {chat.isTyping ? (
-                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-primary font-bold italic flex items-center gap-1.5">
-                              <span className="flex gap-0.5">
-                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-                              </span>
+                            <p className="text-xs text-[#C93CFF] font-bold italic flex items-center gap-1">
+                              <Sparkles size={10} className="animate-pulse" />
                               Typing...
-                            </motion.p>
+                            </p>
                           ) : (
-                            <p className={cn("text-xs truncate transition-colors leading-relaxed", chat.unreadCount > 0 ? "text-foreground font-semibold" : "text-muted-foreground font-light")}>{chat.lastMsg}</p>
+                            <p className={cn("text-xs truncate transition-colors", chat.unreadCount > 0 ? "text-white font-semibold" : "text-[#8F8F8F] font-light")}>
+                              {chat.lastMsg}
+                            </p>
                           )}
                         </div>
                         
                         {chat.unreadCount > 0 && (
-                          <div className="h-5 min-w-[20px] px-1.5 rounded-full bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                          <div className="h-5 min-w-[20px] px-1.5 rounded-full fuchsia-gradient flex items-center justify-center shadow-lg shadow-[#C93CFF]/30">
                             <span className="text-[9px] font-bold text-white">{chat.unreadCount}</span>
                           </div>
                         )}
                       </div>
-                      
-                      {!chat.isSystem && (
-                        <p className="text-[9px] text-muted-foreground/60 mt-1 uppercase tracking-tighter font-medium">
-                          {chat.isOnline ? "Active Now" : chat.lastActive ? `Active ${chat.lastActive}` : ""}
-                        </p>
-                      )}
                     </div>
                   </motion.div>
                 ))
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground"><MessageSquare size={32} /></div>
+                  <div className="w-16 h-16 rounded-3xl bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F]"><MessageSquare size={32} /></div>
                   <div className="space-y-1">
-                    <p className="text-foreground font-medium">{t('no_results')}</p>
-                    <p className="text-sm text-muted-foreground font-light">{searchTerm ? "Try searching for a different name." : "Matches will appear here once you connect with someone."}</p>
+                    <p className="text-white font-medium">{t('no_results')}</p>
+                    <p className="text-sm text-[#8F8F8F] font-light">{searchTerm ? "Try searching for a different name." : "Matches will appear here once you connect with someone."}</p>
                   </div>
                 </motion.div>
               )}

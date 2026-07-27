@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -41,7 +40,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-6">
-      <nav className="pointer-events-auto flex items-center gap-1 p-1 rounded-[32px] bg-background/80 backdrop-blur-2xl border border-border shadow-2xl aura-glow w-full max-w-[360px] mx-auto mb-[env(safe-area-inset-bottom)]">
+      <nav className="pointer-events-auto flex items-center gap-1 p-1 rounded-[32px] bg-black/80 backdrop-blur-2xl border border-[#2A2A2A] shadow-2xl aura-glow-purple w-full max-w-[360px] mx-auto mb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           const showBadge = item.hasBadge;
@@ -52,14 +51,14 @@ export function BottomNav() {
               onClick={() => router.replace(item.path)}
               className={cn(
                 "relative flex-1 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 active:scale-95",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-[#C93CFF]" : "text-[#8F8F8F] hover:text-white"
               )}
               aria-label={item.label}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 bg-primary/10 rounded-[24px]"
+                  className="absolute inset-0 bg-[#C93CFF]/10 rounded-[24px]"
                   transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 />
               )}
@@ -74,17 +73,21 @@ export function BottomNav() {
                 />
                 
                 {showBadge && (
-                  <div className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary border-2 border-background shadow-[0_0_10px_rgba(217,70,239,0.8)]"></span>
-                  </div>
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 flex h-2.5 w-2.5"
+                  >
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C93CFF] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C93CFF] border border-black shadow-[0_0_8px_#C93CFF]"></span>
+                  </motion.div>
                 )}
               </div>
 
               {isActive && (
                 <motion.div 
                   layoutId="activeDot"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_rgba(217,70,239,0.9)]"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C93CFF] shadow-[0_0_6px_#C93CFF]"
                 />
               )}
             </button>
