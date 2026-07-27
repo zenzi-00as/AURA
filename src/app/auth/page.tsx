@@ -144,11 +144,19 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-24 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
+    <div className="flex-1 flex flex-col px-8 pt-16 pb-12 relative bg-background min-h-screen-safe safe-top safe-bottom aura-doodle">
       <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="mb-12 relative z-10">
-        <div className="flex flex-col gap-4 mb-8">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-12 h-12 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-primary/20 mb-10"
+        >
+          <span className="text-white font-bold text-lg">A</span>
+        </motion.div>
+
+        <div className="flex flex-col gap-2">
           <motion.h1 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -156,18 +164,17 @@ export default function AuthPage() {
           >
             {step === "details" ? "Welcome back" : "Verify Email"}
           </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-muted-foreground font-light leading-relaxed text-sm"
+          >
+            {step === "details" 
+              ? "Enter your details to continue. We'll verify your email." 
+              : `We've sent a 6-digit code to ${email}. Please enter it below.`}
+          </motion.p>
         </div>
-        
-        <motion.p 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-muted-foreground font-light leading-relaxed text-sm"
-        >
-          {step === "details" 
-            ? "Enter your details to continue. We'll verify your email." 
-            : `We've sent a 6-digit code to ${email}. Please enter it below.`}
-        </motion.p>
       </div>
 
       <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide py-2">
