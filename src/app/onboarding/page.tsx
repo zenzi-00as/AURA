@@ -163,7 +163,7 @@ export default function Onboarding() {
         lastTimestamp: serverTimestamp(),
         isSystem: true,
         unreadCount: {
-          [user.uid]: 1 // Highlight as unread initially
+          [user.uid]: 1
         }
       });
 
@@ -439,8 +439,6 @@ export default function Onboarding() {
             
             {step === 7 && (
               <div className="space-y-6 flex-1 flex flex-col">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest block text-center">Mirror Selfie Verification</label>
-                
                 <div 
                   className={cn(
                     "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)] transition-all"
