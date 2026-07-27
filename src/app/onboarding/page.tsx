@@ -260,6 +260,9 @@ export default function Onboarding() {
 
   return (
     <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom aura-doodle">
+      {/* Blank Header Structure */}
+      <header className="h-16 relative z-10" />
+
       <div className="px-8 pt-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-1 flex-1">
