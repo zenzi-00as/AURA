@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -21,6 +20,17 @@ import { useTranslation } from "@/context/LanguageContext";
 
 const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
 const ROOM_OPTIONS = ["Yes", "No"];
+
+const ONBOARDING_WALLPAPERS = [
+  "bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]", // Step 1: Aurora Sky
+  "bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]", // Step 2: Floating Particles
+  "bg-[radial-gradient(circle_at_bottom,rgba(236,72,153,0.15),transparent_60%)]", // Step 3: Galaxy
+  "bg-[radial-gradient(circle_at_left,rgba(34,211,238,0.1),transparent_70%)]", // Step 4: Gradient Waves
+  "bg-[radial-gradient(circle_at_right,rgba(139,92,246,0.1),transparent_70%)]", // Step 5: Crystal Light
+  "bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.1),transparent_80%)]", // Step 6: City Lights
+  "bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_50%)]", // Step 7: Identity Guard
+  "bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.2),transparent_70%)]", // Step 8: Premium
+];
 
 export default function Onboarding() {
   const router = useRouter();
@@ -247,11 +257,15 @@ export default function Onboarding() {
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen-safe aura-doodle">
-        <div className="w-20 h-20 rounded-[28px] fuchsia-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
-          <span className="text-3xl font-bold text-white tracking-tighter">A</span>
-        </div>
-        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen-safe relative overflow-hidden">
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="w-24 h-24 rounded-[32px] premium-gradient flex items-center justify-center neon-glow shadow-2xl mb-8"
+        >
+          <span className="text-4xl font-bold text-white tracking-tighter">A</span>
+        </motion.div>
+        <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
       </div>
     );
   }
@@ -259,107 +273,110 @@ export default function Onboarding() {
   const progressPercentage = Math.round((step / 8) * 100);
 
   return (
-    <div className="flex-1 flex flex-col bg-background min-h-screen-safe relative overflow-hidden safe-top safe-bottom aura-doodle">
-      {/* Blank Header Structure */}
-      <header className="h-16 relative z-10" />
+    <div className="flex-1 flex flex-col min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
+      {/* Step Specific Wallpaper */}
+      <div className={cn("absolute inset-0 z-0 transition-all duration-1000", ONBOARDING_WALLPAPERS[step - 1])} />
 
-      <div className="px-8 pt-6">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-1 flex-1">
+      <header className="h-20 relative z-10 flex items-center px-8">
+        <div className="flex justify-between items-center w-full">
+          <div className="flex gap-2 flex-1 max-w-[200px]">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-              <div key={s} className={cn("h-1 rounded-full transition-all duration-500 flex-1", step >= s ? "bg-primary" : "bg-muted")} />
+              <div key={s} className={cn("h-1.5 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-white/10")} />
             ))}
           </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-4 shrink-0">
-            {progressPercentage}% Complete
+          <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-6 shrink-0">
+            {progressPercentage}% Completed
           </span>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 overflow-y-auto px-8 py-4 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-8 py-4 scrollbar-hide relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex flex-col min-h-full p-0.5"
+            initial={{ opacity: 0, x: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, x: -20, filter: "blur(10px)" }}
+            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col min-h-full"
           >
-            <div className="flex justify-between items-start mb-8">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-                {step === 1 ? "Basic Identity" : 
-                 step === 2 ? "Your Bio" : 
-                 step === 3 ? "Identity" : 
-                 step === 4 ? "Orientation" : 
-                 step === 5 ? "Preferences" :
-                 step === 6 ? "Dynamics" : 
-                 step === 7 ? "Identity Guard" : 
-                 "Aura Premium"}
-              </h2>
-              {step < 8 && (
-                <button 
+            <div className="flex justify-between items-start mb-12">
+              <div className="space-y-2">
+                <h2 className="text-4xl font-bold text-white tracking-tight">
+                  {step === 1 ? "Identity" : 
+                   step === 2 ? "Aura Bio" : 
+                   step === 3 ? "Gender" : 
+                   step === 4 ? "Orientation" : 
+                   step === 5 ? "Preferences" :
+                   step === 6 ? "Dynamics" : 
+                   step === 7 ? "Identity Guard" : 
+                   "Aura Elite"}
+                </h2>
+                <p className="text-sm text-white/40 font-light">
+                  {step === 1 ? "Start your journey..." : "Step " + step + " of 8"}
+                </p>
+              </div>
+              {step > 1 && step < 8 && (
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleBack} 
-                  className="mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-muted transition-colors shrink-0"
+                  className="mt-2 w-10 h-10 rounded-full glass flex items-center justify-center text-white/60"
                 >
-                  <ArrowLeft size={12} />
-                  Back
-                </button>
+                  <ArrowLeft size={18} />
+                </motion.button>
               )}
             </div>
 
             {step === 1 && (
-              <div className="space-y-6 sm:space-y-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Name</label>
-                  <div className="relative group">
-                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
+              <div className="space-y-10">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Display Name</label>
+                  <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow transition-all">
+                    <User size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" />
                     <Input 
                       placeholder="Your name" 
                       value={formData.name} 
                       onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[^A-Za-z\s]/g, '') })} 
-                      className="pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all shadow-none focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)]" 
+                      className="pl-14 h-16 bg-transparent border-none text-xl text-white placeholder:text-white/20 focus:ring-0 shadow-none" 
                     />
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Age</label>
-                  <div className="relative group">
-                    <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[#B84DFF] transition-colors" />
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Age</label>
+                  <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow transition-all">
+                    <Hash size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" />
                     <Input 
                       type="number" 
                       placeholder="Your age" 
                       value={formData.age} 
                       onChange={(e) => setFormData({ ...formData, age: e.target.value })} 
                       className={cn(
-                        "pl-12 h-14 bg-[#151515] border-white/12 rounded-2xl text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] shadow-none",
-                        formData.age !== "" && (ageVal < 18 || ageVal > 80) && "border-destructive ring-destructive focus:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]"
+                        "pl-14 h-16 bg-transparent border-none text-xl text-white placeholder:text-white/20 focus:ring-0 shadow-none",
+                        formData.age !== "" && (ageVal < 18 || ageVal > 80) && "text-destructive"
                       )} 
                     />
                   </div>
-                  {formData.age !== "" && (ageVal < 18 || ageVal > 80) && (
-                    <p className="text-destructive text-[10px] font-bold uppercase tracking-widest px-1">
-                      Age must be 18 - 80
-                    </p>
-                  )}
                 </div>
               </div>
             )}
 
             {step === 2 && (
-              <div className="space-y-4 flex-1 flex flex-col">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Bio</label>
-                <Textarea 
-                  placeholder="Share your desires and interests for the best match..." 
-                  value={formData.bio} 
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
-                  className="flex-1 min-h-[160px] sm:min-h-[200px] bg-[#151515] border-white/12 rounded-2xl p-5 text-lg text-white placeholder:text-[#8A8A8A] focus:ring-[#B84DFF] focus:border-[#B84DFF] transition-all focus:shadow-[0_0_20px_-5px_rgba(184,77,255,0.4)] resize-none" 
-                />
+              <div className="space-y-6 flex-1 flex flex-col">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Describe your presence</label>
+                <div className="flex-1 glass rounded-[28px] p-1 focus-within:neon-glow transition-all">
+                  <Textarea 
+                    placeholder="Share your desires and interests..." 
+                    value={formData.bio} 
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
+                    className="h-full bg-transparent border-none p-6 text-xl text-white placeholder:text-white/20 focus:ring-0 resize-none" 
+                  />
+                </div>
               </div>
             )}
 
             {step === 3 && (
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Choose your identity</label>
+              <div className="space-y-6">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Select Identity</label>
                 <GenderSelector 
                   selected={formData.gender} 
                   onSelect={(g) => setFormData({ ...formData, gender: g })} 
@@ -368,8 +385,8 @@ export default function Onboarding() {
             )}
 
             {step === 4 && (
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">What is your orientation?</label>
+              <div className="space-y-6">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Define Orientation</label>
                 <OrientationSelector 
                   gender={formData.gender}
                   selected={formData.orientation} 
@@ -379,8 +396,8 @@ export default function Onboarding() {
             )}
 
             {step === 5 && (
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">Who do you want to meet?</label>
+              <div className="space-y-6">
+                <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Attraction</label>
                 <InterestedInSelector 
                   selected={formData.interestedIn} 
                   onToggle={(i) => {
@@ -396,44 +413,46 @@ export default function Onboarding() {
             )}
 
             {step === 6 && (
-              <div className="space-y-8">
+              <div className="space-y-10">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">POSITION</label>
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Dynamic Position</label>
+                  <div className="grid grid-cols-1 gap-3">
                     {POSITION_OPTIONS.map((opt) => (
-                      <button
+                      <motion.button
                         key={opt}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setFormData({ ...formData, position: opt })}
                         className={cn(
-                          "h-14 px-5 rounded-2xl text-sm font-medium transition-all flex items-center justify-between border",
+                          "h-16 px-6 rounded-[24px] text-lg font-medium transition-all flex items-center justify-between border",
                           formData.position === opt 
-                            ? "fuchsia-gradient text-white border-transparent" 
-                            : "bg-[#151515] border-white/12 text-white"
+                            ? "premium-gradient text-white border-transparent neon-glow" 
+                            : "glass border-white/10 text-white/80"
                         )}
                       >
                         {opt}
-                        {formData.position === opt && <Check size={16} />}
-                      </button>
+                        {formData.position === opt && <Check size={20} />}
+                      </motion.button>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <label className="text-[10px] font-bold text-[#B84DFF] uppercase tracking-widest px-1">ROOM (CAN YOU HOST?)</label>
+                  <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">hosting preference</label>
                   <div className="grid grid-cols-2 gap-4">
                     {ROOM_OPTIONS.map((opt) => (
-                      <button
+                      <motion.button
                         key={opt}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setFormData({ ...formData, room: opt })}
                         className={cn(
-                          "h-14 px-5 rounded-2xl text-sm font-medium transition-all flex items-center justify-center border gap-2",
+                          "h-16 px-6 rounded-[24px] text-lg font-medium transition-all flex items-center justify-center border gap-3",
                           formData.room === opt 
-                            ? "fuchsia-gradient text-white border-transparent" 
-                            : "bg-[#151515] border-white/12 text-white"
+                            ? "premium-gradient text-white border-transparent neon-glow" 
+                            : "glass border-white/10 text-white/80"
                         )}
                       >
-                        {opt === "Yes" ? <Home size={16} /> : <MapPin size={16} />}
+                        {opt === "Yes" ? <Home size={20} /> : <MapPin size={20} />}
                         {opt}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -441,10 +460,10 @@ export default function Onboarding() {
             )}
             
             {step === 7 && (
-              <div className="space-y-6 flex-1 flex flex-col">
+              <div className="space-y-8 flex-1 flex flex-col">
                 <div 
                   className={cn(
-                    "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden bg-black border-2 border-white/10 aura-glow shadow-[0_0_40px_-10px_rgba(184,77,255,0.2)] transition-all"
+                    "relative aspect-square w-full max-w-[320px] mx-auto rounded-[40px] overflow-hidden glass border-2 border-white/10 neon-glow shadow-2xl transition-all"
                   )}
                 >
                   {formData.documentPhoto ? (
@@ -452,77 +471,68 @@ export default function Onboarding() {
                   ) : stream ? (
                     <div className="w-full h-full flex items-center justify-center relative">
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                        <Camera size={64} className="text-white" />
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
                     </div>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4 bg-muted/20">
-                      {isCameraLoading ? (
-                        <Loader2 size={24} className="text-primary animate-spin" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <User size={24} />
-                        </div>
-                      )}
-                      <p className="text-xs text-muted-foreground font-light">
-                        {isCameraLoading ? "Activating identity guard..." : "Verification requires a live mirror selfie."}
+                    <div className="w-full h-full flex flex-col items-center justify-center p-10 text-center space-y-6">
+                      <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary animate-pulse">
+                        <Camera size={32} />
+                      </div>
+                      <p className="text-sm text-white/40 font-light leading-relaxed">
+                        Verification requires a live mirror selfie for identity synchronization.
                       </p>
                     </div>
                   )}
                   <canvas ref={canvasRef} className="hidden" />
                 </div>
                 
-                <div className="flex flex-col items-center gap-4 mt-auto py-4">
+                <div className="flex flex-col items-center gap-6 mt-auto py-4">
                   {formData.documentPhoto && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="flex flex-col items-center gap-2"
+                    <motion.button 
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} 
+                      className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2"
                     >
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, documentPhoto: null }));
-                        }} 
-                        className="text-[10px] font-bold uppercase tracking-widest text-[#B84DFF] hover:bg-[#B84DFF]/10"
-                      >
-                        <RefreshCcw size={14} className="inline mr-2" />
-                        Retake Mirror Photo
-                      </Button>
-                    </motion.div>
+                      <RefreshCcw size={16} />
+                      Retake Mirror Photo
+                    </motion.button>
                   )}
-                  
-                  <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed max-w-[200px]">
-                    Your mirror selfie is analyzed securely for authenticity.
+                  <p className="text-[10px] text-white/30 text-center font-medium uppercase tracking-[0.1em] max-w-[240px]">
+                    Encrypted Biometric synchronization in progress...
                   </p>
                 </div>
               </div>
             )}
 
             {step === 8 && (
-              <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center py-4">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[28px] fuchsia-gradient aura-glow flex items-center justify-center mb-2 shadow-2xl shadow-[#B84DFF]/30 shrink-0">
-                  <Sparkles className="text-white" size={32} />
-                </div>
-                <div className="w-full p-6 sm:p-8 rounded-[40px] border-white/12 bg-[#151515] space-y-6 shadow-xl">
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-white">₹ 1 <span className="text-sm font-normal text-muted-foreground">/ 28 Days</span></h3>
-                    <p className="text-[10px] text-[#B84DFF] font-bold uppercase tracking-widest">Premium Membership</p>
+              <div className="space-y-10 flex-1 flex flex-col items-center justify-center text-center">
+                <motion.div 
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-24 h-24 rounded-[36px] premium-gradient neon-glow flex items-center justify-center mb-4 shadow-2xl"
+                >
+                  <Sparkles className="text-white" size={48} />
+                </motion.div>
+                <div className="w-full p-10 rounded-[40px] glass border-white/10 space-y-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                  <div className="space-y-3 relative z-10">
+                    <h3 className="text-4xl font-bold text-white tracking-tighter">₹ 1 <span className="text-sm font-normal text-white/40">/ 28 Days</span></h3>
+                    <p className="text-xs font-bold text-primary uppercase tracking-[0.3em]">AURA ELITE ACCESS</p>
                   </div>
-                  <div className="space-y-3 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
-                      <Check size={14} className="text-[#B84DFF] shrink-0" />
-                      <span>Identity Verified Badge</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
-                      <Check size={14} className="text-[#B84DFF] shrink-0" />
-                      <span>Unlimited Messages</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground text-left">
-                      <Check size={14} className="text-[#B84DFF] shrink-0" />
-                      <span>Stateless Secure Access</span>
-                    </div>
+                  <div className="space-y-4 pt-6 border-t border-white/5 relative z-10">
+                    {[
+                      "Identity Verified Badge",
+                      "Unlimited Messages",
+                      "Priority Discovery Stage"
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-center gap-4 text-sm text-white/60 text-left">
+                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -531,23 +541,26 @@ export default function Onboarding() {
         </AnimatePresence>
       </div>
 
-      <div className="px-8 pb-8 pt-2">
-        <Button 
+      <div className="px-8 pb-12 pt-4 relative z-10">
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.95 }}
           onClick={nextStep}
           disabled={isNextDisabled}
-          className="w-full h-14 sm:h-16 rounded-[24px] fuchsia-gradient text-white text-lg font-bold shadow-xl shadow-[#B84DFF]/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className={cn(
+            "w-full h-18 rounded-[28px] premium-gradient text-white text-xl font-bold neon-glow transition-all flex items-center justify-center gap-3",
+            isNextDisabled && "opacity-40 grayscale"
+          )}
         >
-          {isVerifyingAI || isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <>
-            {step === 8 ? (
-              <span>Join Aura - ₹ 1 Only</span>
-            ) : step === 7 ? (
-              formData.documentPhoto ? "Verify Identity" : "Capture Mirror Selfie"
-            ) : (
-              "Continue"
-            )}
-            <ChevronRight size={20} />
-          </>}
-        </Button>
+          {isVerifyingAI || isSubmitting ? (
+            <div className="w-6 h-6 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+          ) : (
+            <>
+              <span>{step === 8 ? "Join Elite" : step === 7 && !formData.documentPhoto ? "Capture Selfie" : "Proceed"}</span>
+              <ChevronRight size={24} />
+            </>
+          )}
+        </motion.button>
       </div>
     </div>
   );

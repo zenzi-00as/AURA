@@ -1,4 +1,3 @@
-
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -8,8 +7,8 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { AuthProvider } from "@/firebase/auth-context";
 
 export const metadata: Metadata = {
-  title: 'Aura | Minimalist LGBTQ+ Connection',
-  description: 'Pure, private, and verified social discovery for the LGBTQ+ community.',
+  title: 'Aura | Premium LGBTQ+ Connection',
+  description: 'Immersive, private, and ethereal social discovery for the global LGBTQ+ community.',
 };
 
 export const viewport: Viewport = {
@@ -33,11 +32,19 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20">
+        <div className="aura-bg-container">
+          <div className="aura-blob w-[500px] h-[500px] bg-primary top-[-10%] left-[-10%]" />
+          <div className="aura-blob w-[400px] h-[400px] bg-secondary bottom-[-10%] right-[-10%]" />
+          <div className="aura-blob w-[300px] h-[300px] bg-accent top-[40%] left-[20%] opacity-10" />
+          <div className="aurora-waves" />
+          <div className="aura-noise" />
+        </div>
+        
         <FirebaseClientProvider>
           <AuthProvider>
             <ThemeProvider>
               <LanguageProvider>
-                <main className="min-h-screen-safe flex flex-col w-full max-w-md mx-auto relative bg-background sm:border-x sm:border-white/5 shadow-2xl">
+                <main className="min-h-screen-safe flex flex-col w-full max-w-md mx-auto relative sm:border-x sm:border-white/5 shadow-2xl">
                   {children}
                 </main>
                 <Toaster />

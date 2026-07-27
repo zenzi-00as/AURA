@@ -39,8 +39,8 @@ export function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-6">
-      <nav className="pointer-events-auto flex items-center gap-1 p-1 rounded-[32px] bg-black/80 backdrop-blur-2xl border border-[#2A2A2A] shadow-2xl aura-glow-purple w-full max-w-[360px] mx-auto mb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-10">
+      <nav className="pointer-events-auto flex items-center gap-2 p-2 rounded-[32px] glass-dark border border-white/10 shadow-2xl w-full max-w-[340px] mx-auto mb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           const showBadge = item.hasBadge;
@@ -50,25 +50,25 @@ export function BottomNav() {
               key={item.path}
               onClick={() => router.replace(item.path)}
               className={cn(
-                "relative flex-1 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 active:scale-95",
-                isActive ? "text-[#C93CFF]" : "text-[#8F8F8F] hover:text-white"
+                "relative flex-1 py-4 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 active:scale-90",
+                isActive ? "text-primary" : "text-white/40 hover:text-white"
               )}
               aria-label={item.label}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 bg-[#C93CFF]/10 rounded-[24px]"
+                  className="absolute inset-0 bg-primary/10 rounded-[24px]"
                   transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 />
               )}
               
               <div className="relative z-10 flex items-center justify-center">
                 <item.icon 
-                  size={22} 
+                  size={24} 
                   className={cn(
-                    "transition-all duration-300",
-                    isActive ? "scale-110" : "scale-100"
+                    "transition-all duration-500",
+                    isActive ? "scale-110 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]" : "scale-100"
                   )} 
                 />
                 
@@ -78,8 +78,8 @@ export function BottomNav() {
                     animate={{ scale: 1 }}
                     className="absolute -top-1 -right-1 flex h-2.5 w-2.5"
                   >
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C93CFF] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C93CFF] border border-black shadow-[0_0_8px_#C93CFF]"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary border border-black shadow-[0_0_8px_#EC4899]"></span>
                   </motion.div>
                 )}
               </div>
@@ -87,7 +87,7 @@ export function BottomNav() {
               {isActive && (
                 <motion.div 
                   layoutId="activeDot"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C93CFF] shadow-[0_0_6px_#C93CFF]"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_#A855F7]"
                 />
               )}
             </button>

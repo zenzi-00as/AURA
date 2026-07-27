@@ -3,27 +3,36 @@
 @tailwind utilities;
 
 :root {
-  /* True Black (OLED) Theme */
-  --background: 0 0% 0%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 6%; /* #0F0F0F */
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 2%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 284 100% 62%; /* #C93CFF */
+  /* Premium Dark Theme Variables */
+  --background: 260 20% 4%; /* #090909 */
+  --foreground: 0 0% 100%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 260 20% 4%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 270 91% 65%; /* #A855F7 */
   --primary-foreground: 0 0% 100%;
-  --secondary: 270 91% 65%;
+  
+  --secondary: 330 81% 60%; /* #EC4899 */
   --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 8%;
-  --muted-foreground: 0 0% 56%; /* #8F8F8F */
-  --accent: 284 100% 62%;
+  
+  --muted: 260 10% 12%;
+  --muted-foreground: 260 5% 70%;
+  
+  --accent: 217 91% 60%; /* #3B82F6 */
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 16%; /* #2A2A2A */
-  --input: 0 0% 12%;
-  --ring: 284 100% 62%;
-  --radius: 1.125rem; /* 18px */
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 0 0% 100% / 0.1;
+  --input: 0 0% 100% / 0.05;
+  --ring: 270 91% 65%;
+  
+  --radius: 1.75rem; /* 28px */
 }
 
 @layer base {
@@ -32,11 +41,46 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    overscroll-behavior-y: none;
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
   }
 }
 
 @layer utilities {
+  /* Glassmorphism Classes */
+  .glass {
+    @apply bg-white/5 backdrop-blur-2xl border border-white/10;
+  }
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-3xl border border-white/5;
+  }
+  .glass-card {
+    @apply glass rounded-[28px] shadow-2xl;
+  }
+  
+  /* Animated Gradients */
+  .animate-gradient {
+    background-size: 300% 300%;
+    animation: gradient-move 8s ease infinite;
+  }
+  
+  .premium-gradient {
+    background: linear-gradient(135deg, #A855F7 0%, #EC4899 50%, #3B82F6 100%);
+    @apply animate-gradient;
+  }
+  
+  /* Neon Effects */
+  .neon-glow {
+    box-shadow: 0 0 20px -5px rgba(168, 85, 247, 0.5);
+  }
+  .neon-glow-pink {
+    box-shadow: 0 0 20px -5px rgba(236, 72, 153, 0.5);
+  }
+  .neon-glow-blue {
+    box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* Safe Area Helpers */
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
@@ -48,29 +92,62 @@
   }
 }
 
-.aura-card {
-  @apply bg-[#0F0F0F] border border-[#2A2A2A] rounded-[18px] transition-all duration-300;
+/* Global Background Layers */
+.aura-bg-container {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: #090909;
+  overflow: hidden;
 }
 
-.aura-card-unread {
-  @apply bg-[#151515] border-l-4 border-l-[#C93CFF] shadow-[0_0_20px_rgba(201,60,255,0.15)];
+.aura-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
-.aura-card-read {
-  @apply bg-[#0B0B0B] border-[#2A2A2A];
+.aura-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: blob-float 20s infinite alternate;
 }
 
-.aura-glow-purple {
-  box-shadow: 0 0 15px rgba(201, 60, 255, 0.3);
+/* Aurora Waves Animation */
+@keyframes blob-float {
+  0% { transform: translate(-20%, -20%) scale(1); }
+  100% { transform: translate(20%, 20%) scale(1.2); }
 }
 
-.fuchsia-gradient {
-  background: linear-gradient(135deg, #C93CFF 0%, #A855F7 100%);
+@keyframes gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-.aura-doodle {
-  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm20 20a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm40 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM20 60a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm30-10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z' fill='%23ffffff' fill-opacity='0.03'/%3E%3Cpath d='M15 45l2 2-2 2-2-2 2-2zm40-30l2 2-2 2-2-2 2-2zM10 20h4v4h-4v-4z' fill='%23ffffff' fill-opacity='0.02'/%3E%3C/svg%3E");
-  background-repeat: repeat;
+/* Animations */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+}
+
+.aurora-waves {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle at center, transparent 0%, rgba(168, 85, 247, 0.05) 30%, transparent 70%);
+  animation: rotate 60s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 ::-webkit-scrollbar {
