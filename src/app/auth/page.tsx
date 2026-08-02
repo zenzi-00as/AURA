@@ -149,31 +149,37 @@ export default function AuthPage() {
 
   return (
     <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen-safe safe-top safe-bottom overflow-hidden">
-      {/* Auth Specific Wallpaper */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]" />
-      
-      <header className="h-20 mb-12 relative z-10 flex items-center">
+      {/* Auth Specific Wallpaper - Inherits from Splash */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-background" />
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-12 h-12 rounded-2xl premium-gradient flex items-center justify-center neon-glow"
-        >
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5 }}
+          className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]"
+        />
+        <div className="aura-noise" />
+      </div>
+      
+      <header className="h-16 mb-8 relative z-10 flex items-center">
+        {/* Placeholder for Logo shrink animation */}
+        <div className="w-10 h-10 rounded-2xl glass-dark border border-white/10 flex items-center justify-center neon-glow">
           <span className="text-white font-bold text-lg">A</span>
-        </motion.div>
+        </div>
       </header>
       
-      <div className="mb-12 relative z-10">
+      <div className="mb-10 relative z-10">
         <div className="flex flex-col gap-3">
           <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-5xl font-bold text-white tracking-tighter leading-tight"
+            initial={{ opacity: 0, x: -20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            className="text-4xl font-bold text-white tracking-tighter leading-tight"
           >
             {step === "details" ? "Welcome back" : "Synchronize"}
           </motion.h1>
           <motion.p 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -20, filter: "blur(5px)" }}
+            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             transition={{ delay: 0.1 }}
             className="text-white/40 font-light leading-relaxed text-lg"
           >
@@ -204,7 +210,7 @@ export default function AuthPage() {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-14 h-16 bg-transparent border-none text-lg text-white placeholder:text-white/20 focus:ring-0 shadow-none"
+                      className="pl-14 h-14 bg-transparent border-none text-base text-white placeholder:text-white/20 focus:ring-0 shadow-none"
                     />
                   </div>
 
@@ -213,7 +219,7 @@ export default function AuthPage() {
                       setCountryCode(val);
                       setPhone(""); 
                     }}>
-                      <SelectTrigger className="w-[110px] h-16 glass border-white/5 rounded-[24px] text-lg font-medium text-white focus:ring-primary/40 px-5">
+                      <SelectTrigger className="w-[100px] h-14 glass border-white/5 rounded-[24px] text-base font-medium text-white focus:ring-primary/40 px-5">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="glass-dark border-white/10 rounded-[24px] max-h-[300px]">
@@ -226,7 +232,7 @@ export default function AuthPage() {
                       </SelectContent>
                     </Select>
                     
-                    <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow-pink transition-all flex-1">
+                    <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow transition-all flex-1">
                       <Phone size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" />
                       <Input
                         type="tel"
@@ -234,7 +240,7 @@ export default function AuthPage() {
                         value={phone}
                         maxLength={currentCountry.maxLength}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-14 h-16 bg-transparent border-none text-lg text-white placeholder:text-white/20 focus:ring-0 shadow-none"
+                        className="pl-14 h-14 bg-transparent border-none text-base text-white placeholder:text-white/20 focus:ring-0 shadow-none"
                       />
                     </div>
                   </div>
@@ -264,7 +270,7 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-16 h-20 bg-transparent border-none text-3xl tracking-[0.6em] font-bold text-white placeholder:text-white/10 focus:ring-0 shadow-none text-center"
+                    className="pl-16 h-18 bg-transparent border-none text-2xl tracking-[0.6em] font-bold text-white placeholder:text-white/10 focus:ring-0 shadow-none text-center"
                   />
                 </div>
 
@@ -292,16 +298,16 @@ export default function AuthPage() {
               onClick={handleNext}
               disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
               className={cn(
-                "w-full h-18 rounded-[28px] premium-gradient text-white text-xl font-bold shadow-2xl neon-glow transition-all flex items-center justify-center gap-3",
+                "w-full h-14 rounded-[28px] premium-gradient text-white text-lg font-bold shadow-2xl neon-glow transition-all flex items-center justify-center gap-3",
                 (isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)) && "opacity-40 grayscale"
               )}
             >
               {isLoading ? (
-                <div className="w-6 h-6 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
               ) : (
                 <>
                   <span>{step === "details" ? "Generate Access" : "Synchronize Identity"}</span>
-                  <ArrowRight size={24} />
+                  <ArrowRight size={20} />
                 </>
               )}
             </motion.button>
@@ -310,7 +316,7 @@ export default function AuthPage() {
       </div>
 
       <div className="mt-auto py-12 text-center">
-        <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Luxury • Private • Verified</p>
+        <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Minimalist • Private • Real</p>
       </div>
     </div>
   );
