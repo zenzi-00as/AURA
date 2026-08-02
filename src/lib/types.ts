@@ -1,5 +1,7 @@
+
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired';
+export type PlanType = 'Free' | 'Elite';
 
 export type UserNotificationSettings = {
   newMessages: boolean;
@@ -42,8 +44,17 @@ export type UserProfile = {
   room?: "Yes" | "No";
   verificationStatus: VerificationStatus;
   subscriptionStatus?: SubscriptionStatus;
+  plan: PlanType;
   subscriptionEndDate?: any;
   subscriptionPrice?: number;
+  dailyChatCount: number;
+  dailyMediaCount: number;
+  lastResetDate?: string;
+  superLikeBalance: number;
+  spotlightExpiry?: any;
+  incognitoMode: boolean;
+  isSuspended: boolean;
+  isAdmin: boolean;
   location?: {
     lat: number;
     lng: number;
@@ -53,6 +64,7 @@ export type UserProfile = {
   lastActive: any; 
   isOnline: boolean;
   photoUrl?: string;
+  profilePhotos?: string[];
   onboardingCompleted: boolean;
   welcomeSent?: boolean;
   updatedAt?: any;
@@ -72,6 +84,8 @@ export type Message = {
   text: string;
   timestamp: any;
   seen: boolean;
+  isMedia?: boolean;
+  mediaUrl?: string;
 };
 
 export type ChatRoom = {
@@ -82,9 +96,10 @@ export type ChatRoom = {
   typing?: Record<string, boolean>;
   isSystem?: boolean;
   unreadCount?: Record<string, number>;
+  autoDeleteEnabled?: boolean;
 };
 
-export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome';
+export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight';
 
 export type Notification = {
   id: string;
@@ -96,4 +111,23 @@ export type Notification = {
   read: boolean;
   roomId?: string;
   senderId?: string;
+};
+
+export type Purchase = {
+  id: string;
+  uid: string;
+  itemType: 'Elite' | 'SuperLike' | 'Spotlight';
+  amount: number;
+  timestamp: any;
+  razorpayOrderId: string;
+  status: 'Success' | 'Failed' | 'Pending';
+};
+
+export type Report = {
+  id: string;
+  reporterId: string;
+  targetId: string;
+  reason: string;
+  timestamp: any;
+  status: 'Pending' | 'Reviewed' | 'Resolved';
 };

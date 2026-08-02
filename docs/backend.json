@@ -19,8 +19,17 @@
         "room": { "type": "string", "enum": ["Yes", "No"] },
         "verificationStatus": { "type": "string", "enum": ["Verified", "Pending", "Rejected"] },
         "subscriptionStatus": { "type": "string", "enum": ["Active", "Inactive", "Expired"] },
+        "plan": { "type": "string", "enum": ["Free", "Elite"], "default": "Free" },
         "subscriptionEndDate": { "type": "string", "format": "date-time" },
         "subscriptionPrice": { "type": "number" },
+        "dailyChatCount": { "type": "number", "default": 0 },
+        "dailyMediaCount": { "type": "number", "default": 0 },
+        "lastResetDate": { "type": "string" },
+        "superLikeBalance": { "type": "number", "default": 0 },
+        "spotlightExpiry": { "type": "string", "format": "date-time" },
+        "incognitoMode": { "type": "boolean", "default": false },
+        "isSuspended": { "type": "boolean", "default": false },
+        "isAdmin": { "type": "boolean", "default": false },
         "location": {
           "type": "object",
           "properties": {
@@ -31,9 +40,35 @@
         "lastActive": { "type": "string", "format": "date-time" },
         "isOnline": { "type": "boolean" },
         "photoUrl": { "type": "string" },
+        "profilePhotos": { "type": "array", "items": { "type": "string" }, "maxItems": 2 },
         "onboardingCompleted": { "type": "boolean" }
       },
       "required": ["uid", "name", "age", "phoneNumber"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "A record of a financial transaction.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "itemType": { "type": "string", "enum": ["Elite", "SuperLike", "Spotlight"] },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "razorpayOrderId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Success", "Failed", "Pending"] }
+      }
+    },
+    "Report": {
+      "title": "Report",
+      "description": "A report filed against a user for misconduct.",
+      "type": "object",
+      "properties": {
+        "reporterId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pending", "Reviewed", "Resolved"] }
+      }
     },
     "BlockedUser": {
       "title": "Blocked User",
@@ -54,7 +89,9 @@
         "lastMessage": { "type": "string" },
         "lastTimestamp": { "type": "string", "format": "date-time" },
         "typing": { "type": "object" },
-        "isSystem": { "type": "boolean" }
+        "isSystem": { "type": "boolean" },
+        "unreadCount": { "type": "object" },
+        "autoDeleteEnabled": { "type": "boolean", "default": false }
       }
     },
     "Message": {
@@ -65,7 +102,9 @@
         "senderId": { "type": "string" },
         "text": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "seen": { "type": "boolean" }
+        "seen": { "type": "boolean" },
+        "isMedia": { "type": "boolean", "default": false },
+        "mediaUrl": { "type": "string" }
       }
     },
     "Notification": {
@@ -76,7 +115,7 @@
         "userId": { "type": "string" },
         "title": { "type": "string" },
         "body": { "type": "string" },
-        "type": { "type": "string", "enum": ["verification", "proximity", "message", "welcome"] },
+        "type": { "type": "string", "enum": ["verification", "proximity", "message", "welcome", "subscription", "spotlight"] },
         "timestamp": { "type": "string", "format": "date-time" },
         "read": { "type": "boolean" },
         "roomId": { "type": "string" },
@@ -107,6 +146,14 @@
     "/notifications/{notificationId}": {
       "schema": "#/backend/entities/Notification",
       "description": "Real-time user notifications."
+    },
+    "/purchases/{purchaseId}": {
+      "schema": "#/backend/entities/Purchase",
+      "description": "Transaction history."
+    },
+    "/reports/{reportId}": {
+      "schema": "#/backend/entities/Report",
+      "description": "User misconduct reports."
     }
   }
 }

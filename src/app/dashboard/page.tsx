@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -5,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
+import { AdBanner } from "@/components/aura/AdBanner";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Compass } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Compass, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -16,6 +18,7 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { PLAN_LIMITS, isElite, isSpotlightActive } from "@/lib/plan-limits";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -23,13 +26,16 @@ export default function Dashboard() {
   const db = useFirestore();
   const { profile: currentUserProfile } = useAuthContext();
   
-  const [distance, setDistance] = useState([15]);
+  const eliteUser = isElite(currentUserProfile);
+  const maxSearchRadius = eliteUser ? PLAN_LIMITS.Elite.maxRadiusKm : PLAN_LIMITS.Free.maxRadiusKm;
+
+  const [distance, setDistance] = useState([eliteUser ? 25 : 15]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   
   const [activeFilters, setActiveFilters] = useState({
-    distance: 15,
+    distance: eliteUser ? 25 : 15,
     ageRange: [18, 35]
   });
 
@@ -51,7 +57,7 @@ export default function Dashboard() {
     if (!db) return null;
     return query(
       collection(db, "users"),
-      limit(50)
+      limit(100)
     ) as Query<UserProfile>;
   }, [db]);
 
@@ -63,9 +69,12 @@ export default function Dashboard() {
     return firestoreUsers
       .filter(user => {
         if (user.uid === currentUserProfile.uid) return false;
+        if (user.isSuspended) return false;
+
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
         if (!withinAge) return false;
 
+        // Interest Logic
         const iAmInterestedInThem = currentUserProfile.interestedIn.some(cat => {
             if (cat === "Man") return user.gender === "Man" || user.gender === "Trans Man";
             if (cat === "Woman") return user.gender === "Woman" || user.gender === "Trans Woman";
@@ -99,10 +108,23 @@ export default function Dashboard() {
         return { ...user, distance: distanceStr, distanceKm: distKm };
       })
       .filter(user => {
+        // Enforce Search Radius
         if (currentLocation && user.location) {
           return user.distanceKm! <= activeFilters.distance;
         }
         return true;
+      })
+      .sort((a, b) => {
+        // Spotlight Priority -> Elite Priority -> Distance
+        const aSpotlight = isSpotlightActive(a);
+        const bSpotlight = isSpotlightActive(b);
+        if (aSpotlight !== bSpotlight) return aSpotlight ? -1 : 1;
+        
+        const aElite = a.plan === 'Elite';
+        const bElite = b.plan === 'Elite';
+        if (aElite !== bElite) return aElite ? -1 : 1;
+
+        return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
   }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
@@ -112,9 +134,9 @@ export default function Dashboard() {
   };
 
   const handleResetFilters = () => {
-    setDistance([100]);
+    setDistance([eliteUser ? 50 : 15]);
     setAgeRange([18, 80]);
-    setActiveFilters({ distance: 100, ageRange: [18, 80] });
+    setActiveFilters({ distance: eliteUser ? 50 : 15, ageRange: [18, 80] });
   };
 
   const handleUserClick = (uid: string) => {
@@ -124,7 +146,6 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col min-h-screen-safe relative transition-colors overflow-hidden">
-        {/* Dashboard Aurora Background */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
           <motion.div 
@@ -158,16 +179,27 @@ export default function Dashboard() {
             </SheetTrigger>
             <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-3xl">
               <SheetHeader className="mb-8">
-                <SheetTitle className="text-2xl font-bold text-white">{t('filters')}</SheetTitle>
+                <SheetTitle className="text-2xl font-bold text-white">Discovery Filters</SheetTitle>
               </SheetHeader>
               <div className="space-y-10">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">{t('max_distance')}</Label>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
+                      {!eliteUser && <Lock size={10} className="text-primary" />}
+                    </div>
                     <span className="text-primary font-bold text-sm">{distance[0]} km</span>
                   </div>
-                  <Slider value={distance} onValueChange={setDistance} max={100} step={1} className="py-4" />
+                  <Slider 
+                    value={distance} 
+                    onValueChange={setDistance} 
+                    max={maxSearchRadius} 
+                    step={1} 
+                    className="py-4" 
+                  />
+                  {!eliteUser && <p className="text-[9px] text-white/20 italic">Elite members can search up to 100km.</p>}
                 </div>
+                
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">{t('age_range')}</Label>
@@ -175,6 +207,7 @@ export default function Dashboard() {
                   </div>
                   <Slider value={ageRange} onValueChange={setAgeRange} min={18} max={80} step={1} className="py-4" />
                 </div>
+                
                 <div className="pt-4">
                   <Button onClick={handleApplyFilters} className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow">
                     <Check className="mr-2" size={22} />
@@ -206,21 +239,22 @@ export default function Dashboard() {
               </div>
               
               <AnimatePresence mode="popLayout">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <motion.div 
-                      key={user.uid} 
-                      layout 
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }} 
-                      animate={{ opacity: 1, y: 0, scale: 1 }} 
-                      exit={{ opacity: 0, scale: 0.9 }} 
-                      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                      className="w-full"
-                    >
-                      <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
-                    </motion.div>
-                  ))
-                ) : (
+                {filteredUsers.map((user, idx) => (
+                  <motion.div 
+                    key={user.uid} 
+                    layout 
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }} 
+                    animate={{ opacity: 1, y: 0, scale: 1 }} 
+                    exit={{ opacity: 0, scale: 0.9 }} 
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    className="w-full flex flex-col gap-6"
+                  >
+                    <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
+                    {idx > 0 && idx % 3 === 0 && <AdBanner />}
+                  </motion.div>
+                ))}
+
+                {filteredUsers.length === 0 && (
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
@@ -234,24 +268,17 @@ export default function Dashboard() {
                       >
                         <Search size={48} strokeWidth={1.5} />
                       </motion.div>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/20 rounded-full blur-3xl -z-10" />
                     </div>
-
                     <div className="space-y-4">
                       <h2 className="text-2xl font-bold text-white tracking-tight">Ethereal Silence...</h2>
                       <p className="text-sm text-white/60 font-light leading-relaxed max-w-[280px] mx-auto">
-                        No matches were synchronized in your current realm.
+                        No matches were synchronized in your current realm. Try expanding your search radius.
                       </p>
                     </div>
-
                     <div className="flex flex-col w-full max-w-[280px] gap-4">
                       <Button onClick={handleResetFilters} className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow">
                         <RefreshCcw className="mr-2" size={20} />
                         Reset Filters
-                      </Button>
-                      <Button variant="ghost" onClick={() => router.push('/dashboard')} className="w-full h-14 rounded-2xl text-white/60 hover:text-white transition-colors flex items-center justify-center gap-2">
-                        <Compass size={20} />
-                        Discover More
                       </Button>
                     </div>
                   </motion.div>

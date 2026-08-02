@@ -6,6 +6,7 @@ import { User, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase } from './index';
 import { UserProfile } from '@/lib/types';
+import { format } from 'date-fns';
 
 interface AuthContextType {
   user: User | null;
@@ -28,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { auth, db } = initializeFirebase();
 
   useEffect(() => {
-    // 5-second maximum wait for auth initialization
     const timeoutId = setTimeout(() => {
       if (loading) setLoading(false);
     }, 5000);
@@ -37,19 +37,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(authUser);
       
       if (authUser) {
-        // Presence Synchronization: Set online status
         const userRef = doc(db, 'users', authUser.uid);
-        updateDoc(userRef, {
-          isOnline: true,
-          lastActive: serverTimestamp()
-        }).catch(() => {/* Ignore if user doc doesn't exist yet */});
-
-        // If user is logged in, listen to their profile
+        
+        // Listen to profile
         const unsubscribeProfile = onSnapshot(
           userRef,
           (docSnap) => {
             if (docSnap.exists()) {
-              setProfile(docSnap.data() as UserProfile);
+              const data = docSnap.data() as UserProfile;
+              setProfile(data);
+
+              // Daily Limit Reset Logic (Midnight local time)
+              const today = format(new Date(), 'yyyy-MM-dd');
+              if (data.lastResetDate !== today) {
+                updateDoc(userRef, {
+                  dailyChatCount: 0,
+                  dailyMediaCount: 0,
+                  lastResetDate: today
+                });
+              }
             } else {
               setProfile(null);
             }
@@ -63,12 +69,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
-        // Best effort to set offline status on disconnect (visibility state change)
+        // Presence Logic
+        updateDoc(userRef, {
+          isOnline: true,
+          lastActive: serverTimestamp()
+        }).catch(() => {});
+
         const handleVisibilityChange = () => {
-          if (document.visibilityState === 'hidden') {
-            updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() });
-          } else {
-            updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() });
+          if (!profile?.incognitoMode) {
+            updateDoc(userRef, { 
+              isOnline: document.visibilityState !== 'hidden', 
+              lastActive: serverTimestamp() 
+            });
           }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -76,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
           unsubscribeProfile();
           document.removeEventListener('visibilitychange', handleVisibilityChange);
-          // Cleanup: Set offline when session ends (best effort)
           updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() });
         };
       } else {
