@@ -18,6 +18,16 @@
         "position": { "type": "string", "enum": ["Top", "Bottom", "Versatile", "Not specified"] },
         "room": { "type": "string", "enum": ["Yes", "No"] },
         "verificationStatus": { "type": "string", "enum": ["Verified", "Pending", "Rejected"] },
+        "verification": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["not_submitted", "pending", "approved", "rejected"] },
+            "imagePath": { "type": "string" },
+            "submittedAt": { "type": "string", "format": "date-time" },
+            "reviewedAt": { "type": "string", "format": "date-time" },
+            "rejectionReason": { "type": "string" }
+          }
+        },
         "subscriptionStatus": { "type": "string", "enum": ["Active", "Inactive", "Expired"] },
         "plan": { "type": "string", "enum": ["Free", "Elite"], "default": "Free" },
         "subscriptionEndDate": { "type": "string", "format": "date-time" },

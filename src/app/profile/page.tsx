@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info, Home, UserCircle, Star, Zap, Image as ImageIcon } from "lucide-react";
+import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info, Home, UserCircle, Star, Zap, Image as ImageIcon, ShieldAlert, ChevronRight, AlertCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
-import { doc, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { isElite, isSpotlightActive } from "@/lib/plan-limits";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
@@ -109,6 +109,7 @@ export default function ProfilePage() {
 
   const elite = isElite(profile);
   const spotlight = isSpotlightActive(profile);
+  const vStatus = profile?.verification?.status || 'not_submitted';
 
   return (
     <AuthGuard>
@@ -123,7 +124,7 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        <div className="px-8 space-y-12">
+        <div className="px-8 space-y-10">
           {profile && (
             <div className="flex flex-col items-center text-center space-y-6 pt-6">
               <div className="relative">
@@ -165,8 +166,59 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Identity Verification Status Section */}
+          <div className="mx-1 p-6 glass-card border-primary/10 bg-primary/5 space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <Shield size={20} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-white uppercase tracking-widest">Identity Verification</h4>
+                  <p className="text-[10px] text-white/40 leading-relaxed">
+                    {vStatus === 'approved' ? "Identity Verified" : vStatus === 'pending' ? "Under Review" : vStatus === 'rejected' ? "Needs Attention" : "Not Verified"}
+                  </p>
+                </div>
+              </div>
+              {vStatus === 'approved' && <BadgeCheck size={20} className="text-primary mt-2" />}
+            </div>
+
+            <div className="pt-2">
+              {vStatus === 'approved' ? (
+                <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-3">
+                  <Check size={14} className="text-emerald-500" />
+                  <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Verification Approved</span>
+                </div>
+              ) : vStatus === 'pending' ? (
+                <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-3">
+                  <Clock size={14} className="text-amber-500" />
+                  <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Review in Progress</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {vStatus === 'rejected' && profile?.verification?.rejectionReason && (
+                    <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 flex items-start gap-3 mb-2">
+                      <AlertCircle size={14} className="text-rose-500 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Rejection Reason</span>
+                        <p className="text-[11px] text-rose-400/80">{profile.verification.rejectionReason}</p>
+                      </div>
+                    </div>
+                  )}
+                  <Button 
+                    onClick={() => router.push('/profile/verify')}
+                    className="w-full h-11 rounded-xl glass border-primary/20 text-primary text-[11px] font-bold uppercase tracking-widest hover:bg-primary/5"
+                  >
+                    {vStatus === 'rejected' ? "Upload New Image" : "Verify Profile"}
+                    <ChevronRight size={14} className="ml-2" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Incognito Toggle */}
-          <div className="mx-2 p-6 glass-card border-primary/20 bg-primary/5 flex items-center justify-between">
+          <div className="mx-1 p-6 glass-card border-primary/20 bg-primary/5 flex items-center justify-between">
             <div className="flex items-start gap-3">
               <Lock size={20} className="text-primary mt-1 shrink-0" />
               <div className="space-y-1">

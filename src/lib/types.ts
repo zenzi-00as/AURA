@@ -30,6 +30,14 @@ export type UserNotificationSettings = {
   badgeCount: boolean;
 };
 
+export type VerificationData = {
+  status: 'not_submitted' | 'pending' | 'approved' | 'rejected';
+  imagePath?: string;
+  submittedAt?: any;
+  reviewedAt?: any;
+  rejectionReason?: string;
+};
+
 export type UserProfile = {
   uid: string;
   name: string;
@@ -43,6 +51,7 @@ export type UserProfile = {
   position?: "Top" | "Bottom" | "Versatile" | "Not specified";
   room?: "Yes" | "No";
   verificationStatus: VerificationStatus;
+  verification?: VerificationData;
   subscriptionStatus?: SubscriptionStatus;
   plan: PlanType;
   subscriptionEndDate?: any;

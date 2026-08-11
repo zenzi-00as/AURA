@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -6,16 +7,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, writeBatch, collection, addDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
-import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
 import { useTranslation } from "@/context/LanguageContext";
 
 const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
@@ -37,12 +38,12 @@ export default function Onboarding() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const db = useFirestore();
+  const { storage } = initializeFirebase();
   const { user, loading: authLoading, profile } = useAuthContext();
   
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCameraLoading, setIsCameraLoading] = useState(false);
-  const [isVerifyingAI, setIsVerifyingAI] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -52,13 +53,13 @@ export default function Onboarding() {
     position: "" as any,
     room: "" as any,
     age: "",
-    documentPhoto: null as string | null,
-    verificationStatus: 'Pending' as 'Verified' | 'Pending' | 'Rejected'
+    verificationImage: null as File | null,
+    verificationPreview: null as string | null,
+    verificationStatus: 'not_submitted' as 'not_submitted' | 'pending' | 'approved' | 'rejected'
   });
 
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -70,57 +71,30 @@ export default function Onboarding() {
     }
   }, [user, profile, authLoading, router]);
 
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    setIsCameraLoading(false);
-  }, [stream]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isCamera = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const startCamera = useCallback(async () => {
-    if (stream) return;
-    setIsCameraLoading(true);
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      setStream(s);
-    } catch (err) {
-      toast({ variant: "destructive", title: "Camera Error", description: "Please allow camera access for verification." });
-    } finally {
-      setIsCameraLoading(false);
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: "destructive", title: "Invalid File", description: "Please select a valid image." });
+      return;
     }
-  }, [stream, toast]);
 
-  useEffect(() => {
-    if (stream && videoRef.current) videoRef.current.srcObject = stream;
-  }, [stream]);
-
-  useEffect(() => {
-    if (step === 7 && !formData.documentPhoto) {
-      startCamera();
-    } else if (step !== 7) {
-      stopCamera();
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Oversized File", description: "Image must be smaller than 10 MB." });
+      return;
     }
-    return () => stopCamera();
-  }, [step, formData.documentPhoto, startCamera, stopCamera]);
 
-  const captureSelfie = useCallback(() => {
-    if (videoRef.current && canvasRef.current && stream) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      if (context) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        setFormData(prev => ({ ...prev, documentPhoto: dataUrl }));
-        stopCamera();
-        return dataUrl;
-      }
-    }
-    return null;
-  }, [stream, stopCamera]);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ 
+        ...prev, 
+        verificationImage: file, 
+        verificationPreview: reader.result as string 
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleBack = () => {
     if (step === 1) {
@@ -135,6 +109,16 @@ export default function Onboarding() {
     if (!db || !user) return;
     setIsSubmitting(true);
     try {
+      let verificationPath = "";
+      if (formData.verificationImage) {
+        setIsUploading(true);
+        const fileName = `verification_${Date.now()}_${formData.verificationImage.name}`;
+        const storageRef = ref(storage, `verifications/${user.uid}/${fileName}`);
+        await uploadBytes(storageRef, formData.verificationImage);
+        verificationPath = storageRef.fullPath;
+        setIsUploading(false);
+      }
+
       const batch = writeBatch(db);
       const userRef = doc(db, "users", user.uid);
       const endDate = new Date();
@@ -143,7 +127,7 @@ export default function Onboarding() {
       const profileData = {
         uid: user.uid,
         name: formData.name.trim(),
-        phoneNumber: "", 
+        phoneNumber: profile?.phoneNumber || "", 
         bio: formData.bio.trim(),
         gender: formData.gender,
         orientation: formData.orientation,
@@ -151,11 +135,18 @@ export default function Onboarding() {
         position: formData.position,
         room: formData.room,
         age: parseInt(formData.age),
-        verificationStatus: formData.verificationStatus,
+        verificationStatus: formData.verificationImage ? 'Pending' : 'not_submitted',
+        verification: {
+          status: formData.verificationImage ? 'pending' : 'not_submitted',
+          imagePath: verificationPath,
+          submittedAt: formData.verificationImage ? serverTimestamp() : null,
+          reviewedAt: null,
+          rejectionReason: null
+        },
         subscriptionStatus: 'Active',
         subscriptionPrice: 1,
         subscriptionEndDate: endDate,
-        photoUrl: formData.documentPhoto,
+        photoUrl: `https://picsum.photos/seed/${user.uid}/400/400`, // Placeholder photo for now
         lastActive: serverTimestamp(),
         isOnline: true,
         onboardingCompleted: true,
@@ -179,64 +170,35 @@ export default function Onboarding() {
 
       batch.set(doc(collection(db, "chatRooms", roomId, "messages")), {
         senderId: "system",
-        text: `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile was successfully verified. You are now a Premium member.`,
+        text: `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile has been created. If you submitted a verification image, our team will review it shortly.`,
         timestamp: serverTimestamp(),
         seen: false
       });
 
-      batch.set(doc(collection(db, "notifications")), {
-        userId: user.uid,
-        title: "✅ Identity Verified",
-        body: `Hi ${formData.name}, your profile is live and secure.`,
-        type: "verification",
-        timestamp: serverTimestamp(),
-        read: false
-      });
+      if (formData.verificationImage) {
+        batch.set(doc(collection(db, "notifications")), {
+          userId: user.uid,
+          title: "Verification Submitted",
+          body: `Hi ${formData.name}, your identity verification is now under review.`,
+          type: "verification",
+          timestamp: serverTimestamp(),
+          read: false
+        });
+      }
 
       await batch.commit();
       router.replace("/dashboard");
     } catch (error) {
+      console.error(error);
       toast({ variant: "destructive", title: "Error", description: "Failed to save profile." });
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
   const nextStep = async () => {
-    if (step === 7) {
-      let photoToVerify = formData.documentPhoto;
-      
-      if (!photoToVerify) {
-        photoToVerify = captureSelfie();
-      }
-
-      if (!photoToVerify) {
-        toast({ title: "Selfie Required", description: "Please ensure your camera is active and capture your mirror selfie." });
-        return;
-      }
-
-      setIsVerifyingAI(true);
-      try {
-        const result = await selfieVerification({
-          photoDataUri: photoToVerify,
-          userName: formData.name,
-          userDescription: formData.bio
-        });
-        
-        if (result.verificationStatus === 'Rejected') {
-          toast({ variant: "destructive", title: "Verification Denied", description: result.reason });
-          setFormData(prev => ({ ...prev, documentPhoto: null }));
-        } else {
-          setFormData(prev => ({ ...prev, verificationStatus: result.verificationStatus }));
-          setStep(8);
-        }
-      } catch (error) {
-        setFormData(prev => ({ ...prev, verificationStatus: 'Pending' }));
-        setStep(8);
-      } finally {
-        setIsVerifyingAI(false);
-      }
-    } else if (step === 8) {
+    if (step === 8) {
       await finalizeProfile();
     } else {
       setStep(s => s + 1);
@@ -247,7 +209,7 @@ export default function Onboarding() {
   const isAgeValid = formData.age !== "" && ageVal >= 18 && ageVal <= 80;
   const isNameValid = formData.name.trim().length > 0;
 
-  const isNextDisabled = isSubmitting || isVerifyingAI ||
+  const isNextDisabled = isSubmitting || isUploading ||
     (step === 1 && (!isNameValid || !isAgeValid)) || 
     (step === 2 && !formData.bio.trim()) || 
     (step === 3 && !formData.gender) || 
@@ -461,46 +423,91 @@ export default function Onboarding() {
             
             {step === 7 && (
               <div className="space-y-6 flex-1 flex flex-col">
-                <div 
-                  className={cn(
-                    "relative aspect-square w-full max-w-[280px] mx-auto rounded-[32px] overflow-hidden glass border-2 border-white/10 neon-glow shadow-2xl transition-all"
-                  )}
-                >
-                  {formData.documentPhoto ? (
-                    <img src={formData.documentPhoto} alt="Preview" className="w-full h-full object-cover" />
-                  ) : stream ? (
-                    <div className="w-full h-full flex items-center justify-center relative">
-                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror-x" />
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary animate-pulse">
-                        <Camera size={24} />
+                <div className="glass-card p-6 rounded-[32px] border border-white/10 space-y-6">
+                  <div className="space-y-2 text-center">
+                    <h3 className="text-lg font-bold text-white">Profile Verification Image</h3>
+                    <p className="text-xs text-white/40 font-light leading-relaxed">
+                      Upload a clear photo of yourself for profile verification.
+                    </p>
+                  </div>
+
+                  <div className="relative aspect-[4/5] w-full max-w-[240px] mx-auto rounded-2xl overflow-hidden glass border-2 border-white/10 shadow-2xl transition-all">
+                    {formData.verificationPreview ? (
+                      <div className="relative w-full h-full group">
+                        <img src={formData.verificationPreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                          <button 
+                            onClick={() => fileInputRef.current?.click()} 
+                            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"
+                          >
+                            <RefreshCcw size={18} />
+                          </button>
+                          <button 
+                            onClick={() => setFormData(prev => ({ ...prev, verificationImage: null, verificationPreview: null }))} 
+                            className="w-10 h-10 rounded-full bg-rose-500/20 backdrop-blur-md flex items-center justify-center text-rose-500"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-white/40 font-light leading-relaxed">
-                        Verification requires a live mirror selfie for identity synchronization.
-                      </p>
-                    </div>
-                  )}
-                  <canvas ref={canvasRef} className="hidden" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                          <Upload size={24} />
+                        </div>
+                        <p className="text-[10px] text-white/30 font-medium uppercase tracking-[0.1em]">
+                          No image selected
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
+                    <input 
+                      type="file" 
+                      ref={cameraInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      capture="user"
+                      className="hidden" 
+                    />
+                    <Button 
+                      onClick={() => fileInputRef.current?.click()} 
+                      className="h-12 rounded-xl glass border-white/10 text-white/80 hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                    >
+                      <ImageIcon size={18} />
+                      Upload from Gallery
+                    </Button>
+                    <Button 
+                      onClick={() => cameraInputRef.current?.click()} 
+                      variant="ghost"
+                      className="h-10 text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white"
+                    >
+                      <Camera size={14} className="mr-2" />
+                      Take a Photo
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="flex flex-col items-center gap-4 mt-auto py-2">
-                  {formData.documentPhoto && (
-                    <motion.button 
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setFormData(prev => ({ ...prev, documentPhoto: null }))} 
-                      className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2"
-                    >
-                      <RefreshCcw size={14} />
-                      Retake Mirror Photo
-                    </motion.button>
-                  )}
-                  <p className="text-[9px] text-white/30 text-center font-medium uppercase tracking-[0.1em] max-w-[200px]">
-                    Encrypted Biometric synchronization in progress...
-                  </p>
-                </div>
+                {formData.verificationPreview && (
+                  <div className="flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-2 text-emerald-500">
+                      <ShieldCheck size={16} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Verification image ready</span>
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-[9px] text-white/20 text-center font-medium uppercase tracking-[0.1em] mt-auto">
+                  Your verification image is private and encrypted.
+                </p>
               </div>
             )}
 
@@ -552,11 +559,11 @@ export default function Onboarding() {
             isNextDisabled && "opacity-40 grayscale"
           )}
         >
-          {isVerifyingAI || isSubmitting ? (
+          {isSubmitting || isUploading ? (
             <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
           ) : (
             <>
-              <span>{step === 8 ? "Join Elite" : step === 7 && !formData.documentPhoto ? "Capture Selfie" : "Proceed"}</span>
+              <span>{step === 8 ? "Join Elite" : (step === 7 && formData.verificationPreview) ? "Submit for Verification" : "Proceed"}</span>
               <ChevronRight size={20} />
             </>
           )}
