@@ -19,6 +19,24 @@ import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { PLAN_LIMITS, isElite, isSpotlightActive } from "@/lib/plan-limits";
 
+const DEMO_USER: Partial<UserProfile> & { distance?: string } = {
+  uid: "demo-aura-architect",
+  name: "Artemis",
+  age: 27,
+  bio: "Architect of dreams and digital spaces. Exploring the intersection of art and reality in the Aura realm. ✨",
+  gender: "Non-binary",
+  orientation: "Queer",
+  interestedIn: ["Man", "Woman", "Non-binary"],
+  position: "Versatile",
+  room: "Yes",
+  verificationStatus: "Verified",
+  plan: "Elite",
+  photoUrl: "https://picsum.photos/seed/aura_demo/600/800",
+  isOnline: true,
+  incognitoMode: false,
+  distance: "Nearby in the Aether"
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -274,6 +292,12 @@ export default function Dashboard() {
                         No matches were synchronized in your current realm. Try expanding your search radius.
                       </p>
                     </div>
+                    
+                    <div className="w-full max-w-[340px] mx-auto space-y-4 pt-4">
+                      <p className="text-[10px] font-bold text-primary/40 uppercase tracking-[0.3em]">Demo Synchronicity</p>
+                      <AuraCard user={DEMO_USER as any} onClick={() => handleUserClick(DEMO_USER.uid!)} />
+                    </div>
+
                     <div className="flex flex-col w-full max-w-[280px] gap-4">
                       <Button onClick={handleResetFilters} className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow">
                         <RefreshCcw className="mr-2" size={20} />
