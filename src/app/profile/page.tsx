@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   UserCheck,
   ZapOff,
-  Compass
+  Compass,
+  SlidersHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -390,7 +391,7 @@ export default function ProfilePage() {
                   <div className="h-full flex flex-col">
                     <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                       <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                      <h2 className="text-sm font-bold uppercase tracking-[0.3em]">Elite Plus</h2>
+                      <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Elite Plus</SheetTitle>
                       <div className="w-10 h-10" />
                     </header>
                     
@@ -500,7 +501,7 @@ export default function ProfilePage() {
                     <div className="h-full flex flex-col">
                        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                           <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                          <h2 className="text-sm font-bold uppercase tracking-[0.3em]">Get Spotlight</h2>
+                          <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Get Spotlight</SheetTitle>
                           <div className="w-10 h-10" />
                        </header>
                        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
@@ -584,7 +585,7 @@ export default function ProfilePage() {
                     <div className="h-full flex flex-col">
                        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                           <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                          <h2 className="text-sm font-bold uppercase tracking-[0.3em]">Super Likes</h2>
+                          <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Super Likes</SheetTitle>
                           <div className="w-10 h-10" />
                        </header>
                        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
