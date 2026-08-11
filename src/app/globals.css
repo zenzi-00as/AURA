@@ -47,12 +47,16 @@
 }
 
 @layer utilities {
-  /* Glassmorphism Classes */
+  /* Glassmorphism Classes - Optimized for 60FPS */
   .glass {
     @apply bg-white/5 backdrop-blur-2xl border border-white/10;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   .glass-dark {
-    @apply bg-black/40 backdrop-blur-3xl border border-white/5;
+    @apply bg-black/40 backdrop-blur-2xl border border-white/5;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
   .glass-card {
     @apply glass rounded-[28px] shadow-2xl;

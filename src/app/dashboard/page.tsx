@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -177,7 +176,7 @@ export default function Dashboard() {
                 <SlidersHorizontal size={20} />
               </motion.button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-3xl">
+            <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-2xl will-change-transform translate-z-0">
               <SheetHeader className="mb-8">
                 <SheetTitle className="text-2xl font-bold text-white">Discovery Filters</SheetTitle>
               </SheetHeader>
