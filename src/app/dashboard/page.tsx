@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
@@ -125,14 +125,12 @@ export default function Dashboard() {
         return { ...user, distance: distanceStr, distanceKm: distKm };
       })
       .filter(user => {
-        // Enforce Search Radius
         if (currentLocation && user.location) {
           return user.distanceKm! <= activeFilters.distance;
         }
         return true;
       })
       .sort((a, b) => {
-        // Spotlight Priority -> Elite Priority -> Distance
         const aSpotlight = isSpotlightActive(a);
         const bSpotlight = isSpotlightActive(b);
         if (aSpotlight !== bSpotlight) return aSpotlight ? -1 : 1;
@@ -151,9 +149,10 @@ export default function Dashboard() {
   };
 
   const handleResetFilters = () => {
-    setDistance([eliteUser ? 50 : 15]);
-    setAgeRange([18, 80]);
-    setActiveFilters({ distance: eliteUser ? 50 : 15, ageRange: [18, 80] });
+    const defaultDist = eliteUser ? 25 : 15;
+    setDistance([defaultDist]);
+    setAgeRange([18, 35]);
+    setActiveFilters({ distance: defaultDist, ageRange: [18, 35] });
   };
 
   const handleUserClick = (uid: string) => {
@@ -172,15 +171,15 @@ export default function Dashboard() {
           />
         </div>
 
-        <header className="px-8 h-24 flex justify-between items-center sticky top-0 bg-background/40 backdrop-blur-2xl z-20 border-b border-white/5 safe-top">
-          <div className="flex items-center gap-4">
+        <header className="px-6 h-20 flex justify-between items-center sticky top-0 bg-background/40 backdrop-blur-2xl z-20 border-b border-white/5 safe-top">
+          <div className="flex items-center gap-3">
             <motion.div 
               whileHover={{ scale: 1.1, rotate: 5 }}
-              className="w-12 h-12 rounded-2xl premium-gradient flex items-center justify-center neon-glow shrink-0"
+              className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center neon-glow shrink-0"
             >
-              <span className="text-white font-bold text-lg">A</span>
+              <span className="text-white font-bold text-sm">A</span>
             </motion.div>
-            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+            <h1 className="text-xl font-bold tracking-tight text-white">
               {t('discovery')}
             </h1>
           </div>
@@ -189,12 +188,12 @@ export default function Dashboard() {
             <SheetTrigger asChild>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                className="w-11 h-11 rounded-full glass border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
+                className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
               >
-                <SlidersHorizontal size={20} />
+                <SlidersHorizontal size={18} />
               </motion.button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-2xl will-change-transform translate-z-0">
+            <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-2xl">
               <SheetHeader className="mb-8">
                 <SheetTitle className="text-2xl font-bold text-white">Discovery Filters</SheetTitle>
               </SheetHeader>
@@ -236,14 +235,14 @@ export default function Dashboard() {
           </Sheet>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 scrollbar-hide pb-32 relative z-10">
+        <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide pb-32 relative z-10">
           {usersLoading ? (
-            <div className="flex flex-col gap-6">
-              {[1, 2, 3].map(i => <div key={i} className="h-44 w-full rounded-[28px] glass animate-pulse" />)}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="aspect-[3/4] w-full rounded-[28px] glass animate-pulse" />)}
             </div>
           ) : (
             <>
-              <div className="px-2 flex items-center justify-between">
+              <div className="px-2 mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em]">
                   <Sparkles size={14} className="animate-pulse" />
                   {filteredUsers.length > 0 ? t('verified_nearby') : "Status"}
@@ -256,51 +255,62 @@ export default function Dashboard() {
               </div>
               
               <AnimatePresence mode="popLayout">
-                {filteredUsers.map((user, idx) => (
-                  <motion.div 
-                    key={user.uid} 
-                    layout 
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }} 
-                    animate={{ opacity: 1, y: 0, scale: 1 }} 
-                    exit={{ opacity: 0, scale: 0.9 }} 
-                    transition={{ duration: 0.4, delay: idx * 0.05 }}
-                    className="w-full flex flex-col gap-6"
-                  >
-                    <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
-                    {idx > 0 && idx % 3 === 0 && <AdBanner />}
-                  </motion.div>
-                ))}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  {filteredUsers.map((user, idx) => (
+                    <React.Fragment key={user.uid}>
+                      <motion.div 
+                        layout 
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }} 
+                        animate={{ opacity: 1, y: 0, scale: 1 }} 
+                        exit={{ opacity: 0, scale: 0.9 }} 
+                        transition={{ duration: 0.4, delay: idx * 0.05 }}
+                        className="w-full h-full"
+                      >
+                        <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
+                      </motion.div>
+                      {(idx + 1) % 6 === 0 && (
+                        <div className="col-span-full py-2">
+                          <AdBanner />
+                        </div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
 
                 {filteredUsers.length === 0 && (
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    className="flex flex-col items-center justify-center py-20 text-center space-y-10 px-4"
+                    className="flex flex-col items-center justify-center py-10 text-center space-y-10 px-4"
                   >
                     <div className="relative">
                       <motion.div 
                         animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                        className="w-24 h-24 rounded-[40px] glass flex items-center justify-center text-primary relative z-10"
+                        className="w-20 h-20 rounded-[32px] glass flex items-center justify-center text-primary relative z-10"
                       >
-                        <Search size={48} strokeWidth={1.5} />
+                        <Search size={32} strokeWidth={1.5} />
                       </motion.div>
                     </div>
                     <div className="space-y-4">
-                      <h2 className="text-2xl font-bold text-white tracking-tight">Ethereal Silence...</h2>
-                      <p className="text-sm text-white/60 font-light leading-relaxed max-w-[280px] mx-auto">
+                      <h2 className="text-xl font-bold text-white tracking-tight">Ethereal Silence...</h2>
+                      <p className="text-xs text-white/60 font-light leading-relaxed max-w-[240px] mx-auto">
                         No matches were synchronized in your current realm. Try expanding your search radius.
                       </p>
                     </div>
                     
-                    <div className="w-full max-w-[340px] mx-auto space-y-4 pt-4">
+                    <div className="w-full max-w-[400px] mx-auto space-y-4 pt-4">
                       <p className="text-[10px] font-bold text-primary/40 uppercase tracking-[0.3em]">Demo Synchronicity</p>
-                      <AuraCard user={DEMO_USER as any} onClick={() => handleUserClick(DEMO_USER.uid!)} />
+                      <div className="grid grid-cols-2 gap-3 justify-center">
+                        <div className="col-start-1 col-end-3 sm:col-end-2 max-w-[200px] mx-auto w-full">
+                           <AuraCard user={DEMO_USER as any} onClick={() => handleUserClick(DEMO_USER.uid!)} />
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex flex-col w-full max-w-[280px] gap-4">
-                      <Button onClick={handleResetFilters} className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow">
-                        <RefreshCcw className="mr-2" size={20} />
+                    <div className="flex flex-col w-full max-w-[240px] gap-4 pt-4">
+                      <Button onClick={handleResetFilters} className="w-full h-14 rounded-2xl premium-gradient text-white font-bold text-base neon-glow">
+                        <RefreshCcw className="mr-2" size={18} />
                         Reset Filters
                       </Button>
                     </div>
