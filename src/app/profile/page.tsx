@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { BadgeCheck, Settings, LogOut, Shield, Heart, Pencil, Sparkles, Check, MessageSquare, Lock, Info, Home, UserCircle, Star, Zap, Image as ImageIcon, ShieldAlert, ChevronRight, AlertCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
