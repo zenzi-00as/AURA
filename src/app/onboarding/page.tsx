@@ -6,14 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
-import { getAuth, authStateReady } from "firebase/auth";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
@@ -105,22 +104,15 @@ export default function Onboarding() {
   };
 
   const finalizeProfile = async () => {
-    if (!db) return;
-    
-    // Ensure Auth is ready and user is present
-    await authStateReady(auth);
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      toast({ 
-        variant: "destructive", 
-        title: "Session Expired", 
-        description: "Your session has timed out. Please sign in again to finalize your profile." 
-      });
-      router.replace('/auth');
+    if (!db || !auth.currentUser) {
+      if (!auth.currentUser && !authLoading) {
+        toast({ variant: "destructive", title: "Session Expired", description: "Please sign in again." });
+        router.replace('/auth');
+      }
       return;
     }
-
+    
+    const currentUser = auth.currentUser;
     setIsSubmitting(true);
     try {
       let verificationPath = "";
@@ -165,7 +157,14 @@ export default function Onboarding() {
         isOnline: true,
         onboardingCompleted: true,
         welcomeSent: true,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        dailyChatCount: 0,
+        dailyMediaCount: 0,
+        superLikeBalance: 0,
+        plan: 'Free',
+        incognitoMode: false,
+        isSuspended: false,
+        isAdmin: false
       };
 
       batch.set(userRef, profileData, { merge: true });
@@ -221,6 +220,24 @@ export default function Onboarding() {
     } else {
       setStep(s => s + 1);
     }
+  };
+
+  const handleDemoMode = () => {
+    setFormData({
+      name: "Demo User",
+      age: "25",
+      bio: "This is a demo profile to test the Aura luxury experience. I enjoy art, technology, and meaningful connections.",
+      gender: "Non-binary",
+      orientation: "Queer",
+      interestedIn: ["Man", "Woman"],
+      position: "Versatile",
+      room: "Yes",
+      verificationImage: null,
+      verificationPreview: null,
+      verificationStatus: 'not_submitted'
+    });
+    setStep(8);
+    toast({ title: "Demo Mode Active", description: "Identity parameters filled. Proceed to finalize." });
   };
 
   const ageVal = parseInt(formData.age);
@@ -568,7 +585,7 @@ export default function Onboarding() {
         </AnimatePresence>
       </div>
 
-      <div className="px-8 pb-8 pt-2 relative z-10">
+      <div className="px-8 pb-8 pt-2 relative z-10 flex flex-col gap-4">
         <motion.button 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.95 }}
@@ -596,6 +613,15 @@ export default function Onboarding() {
             </>
           )}
         </motion.button>
+
+        {/* Demo Button for Rapid Testing */}
+        <button
+          onClick={handleDemoMode}
+          className="w-full h-12 rounded-xl glass border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2 group"
+        >
+          <Play size={12} className="group-hover:text-primary transition-colors" />
+          Jump into Aura (Demo Mode)
+        </button>
       </div>
     </div>
   );

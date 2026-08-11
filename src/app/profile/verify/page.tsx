@@ -10,7 +10,6 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
-import { getAuth, authStateReady } from "firebase/auth";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { cn } from "@/lib/utils";
 
@@ -50,22 +49,19 @@ export default function VerifyProfilePage() {
   };
 
   const handleSubmit = async () => {
-    if (!db || !imageFile) return;
-
-    // Ensure Auth session is completely restored
-    await authStateReady(auth);
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      toast({ 
-        variant: "destructive", 
-        title: "Authentication Required", 
-        description: "Please sign in again to submit your verification." 
-      });
-      router.replace('/auth');
+    if (!db || !imageFile || !auth.currentUser) {
+      if (!auth.currentUser && !authLoading) {
+        toast({ 
+          variant: "destructive", 
+          title: "Authentication Required", 
+          description: "Please sign in again to submit your verification." 
+        });
+        router.replace('/auth');
+      }
       return;
     }
 
+    const currentUser = auth.currentUser;
     setIsUploading(true);
 
     try {
