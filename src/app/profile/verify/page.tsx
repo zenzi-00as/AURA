@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -11,6 +10,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
+import { getAuth, authStateReady } from "firebase/auth";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,8 @@ export default function VerifyProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
-  const { storage } = initializeFirebase();
-  const { user, profile } = useAuthContext();
+  const { storage, auth } = initializeFirebase();
+  const { user, profile, loading: authLoading } = useAuthContext();
   
   const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -50,15 +50,30 @@ export default function VerifyProfilePage() {
   };
 
   const handleSubmit = async () => {
-    if (!db || !user || !imageFile) return;
+    if (!db || !imageFile) return;
+
+    // Ensure Auth session is completely restored
+    await authStateReady(auth);
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      toast({ 
+        variant: "destructive", 
+        title: "Authentication Required", 
+        description: "Please sign in again to submit your verification." 
+      });
+      router.replace('/auth');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
       const fileName = `verification_${Date.now()}_${imageFile.name}`;
-      const storageRef = ref(storage, `verifications/${user.uid}/${fileName}`);
+      const storageRef = ref(storage, `verifications/${currentUser.uid}/${fileName}`);
       await uploadBytes(storageRef, imageFile);
 
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", currentUser.uid);
       await updateDoc(userRef, {
         verificationStatus: 'Pending',
         verification: {
@@ -71,7 +86,7 @@ export default function VerifyProfilePage() {
       });
 
       await addDoc(collection(db, "notifications"), {
-        userId: user.uid,
+        userId: currentUser.uid,
         title: "Verification Under Review",
         body: "Your identity verification request has been submitted for review.",
         type: "verification",
@@ -81,8 +96,13 @@ export default function VerifyProfilePage() {
 
       toast({ title: "Submission Successful", description: "Your profile is now under review." });
       router.replace('/profile');
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to upload image." });
+    } catch (error: any) {
+      console.error('Upload Error:', error);
+      toast({ 
+        variant: "destructive", 
+        title: "Upload Failed", 
+        description: error.message || "Failed to upload image. Please check your connection and try again." 
+      });
     } finally {
       setIsUploading(false);
     }
@@ -157,10 +177,11 @@ export default function VerifyProfilePage() {
               {!previewUrl ? (
                 <Button 
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={authLoading}
                   className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/20"
                 >
                   <Upload size={18} className="mr-3" />
-                  Select Verification Photo
+                  {authLoading ? "Checking account..." : "Select Verification Photo"}
                 </Button>
               ) : (
                 <div className="space-y-4">
@@ -170,11 +191,19 @@ export default function VerifyProfilePage() {
                   </div>
                   <Button 
                     onClick={handleSubmit}
-                    disabled={isUploading}
+                    disabled={isUploading || authLoading}
                     className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-center gap-3"
                   >
-                    {isUploading ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
+                    {authLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <span>Verifying Account...</span>
+                      </div>
+                    ) : isUploading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <span>Uploading Documents...</span>
+                      </div>
                     ) : (
                       <>
                         Submit Verification

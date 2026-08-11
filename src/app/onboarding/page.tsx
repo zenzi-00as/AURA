@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,8 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, setDoc, serverTimestamp, writeBatch, collection, addDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
+import { ref, uploadBytes } from "firebase/storage";
+import { getAuth, authStateReady } from "firebase/auth";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
@@ -23,14 +23,14 @@ const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
 const ROOM_OPTIONS = ["Yes", "No"];
 
 const ONBOARDING_WALLPAPERS = [
-  "bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]", // Step 1: Aurora Sky
-  "bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]", // Step 2: Floating Particles
-  "bg-[radial-gradient(circle_at_bottom,rgba(236,72,153,0.15),transparent_60%)]", // Step 3: Galaxy
-  "bg-[radial-gradient(circle_at_left,rgba(34,211,238,0.1),transparent_70%)]", // Step 4: Gradient Waves
-  "bg-[radial-gradient(circle_at_right,rgba(139,92,246,0.1),transparent_70%)]", // Step 5: Crystal Light
-  "bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.1),transparent_80%)]", // Step 6: City Lights
-  "bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_50%)]", // Step 7: Identity Guard
-  "bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.2),transparent_70%)]", // Step 8: Premium
+  "bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]", 
+  "bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]", 
+  "bg-[radial-gradient(circle_at_bottom,rgba(236,72,153,0.15),transparent_60%)]", 
+  "bg-[radial-gradient(circle_at_left,rgba(34,211,238,0.1),transparent_70%)]", 
+  "bg-[radial-gradient(circle_at_right,rgba(139,92,246,0.1),transparent_70%)]", 
+  "bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.1),transparent_80%)]", 
+  "bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05),transparent_50%)]", 
+  "bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.2),transparent_70%)]", 
 ];
 
 export default function Onboarding() {
@@ -38,7 +38,7 @@ export default function Onboarding() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const db = useFirestore();
-  const { storage } = initializeFirebase();
+  const { storage, auth } = initializeFirebase();
   const { user, loading: authLoading, profile } = useAuthContext();
   
   const [step, setStep] = useState(1);
@@ -98,7 +98,6 @@ export default function Onboarding() {
 
   const handleBack = () => {
     if (step === 1) {
-      const { auth } = initializeFirebase();
       auth.signOut().then(() => router.replace('/auth'));
     } else {
       setStep(s => s - 1);
@@ -106,26 +105,41 @@ export default function Onboarding() {
   };
 
   const finalizeProfile = async () => {
-    if (!db || !user) return;
+    if (!db) return;
+    
+    // Ensure Auth is ready and user is present
+    await authStateReady(auth);
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      toast({ 
+        variant: "destructive", 
+        title: "Session Expired", 
+        description: "Your session has timed out. Please sign in again to finalize your profile." 
+      });
+      router.replace('/auth');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let verificationPath = "";
       if (formData.verificationImage) {
         setIsUploading(true);
         const fileName = `verification_${Date.now()}_${formData.verificationImage.name}`;
-        const storageRef = ref(storage, `verifications/${user.uid}/${fileName}`);
+        const storageRef = ref(storage, `verifications/${currentUser.uid}/${fileName}`);
         await uploadBytes(storageRef, formData.verificationImage);
         verificationPath = storageRef.fullPath;
         setIsUploading(false);
       }
 
       const batch = writeBatch(db);
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", currentUser.uid);
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + 28);
 
       const profileData = {
-        uid: user.uid,
+        uid: currentUser.uid,
         name: formData.name.trim(),
         phoneNumber: profile?.phoneNumber || "", 
         bio: formData.bio.trim(),
@@ -146,7 +160,7 @@ export default function Onboarding() {
         subscriptionStatus: 'Active',
         subscriptionPrice: 1,
         subscriptionEndDate: endDate,
-        photoUrl: `https://picsum.photos/seed/${user.uid}/400/400`, // Placeholder photo for now
+        photoUrl: `https://picsum.photos/seed/${currentUser.uid}/400/400`,
         lastActive: serverTimestamp(),
         isOnline: true,
         onboardingCompleted: true,
@@ -156,15 +170,15 @@ export default function Onboarding() {
 
       batch.set(userRef, profileData, { merge: true });
       
-      const roomId = `system_${user.uid}`;
+      const roomId = `system_${currentUser.uid}`;
       batch.set(doc(db, "chatRooms", roomId), {
         id: roomId,
-        participants: ["system", user.uid],
+        participants: ["system", currentUser.uid],
         lastMessage: "Welcome to AURA ❤️",
         lastTimestamp: serverTimestamp(),
         isSystem: true,
         unreadCount: {
-          [user.uid]: 1
+          [currentUser.uid]: 1
         }
       });
 
@@ -177,7 +191,7 @@ export default function Onboarding() {
 
       if (formData.verificationImage) {
         batch.set(doc(collection(db, "notifications")), {
-          userId: user.uid,
+          userId: currentUser.uid,
           title: "Verification Submitted",
           body: `Hi ${formData.name}, your identity verification is now under review.`,
           type: "verification",
@@ -188,9 +202,13 @@ export default function Onboarding() {
 
       await batch.commit();
       router.replace("/dashboard");
-    } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Error", description: "Failed to save profile." });
+    } catch (error: any) {
+      console.error('Finalization Error:', error);
+      toast({ 
+        variant: "destructive", 
+        title: "Synchronization Error", 
+        description: error.message || "Failed to finalize your Aura profile. Please try again." 
+      });
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -209,7 +227,7 @@ export default function Onboarding() {
   const isAgeValid = formData.age !== "" && ageVal >= 18 && ageVal <= 80;
   const isNameValid = formData.name.trim().length > 0;
 
-  const isNextDisabled = isSubmitting || isUploading ||
+  const isNextDisabled = authLoading || isSubmitting || isUploading ||
     (step === 1 && (!isNameValid || !isAgeValid)) || 
     (step === 2 && !formData.bio.trim()) || 
     (step === 3 && !formData.gender) || 
@@ -227,7 +245,10 @@ export default function Onboarding() {
         >
           <span className="text-4xl font-bold text-white tracking-tighter">A</span>
         </motion.div>
-        <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Identity</p>
+        </div>
       </div>
     );
   }
@@ -236,7 +257,6 @@ export default function Onboarding() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
-      {/* Step Specific Wallpaper */}
       <div className={cn("absolute inset-0 z-0 transition-all duration-1000", ONBOARDING_WALLPAPERS[step - 1])} />
 
       <header className="h-14 relative z-10 flex items-center px-8">
@@ -559,8 +579,16 @@ export default function Onboarding() {
             isNextDisabled && "opacity-40 grayscale"
           )}
         >
-          {isSubmitting || isUploading ? (
-            <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+          {authLoading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Checking account...</span>
+            </div>
+          ) : isSubmitting || isUploading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+              <span className="text-sm">{isUploading ? "Uploading identity..." : "Finalizing..."}</span>
+            </div>
           ) : (
             <>
               <span>{step === 8 ? "Join Elite" : (step === 7 && formData.verificationPreview) ? "Submit for Verification" : "Proceed"}</span>
