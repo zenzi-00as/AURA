@@ -32,7 +32,7 @@ export function OrientationSelector({ gender, selected, onSelect }: OrientationS
         <AnimatePresence mode="popLayout">
           {filteredOrientations.map((opt) => (
             <motion.button
-              key={opt}
+              key={`orient-${opt}`}
               layout
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

@@ -7,7 +7,7 @@ import { AuraCard } from "@/components/aura/AuraCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { AdBanner } from "@/components/aura/AdBanner";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Compass, Lock } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -83,9 +83,9 @@ export default function Dashboard() {
   const filteredUsers = useMemo(() => {
     if (!firestoreUsers || !currentUserProfile) return [];
     
-    return firestoreUsers
+    const results = firestoreUsers
       .filter(user => {
-        if (user.uid === currentUserProfile.uid) return false;
+        if (!user.uid || user.uid === currentUserProfile.uid) return false;
         if (user.isSuspended) return false;
 
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
@@ -141,6 +141,9 @@ export default function Dashboard() {
 
         return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
+
+    // Final deduplication by UID to prevent key warnings
+    return Array.from(new Map(results.map(u => [u.uid, u])).values());
   }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
   const handleApplyFilters = () => {
@@ -238,7 +241,7 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-hide pb-32 relative z-10">
           {usersLoading ? (
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[1/1.3] w-full rounded-2xl glass animate-pulse" />)}
+              {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.3] w-full rounded-2xl glass animate-pulse" />)}
             </div>
           ) : (
             <>
@@ -252,7 +255,7 @@ export default function Dashboard() {
               <AnimatePresence mode="popLayout">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
                   {filteredUsers.map((user, idx) => (
-                    <React.Fragment key={user.uid}>
+                    <React.Fragment key={user.uid || `user-${idx}`}>
                       <motion.div 
                         layout 
                         initial={{ opacity: 0, y: 15, scale: 0.98 }} 
@@ -264,7 +267,7 @@ export default function Dashboard() {
                         <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
                       </motion.div>
                       {(idx + 1) % 6 === 0 && (
-                        <div className="col-span-full py-2">
+                        <div key={`ad-block-${idx}`} className="col-span-full py-2">
                           <AdBanner />
                         </div>
                       )}

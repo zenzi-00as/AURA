@@ -26,7 +26,7 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
             const isSelected = selected.includes(opt);
             return (
               <motion.button
-                key={opt}
+                key={`interest-${opt}`}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onToggle(opt)}
                 className={cn(

@@ -68,7 +68,7 @@ export function BottomNav() {
                   size={24} 
                   className={cn(
                     "transition-all duration-500",
-                    isActive ? "scale-110 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]" : "scale-100"
+                    isActive ? "scale-110 drop-shadow(0 0 10px rgba(168,85,247,0.8))" : "scale-100"
                   )} 
                 />
                 

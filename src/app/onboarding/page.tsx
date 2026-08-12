@@ -6,12 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, Sparkles, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload, Play } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, setDoc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
+import { doc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
@@ -70,7 +70,7 @@ export default function Onboarding() {
     }
   }, [user, profile, authLoading, router]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isCamera = false) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -280,7 +280,7 @@ export default function Onboarding() {
         <div className="flex justify-between items-center w-full">
           <div className="flex gap-1.5 flex-1 max-w-[160px]">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-              <div key={s} className={cn("h-1 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-white/10")} />
+              <div key={`onboard-step-${s}`} className={cn("h-1 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-white/10")} />
             ))}
           </div>
           <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.1em] ml-4 shrink-0">
@@ -292,7 +292,7 @@ export default function Onboarding() {
       <div className="flex-1 overflow-y-auto px-8 py-2 scrollbar-hide relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
-            key={step}
+            key={`onboard-stage-${step}`}
             initial={{ opacity: 0, x: 20, filter: "blur(10px)" }}
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, x: -20, filter: "blur(10px)" }}
@@ -418,7 +418,7 @@ export default function Onboarding() {
                   <div className="grid grid-cols-1 gap-2">
                     {POSITION_OPTIONS.map((opt) => (
                       <motion.button
-                        key={opt}
+                        key={`pos-${opt}`}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setFormData({ ...formData, position: opt })}
                         className={cn(
@@ -439,7 +439,7 @@ export default function Onboarding() {
                   <div className="grid grid-cols-2 gap-3">
                     {ROOM_OPTIONS.map((opt) => (
                       <motion.button
-                        key={opt}
+                        key={`room-${opt}`}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setFormData({ ...formData, room: opt })}
                         className={cn(
@@ -570,7 +570,7 @@ export default function Onboarding() {
                       "Unlimited Messages",
                       "Priority Discovery Stage"
                     ].map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3 text-xs text-white/60 text-left">
+                      <div key={`elite-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60 text-left">
                         <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
                           <Check size={10} strokeWidth={3} />
                         </div>
@@ -614,7 +614,6 @@ export default function Onboarding() {
           )}
         </motion.button>
 
-        {/* Demo Button for Rapid Testing */}
         <button
           onClick={handleDemoMode}
           className="w-full h-12 rounded-xl glass border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2 group"

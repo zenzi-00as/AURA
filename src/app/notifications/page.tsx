@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/aura/BottomNav";
 import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles, Settings } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, limit, Query, doc, updateDoc, writeBatch } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, Query, doc, writeBatch } from "firebase/firestore";
 import { Notification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -36,10 +36,12 @@ export default function NotificationsPage() {
       if (unreadNotifs.length > 0) {
         const batch = writeBatch(db);
         unreadNotifs.forEach(notif => {
-          const ref = doc(db, "notifications", notif.id);
-          batch.update(ref, { read: true });
+          if (notif.id) {
+            const ref = doc(db, "notifications", notif.id);
+            batch.update(ref, { read: true });
+          }
         });
-        batch.commit().catch(err => console.error("Failed to clear notifications", err));
+        batch.commit().catch(() => {});
       }
     }
   }, [db, notifications]);
@@ -87,7 +89,7 @@ export default function NotificationsPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-20 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />
+              <div key={`notif-skeleton-${i}`} className="h-20 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />
             ))}
           </div>
         ) : (
@@ -102,7 +104,7 @@ export default function NotificationsPage() {
 
                 return (
                   <motion.div
-                    key={notif.id}
+                    key={notif.id || `notif-${idx}`}
                     layout
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -144,6 +146,7 @@ export default function NotificationsPage() {
               })
             ) : (
               <motion.div 
+                key="empty-notifs"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center py-20 text-center space-y-4"

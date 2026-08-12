@@ -16,30 +16,25 @@ import {
   MessageSquare, 
   Lock, 
   Info, 
-  Home, 
-  UserCircle, 
   Star, 
   Zap, 
   Image as ImageIcon, 
   ChevronRight, 
   AlertCircle, 
   Clock,
-  ArrowLeft,
   X,
   Plus,
   Minus,
   Eye,
   ShieldCheck,
   UserCheck,
-  ZapOff,
   Compass,
   SlidersHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -186,7 +181,6 @@ export default function ProfilePage() {
     return Math.max(0, differenceInDays(end, new Date()));
   }, [profile]);
 
-  // Sub-components for Details
   const ComparisonTable = () => (
     <div className="space-y-4">
       <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">FREE vs ELITE PLUS</h3>
@@ -204,7 +198,7 @@ export default function ProfilePage() {
           { label: "Media Sharing", free: "2/day", elite: "Unlimited" },
           { label: "No Ads", free: "—", elite: "✓" },
         ].map((row, i) => (
-          <div key={i} className="grid grid-cols-3 p-4 text-[11px] border-t border-white/5 items-center">
+          <div key={`compare-row-${i}`} className="grid grid-cols-3 p-4 text-[11px] border-t border-white/5 items-center">
             <div className="text-white/80">{row.label}</div>
             <div className="text-center text-white/30">{row.free}</div>
             <div className="text-center text-primary font-bold">{row.elite}</div>
@@ -269,7 +263,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Premium Balances Area */}
           <div className="grid grid-cols-3 gap-2 px-1">
              <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
                 <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Super Likes</span>
@@ -289,7 +282,6 @@ export default function ProfilePage() {
              </div>
           </div>
 
-          {/* Identity Verification Status */}
           <div className="mx-1 p-6 glass-card border-primary/10 bg-primary/5 space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -340,7 +332,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Incognito Toggle */}
           <div className="mx-1 p-6 glass-card border-primary/20 bg-primary/5 flex items-center justify-between">
             <div className="flex items-start gap-3">
               <Lock size={20} className="text-primary mt-1 shrink-0" />
@@ -352,15 +343,12 @@ export default function ProfilePage() {
             <Switch checked={isIncognito} onCheckedChange={toggleIncognito} />
           </div>
 
-          {/* MONETIZATION HUB */}
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
                <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Aura Premium Hub</h3>
-               {!elite && <span className="text-[8px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase">Unlock Features</span>}
             </div>
             
             <div className="space-y-3">
-              {/* ELITE PLUS BANNER */}
               <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
                 <SheetTrigger asChild>
                   <motion.button 
@@ -412,11 +400,11 @@ export default function ProfilePage() {
                              <div className="grid grid-cols-1 gap-3">
                                 {[
                                   { icon: Compass, label: "100 km search radius" },
-                                  { icon: Sliders, label: "Advanced discovery filters" },
+                                  { icon: SlidersHorizontal, label: "Advanced discovery filters" },
                                   { icon: Eye, label: "See who likes you" },
                                   { icon: Heart, label: "Unlimited discovery likes" },
                                 ].map((b, i) => (
-                                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                  <div key={`elite-benefit-discover-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
                                      <span className="text-sm font-medium">{b.label}</span>
                                   </div>
@@ -432,7 +420,7 @@ export default function ProfilePage() {
                                   { icon: UserCheck, label: "Read receipts enabled" },
                                   { icon: ImageIcon, label: "Unlimited media sharing" },
                                 ].map((b, i) => (
-                                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                  <div key={`elite-benefit-connect-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                                      <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary"><b.icon size={18} /></div>
                                      <span className="text-sm font-medium">{b.label}</span>
                                   </div>
@@ -448,7 +436,7 @@ export default function ProfilePage() {
                                   { icon: ImageIcon, label: "Profile images visible" },
                                   { icon: Sparkles, label: "Priority discovery features" },
                                 ].map((b, i) => (
-                                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                  <div key={`elite-benefit-trust-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
                                      <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent"><b.icon size={18} /></div>
                                      <span className="text-sm font-medium">{b.label}</span>
                                   </div>
@@ -480,7 +468,6 @@ export default function ProfilePage() {
                 </SheetContent>
               </Sheet>
 
-              {/* SPOTLIGHT & SUPER LIKE GRID */}
               <div className="grid grid-cols-2 gap-3">
                 <Sheet open={activeSheet === 'spotlight'} onOpenChange={(o) => setActiveSheet(o ? 'spotlight' : null)}>
                   <SheetTrigger asChild>
@@ -526,7 +513,7 @@ export default function ProfilePage() {
                                   "Active for 7 full days",
                                   "Automatically expires",
                                 ].map((t, i) => (
-                                  <div key={i} className="flex items-center gap-3 text-xs text-white/60">
+                                  <div key={`spotlight-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60">
                                      <Check size={14} className="text-primary" />
                                      <span>{t}</span>
                                   </div>
@@ -538,12 +525,12 @@ export default function ProfilePage() {
                              <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Visual Boost Preview</h4>
                              <div className="flex items-center justify-center gap-8 py-4">
                                 <div className="flex flex-col items-center gap-2">
-                                   <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center opacity-40"><UserCircle size={24} /></div>
+                                   <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center opacity-40"><Star size={24} /></div>
                                    <span className="text-[9px] font-bold text-white/20 uppercase">Normal</span>
                                 </div>
                                 <div className="text-white/20"><ChevronRight size={24} /></div>
                                 <div className="flex flex-col items-center gap-2">
-                                   <div className="w-20 h-20 rounded-[28px] bg-primary/10 border-2 border-primary/40 flex items-center justify-center aura-glow-purple"><UserCircle size={32} className="text-primary" /></div>
+                                   <div className="w-20 h-20 rounded-[28px] bg-primary/10 border-2 border-primary/40 flex items-center justify-center aura-glow-purple"><Star size={32} className="text-primary" /></div>
                                    <span className="text-[9px] font-bold text-primary uppercase">Spotlight</span>
                                 </div>
                              </div>
@@ -610,7 +597,7 @@ export default function ProfilePage() {
                                   "Show sincere interest",
                                   "No expiration for balance",
                                 ].map((t, i) => (
-                                  <div key={i} className="flex items-center gap-3 text-xs text-white/60">
+                                  <div key={`sl-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60">
                                      <Check size={14} className="text-accent" />
                                      <span>{t}</span>
                                   </div>
@@ -691,7 +678,11 @@ export default function ProfilePage() {
           )}
 
           <div className="space-y-3">
-            {[ { label: t('settings'), path: '/settings', icon: Settings }, { label: t('about'), path: '/about', icon: Info }, { label: t('feedback'), path: '/feedback', icon: MessageSquare } ].map((item) => (
+            {[ 
+              { label: t('settings'), path: '/settings', icon: Settings }, 
+              { label: t('about'), path: '/about', icon: Info }, 
+              { label: t('feedback'), path: '/feedback', icon: MessageSquare } 
+            ].map((item) => (
               <button key={item.path} onClick={() => router.push(item.path)} className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-primary/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><item.icon size={18} /></div><span className="font-medium text-foreground">{item.label}</span></div><div className="text-muted-foreground">→</div></button>
             ))}
             <AlertDialog>
@@ -706,32 +697,5 @@ export default function ProfilePage() {
         <BottomNav />
       </div>
     </AuthGuard>
-  );
-}
-
-function Sliders(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="4" x2="4" y1="21" y2="14" />
-      <line x1="4" x2="4" y1="10" y2="3" />
-      <line x1="12" x2="12" y1="21" y2="12" />
-      <line x1="12" x2="12" y1="8" y2="3" />
-      <line x1="20" x2="20" y1="21" y2="16" />
-      <line x1="20" x2="20" y1="12" y2="3" />
-      <line x1="2" x2="6" y1="14" y2="14" />
-      <line x1="10" x2="14" y1="8" y2="8" />
-      <line x1="18" x2="22" y1="16" y2="16" />
-    </svg>
   );
 }

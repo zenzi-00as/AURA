@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useCollection, useFirestore, initializeFirebase } from "@/firebase";
-import { collection, query, updateDoc, doc, serverTimestamp, addDoc, limit, where } from "firebase/firestore";
+import { collection, query, updateDoc, doc, serverTimestamp, limit, where } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import { UserProfile, Report } from "@/lib/types";
-import { Shield, UserCheck, UserX, Star, Zap, Trash2, ArrowLeft, ShieldCheck, Clock, ExternalLink, AlertCircle } from "lucide-react";
+import { Shield, UserCheck, UserX, Star, Zap, ArrowLeft, ShieldCheck, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +23,6 @@ export default function AdminPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications'>('users');
   const [rejectionReason, setRejectionReason] = useState("");
-  const [selectedVerification, setSelectedVerification] = useState<UserProfile | null>(null);
 
   const { data: users } = useCollection<UserProfile>(
     db ? query(collection(db, "users"), limit(100)) : null
@@ -64,7 +62,6 @@ export default function AdminPage() {
             }
           });
           setRejectionReason("");
-          setSelectedVerification(null);
           break;
         case 'grantElite':
           const expiry = new Date();
@@ -127,9 +124,9 @@ export default function AdminPage() {
         <div className="p-6 space-y-4">
           <AnimatePresence mode="wait">
             {activeTab === 'users' && (
-              <motion.div key="users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                {users.map(u => (
-                  <div key={u.uid} className="p-4 rounded-2xl border border-white/5 bg-white/5 flex items-center justify-between">
+              <motion.div key="admin-tab-users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                {users.map((u, idx) => (
+                  <div key={u.uid || `admin-user-${idx}`} className="p-4 rounded-2xl border border-white/5 bg-white/5 flex items-center justify-between">
                     <div>
                       <h3 className="font-bold flex items-center gap-2">
                         {u.name}, {u.age}
@@ -151,16 +148,16 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {activeTab === 'verifications' && (
-              <motion.div key="verifications" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            {activeTab === 'verifications' && (activeTab === 'verifications') && (
+              <motion.div key="admin-tab-verifications" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                 <div className="px-2">
                   <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
                     <Shield size={16} />
                     Pending Requests ({verifications.length})
                   </h2>
                 </div>
-                {verifications.length > 0 ? verifications.map(u => (
-                  <div key={u.uid} className="p-5 rounded-[28px] border border-white/10 bg-white/5 space-y-4">
+                {verifications.length > 0 ? verifications.map((u, idx) => (
+                  <div key={u.uid || `admin-v-${idx}`} className="p-5 rounded-[28px] border border-white/10 bg-white/5 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <h3 className="font-bold text-lg">{u.name}, {u.age}</h3>
@@ -177,7 +174,7 @@ export default function AdminPage() {
                       {u.verification?.imagePath && (
                         <Button 
                           onClick={() => openVerificationImage(u.verification!.imagePath!)}
-                          className="flex-1 h-12 rounded-xl glass border-white/10 text-white/80"
+                          className="flex-1 h-12 rounded-xl glass border border-white/10 text-white/80"
                         >
                           <ExternalLink size={16} className="mr-2" />
                           View Private Image
@@ -194,12 +191,7 @@ export default function AdminPage() {
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="destructive"
-                            className="flex-1 h-12 rounded-xl"
-                          >
-                            Reject
-                          </Button>
+                          <Button variant="destructive" className="flex-1 h-12 rounded-xl">Reject</Button>
                         </DialogTrigger>
                         <DialogContent className="glass-dark border-white/10 rounded-[32px]">
                           <DialogHeader>
@@ -207,21 +199,10 @@ export default function AdminPage() {
                             <DialogDescription>Please provide a reason for the member.</DialogDescription>
                           </DialogHeader>
                           <div className="py-4">
-                            <Input 
-                              placeholder="e.g. Image was too blurry" 
-                              value={rejectionReason} 
-                              onChange={(e) => setRejectionReason(e.target.value)}
-                              className="bg-white/5 border-white/10 h-12 rounded-xl"
-                            />
+                            <Input placeholder="e.g. Image was too blurry" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" />
                           </div>
                           <DialogFooter>
-                            <Button 
-                              onClick={() => handleAction(u.uid, 'reject')}
-                              disabled={!rejectionReason.trim()}
-                              className="w-full h-12 rounded-xl"
-                            >
-                              Confirm Rejection
-                            </Button>
+                            <Button onClick={() => handleAction(u.uid, 'reject')} disabled={!rejectionReason.trim()} className="w-full h-12 rounded-xl">Confirm Rejection</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
@@ -237,9 +218,9 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'reports' && (
-              <motion.div key="reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                {reports.map(r => (
-                  <div key={r.id} className="p-4 rounded-2xl border border-destructive/20 bg-destructive/5 space-y-2">
+              <motion.div key="admin-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                {reports.map((r, idx) => (
+                  <div key={r.id || `admin-report-${idx}`} className="p-4 rounded-2xl border border-destructive/20 bg-destructive/5 space-y-2">
                     <div className="flex justify-between">
                       <span className="text-xs font-bold uppercase">Reporter: {r.reporterId}</span>
                       <span className="text-xs text-muted-foreground">{new Date(r.timestamp?.seconds * 1000).toLocaleString()}</span>

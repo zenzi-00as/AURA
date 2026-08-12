@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -10,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { doc, collection, query, orderBy, serverTimestamp, addDoc, updateDoc, where, getDocs, writeBatch, increment } from "firebase/firestore";
-import { ChatRoom, UserProfile, Message, Report } from "@/lib/types";
+import { doc, collection, query, orderBy, serverTimestamp, addDoc, updateDoc, writeBatch, increment } from "firebase/firestore";
+import { ChatRoom, UserProfile, Message } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { checkPlanLimit, PLAN_LIMITS } from "@/lib/plan-limits";
+import { checkPlanLimit } from "@/lib/plan-limits";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -55,7 +54,7 @@ export default function ChatRoomPage() {
 
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
-  // Persistence: Mark as read
+  // Mark as read
   useEffect(() => {
     if (db && authUser && roomId) {
       const markAsRead = async () => {
@@ -63,7 +62,7 @@ export default function ChatRoomPage() {
         batch.update(doc(db, "chatRooms", roomId), {
           [`unreadCount.${authUser.uid}`]: 0
         });
-        await batch.commit();
+        await batch.commit().catch(() => {});
       };
       markAsRead();
     }
@@ -77,7 +76,7 @@ export default function ChatRoomPage() {
     if (!db || !roomId || !authUser || room?.isSystem || profile?.incognitoMode) return;
     updateDoc(doc(db, "chatRooms", roomId), {
       [`typing.${authUser.uid}`]: isTyping
-    });
+    }).catch(() => {});
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,7 +224,7 @@ export default function ChatRoomPage() {
         )}
 
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-6 space-y-4">
-          {messages.map((msg) => {
+          {messages.map((msg, idx) => {
             const isMe = msg.senderId === authUser?.uid;
             const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             
@@ -237,7 +236,7 @@ export default function ChatRoomPage() {
             }
 
             return (
-              <motion.div key={msg.id} initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <motion.div key={msg.id || `msg-${idx}`} initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div className={cn(
                   "max-w-[85%] px-4 py-3 rounded-[22px] shadow-sm", 
                   isMe ? "fuchsia-gradient text-white rounded-br-none" : "bg-muted/40 backdrop-blur-md text-foreground rounded-bl-none border border-white/10"

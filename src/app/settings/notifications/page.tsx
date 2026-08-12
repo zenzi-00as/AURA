@@ -164,7 +164,7 @@ export default function NotificationSettingsPage() {
       <div className="p-6 space-y-10">
         {SETTING_GROUPS.map((group, gIdx) => (
           <motion.section 
-            key={group.title}
+            key={`notif-group-${group.title}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: gIdx * 0.1 }}
@@ -174,7 +174,7 @@ export default function NotificationSettingsPage() {
             <div className="space-y-2">
               {group.items.map((item) => (
                 <div 
-                  key={item.id}
+                  key={`notif-item-${item.id}`}
                   className="aura-card aura-card-read p-5 flex items-center justify-between group"
                 >
                   <div className="flex items-center gap-4">

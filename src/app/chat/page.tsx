@@ -1,16 +1,15 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Lock, Sparkles } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Sparkles } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, where, limit, Query, orderBy } from "firebase/firestore";
-import { ChatRoom, UserProfile, Notification } from "@/lib/types";
+import { ChatRoom, UserProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
@@ -50,7 +49,6 @@ export default function ChatList() {
       const otherUser = profiles.find(p => p.uid === otherParticipantId);
       const otherName = room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
 
-      // Use the unreadCount stored in the room document for persistence
       const unreadCount = room.unreadCount?.[authUser.uid] || 0;
       const isTyping = room.typing && otherParticipantId && room.typing[otherParticipantId];
 
@@ -100,13 +98,13 @@ export default function ChatList() {
 
         <div className="px-6 space-y-3 mt-4">
           {roomsLoading ? (
-            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-24 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />)}</div>
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={`skeleton-${i}`} className="h-24 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />)}</div>
           ) : (
             <AnimatePresence mode="popLayout">
               {filteredChats.length > 0 ? (
                 filteredChats.map((chat, idx) => (
                   <motion.div 
-                    key={chat.id} 
+                    key={chat.id || `chat-${idx}`} 
                     layout 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
@@ -165,7 +163,7 @@ export default function ChatList() {
                   </motion.div>
                 ))
               ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <motion.div key="empty-chats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                   <div className="w-16 h-16 rounded-3xl bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F]"><MessageSquare size={32} /></div>
                   <div className="space-y-1">
                     <p className="text-white font-medium">{t('no_results')}</p>

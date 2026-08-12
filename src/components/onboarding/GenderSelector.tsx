@@ -20,7 +20,7 @@ export function GenderSelector({ selected, onSelect }: GenderSelectorProps) {
       <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1">
         {GENDER_OPTIONS.map((opt) => (
           <motion.button
-            key={opt}
+            key={`gender-${opt}`}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(opt)}
             className={cn(

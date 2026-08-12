@@ -1,25 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   BadgeCheck, 
   MapPin, 
   Shield, 
   Lock, 
-  Home, 
-  UserCircle, 
   Sparkles, 
-  Star, 
-  MoreHorizontal, 
   Heart, 
-  Zap, 
   MessageSquare,
-  ChevronRight,
   X,
   Compass,
-  Check,
-  Sliders
+  SlidersHorizontal
 } from "lucide-react";
 import { UserProfile } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -46,42 +39,14 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
   const blurPhotos = !isElite(currentUser);
   const hasSpotlight = isSpotlightActive(user);
-  const isUserElite = user.plan === 'Elite';
-  const hasSuperLikes = (currentUser?.superLikeBalance || 0) > 0;
 
-  // Formatting chips - limit to 2
+  // Formatting chips - limit to 2 for Home view
   const identityTags = [
     user.gender,
     user.position,
   ].filter(Boolean).slice(0, 2);
 
   const lookingFor = user.interestedIn?.slice(0, 2).join(" & ") || "Connections";
-
-  const ActionRow = ({ className, compact = false }: { className?: string, compact?: boolean }) => (
-    <div className={cn("flex items-center gap-1.5 w-full", className)}>
-      <button 
-        onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
-        className={cn(
-          "rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-          compact ? "w-10 h-10" : "w-12 h-12",
-          isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
-        )}
-      >
-        <Heart size={compact ? 16 : 20} className={cn(isLiked && "fill-current")} />
-      </button>
-
-      <button 
-        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-        className={cn(
-          "flex-1 rounded-xl fuchsia-gradient text-white font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-1.5",
-          compact ? "h-10 text-[10px] uppercase tracking-widest" : "h-12 text-xs uppercase tracking-widest"
-        )}
-      >
-        <MessageSquare size={compact ? 14 : 16} />
-        <span>Chat</span>
-      </button>
-    </div>
-  );
 
   return (
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -92,19 +57,22 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         whileHover={{ y: -1 }}
         className="w-full bg-[#101014] border border-[#FFFFFF1A] rounded-2xl overflow-hidden shadow-xl group transition-all h-full flex flex-col"
       >
-        {/* Profile Image Area - Shorter height (1:1 aspect) */}
+        {/* Profile Image Area - STRICT 1:1 ASPECT */}
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
-            {/* Online Indicator - Tiny dot */}
+            {/* Online Indicator - Tiny dot overlay */}
             {!user.incognitoMode && (
-              <div className="absolute top-2 left-2 z-10">
-                <div className={cn("w-2 h-2 rounded-full", user.isOnline ? "bg-emerald-500 shadow-[0_0_6px_#10b981]" : "bg-white/20")} />
+              <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
+                <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse" : "bg-white/20")} />
+                <span className="text-[8px] font-bold text-white/80 uppercase tracking-tighter">
+                  {user.isOnline ? "Online" : "Offline"}
+                </span>
               </div>
             )}
 
-            {/* Spotlight Badge - Tiny icon only */}
+            {/* Spotlight Badge - Tiny icon overlay */}
             {hasSpotlight && (
-              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-xl p-1 rounded-md border border-primary/40">
+              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-xl p-1.5 rounded-lg border border-primary/40">
                 <Sparkles size={10} className="text-primary" />
               </div>
             )}
@@ -118,12 +86,17 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 />
               ) : (
-                <div className="w-full h-full bg-[#17171D] flex flex-col items-center justify-center p-3 text-center relative">
-                  <div className={cn("absolute inset-0 bg-cover bg-center opacity-20", blurPhotos && "blur-xl grayscale")} style={{ backgroundImage: `url(${user.photoUrl})` }} />
-                  <div className="relative z-10 flex flex-col items-center gap-1">
-                    <Lock size={16} className="text-white/30" />
+                <div className="w-full h-full bg-[#17171D] flex flex-col items-center justify-center p-4 text-center relative">
+                  <div className={cn("absolute inset-0 bg-cover bg-center opacity-20 blur-xl grayscale")} style={{ backgroundImage: `url(${user.photoUrl})` }} />
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-1">
+                      <Lock size={18} className="text-white/30" />
+                    </div>
                     {blurPhotos && (
-                      <p className="text-[7px] font-bold text-white/50 uppercase tracking-widest">Elite Only</p>
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em]">Elite Only</p>
+                        <p className="text-[7px] text-white/40 uppercase tracking-tighter">Upgrade to see identity photo</p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -131,48 +104,65 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             </div>
 
             {/* Bottom Gradient Overlay */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#101014] via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#101014] via-transparent to-transparent pointer-events-none" />
           </div>
         </SheetTrigger>
 
-        {/* Content Area - Compact padding and strictly essential info */}
-        <div className="p-2 flex-1 flex flex-col min-w-0 text-left">
-          <div className="space-y-0.5 mb-1.5">
-            <div className="flex items-center gap-1 min-w-0">
-              <h3 className="text-[14px] font-bold text-white tracking-tight truncate">
-                {user.name}, {user.age}
-              </h3>
-              {user.verificationStatus === 'Verified' && (
-                <BadgeCheck size={12} className="text-primary shrink-0" />
-              )}
-            </div>
-            
-            {user.distance && (
-              <div className="flex items-center gap-0.5 text-[9px] text-white/30 font-bold uppercase tracking-tight truncate">
-                <MapPin size={8} className="text-primary shrink-0" />
-                {user.distance}
-              </div>
+        {/* Content Area - Optimized for Discovery Grid */}
+        <div className="p-3 flex-1 flex flex-col min-w-0 text-left space-y-2">
+          {/* Name Row */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="text-sm font-bold text-white tracking-tight truncate">
+              {user.name}, {user.age}
+            </h3>
+            {user.verificationStatus === 'Verified' && (
+              <BadgeCheck size={14} className="text-primary shrink-0" />
             )}
           </div>
+          
+          {/* Distance Metadata */}
+          {user.distance && (
+            <div className="flex items-center gap-1 text-[10px] text-white/40 font-bold uppercase tracking-tight truncate">
+              <MapPin size={10} className="text-primary shrink-0" />
+              {user.distance}
+            </div>
+          )}
 
-          {/* Looking For - Tiny chip */}
-          <div className="flex mb-1.5">
-            <span className="h-5 px-1.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-semibold text-primary/80 uppercase flex items-center truncate max-w-full">
-              {lookingFor}
+          {/* Connection intent chip */}
+          <div className="flex">
+            <span className="h-6 px-2 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-primary/80 uppercase flex items-center truncate max-w-full tracking-tighter">
+              Looking for: {lookingFor}
             </span>
           </div>
 
-          {/* Identity Tags - Consolidated row, max 2 */}
-          <div className="flex flex-wrap gap-1 mb-2 overflow-hidden h-[20px]">
+          {/* Identity Tags - Max 2 in grid view */}
+          <div className="flex flex-wrap gap-1.5">
             {identityTags.map((tag, i) => (
-              <span key={i} className="h-5 px-1.5 rounded-md bg-[#17171D] border border-white/5 text-[8px] font-bold text-white/40 uppercase tracking-widest flex items-center whitespace-nowrap">
+              <span key={`card-tag-${tag}-${i}`} className="h-6 px-2 rounded-lg bg-[#17171D] border border-white/5 text-[9px] font-bold text-white/40 uppercase tracking-widest flex items-center whitespace-nowrap">
                 {tag}
               </span>
             ))}
           </div>
 
-          {/* Action Row - Fixed height, aligned */}
-          <ActionRow compact className="mt-auto" />
+          {/* Grid Action Row */}
+          <div className="flex items-center gap-2 pt-1 mt-auto">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
+              className={cn(
+                "w-10 h-10 rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
+                isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
+              )}
+            >
+              <Heart size={18} className={cn(isLiked && "fill-current")} />
+            </button>
+
+            <button 
+              onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+              className="flex-1 h-10 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-lg shadow-primary/20"
+            >
+              <MessageSquare size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Full Profile Detail Sheet */}
@@ -245,7 +235,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                    <h4 className="text-[10px] font-black text-secondary uppercase tracking-[0.3em]">Interests</h4>
                    <div className="flex flex-wrap gap-2">
                       {user.interestedIn?.map((interest, i) => (
-                        <span key={i} className="px-4 py-2 rounded-2xl bg-secondary/10 border border-secondary/20 text-[11px] font-bold text-secondary uppercase tracking-widest">
+                        <span key={`full-interest-${interest}-${i}`} className="px-4 py-2 rounded-2xl bg-secondary/10 border border-secondary/20 text-[11px] font-bold text-secondary uppercase tracking-widest">
                           {interest}
                         </span>
                       ))}
