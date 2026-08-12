@@ -95,6 +95,11 @@ export type Message = {
   seen: boolean;
   isMedia?: boolean;
   mediaUrl?: string;
+  storagePath?: string;
+  privacyMode?: boolean;
+  viewMode?: "unlimited" | "one" | "two";
+  viewCount?: Record<string, number>;
+  expiresAt?: any;
 };
 
 export type ChatRoom = {
@@ -106,6 +111,7 @@ export type ChatRoom = {
   isSystem?: boolean;
   unreadCount?: Record<string, number>;
   autoDeleteEnabled?: boolean;
+  privacyEnabled?: boolean;
 };
 
 export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight';
