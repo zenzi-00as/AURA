@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronRight, User, Hash, Loader2, Camera, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload, Play } from "lucide-react";
+import { ChevronRight, User, Hash, Loader2, Camera, ArrowLeft, RefreshCcw, Check, Home, MapPin, Image as ImageIcon, Trash2, ShieldCheck, Upload, Play, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
@@ -218,7 +218,7 @@ export default function Onboarding() {
     if (step === 8) {
       await finalizeProfile();
     } else {
-      setStep(s => s + 1);
+      setStep(s => s - 1);
     }
   };
 
