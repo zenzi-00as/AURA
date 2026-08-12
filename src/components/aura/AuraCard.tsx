@@ -40,62 +40,57 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   const blurPhotos = !isElite(currentUser);
   const hasSpotlight = isSpotlightActive(user);
 
-  // Formatting chips - limit to 2 for Home view
+  // Formatting chips - minimal for quad grid
   const identityTags = [
     user.gender,
     user.position,
   ].filter(Boolean).slice(0, 2);
 
-  const lookingFor = user.interestedIn?.slice(0, 2).join(" & ") || "Connections";
-
   return (
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
       <motion.div
         layout
-        initial={{ opacity: 0, scale: 0.98 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ y: -1 }}
-        className="w-full bg-[#101014] border border-[#FFFFFF1A] rounded-2xl overflow-hidden shadow-xl group transition-all h-full flex flex-col"
+        whileTap={{ scale: 0.98 }}
+        className="w-full bg-[#111116] border border-[#FFFFFF1A] rounded-2xl overflow-hidden shadow-lg group transition-all h-full flex flex-col will-change-transform"
       >
         {/* Profile Image Area - STRICT 1:1 ASPECT */}
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
-            {/* Online Indicator - Tiny dot overlay */}
-            {!user.incognitoMode && (
-              <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
-                <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse" : "bg-white/20")} />
-                <span className="text-[8px] font-bold text-white/80 uppercase tracking-tighter">
-                  {user.isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
+            {/* Online Indicator - Small dot */}
+            {!user.incognitoMode && user.isOnline && (
+              <div className="absolute top-2 left-2 z-10 w-2 h-2 bg-emerald-500 rounded-full border border-black shadow-[0_0_8px_#10b981] animate-pulse" />
             )}
 
-            {/* Spotlight Badge - Tiny icon overlay */}
+            {/* Spotlight Badge */}
             {hasSpotlight && (
-              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-xl p-1.5 rounded-lg border border-primary/40">
-                <Sparkles size={10} className="text-primary" />
+              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-md p-1 rounded-md border border-primary/30">
+                <Sparkles size={8} className="text-primary" />
               </div>
             )}
 
             {/* Main Image */}
-            <div className="w-full h-full">
+            <div className="w-full h-full bg-[#17171D]">
               {user.photoUrl && !blurPhotos ? (
                 <img 
                   src={user.photoUrl} 
-                  alt={user.name} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  alt="" 
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform" 
                 />
               ) : (
-                <div className="w-full h-full bg-[#17171D] flex flex-col items-center justify-center p-4 text-center relative">
-                  <div className={cn("absolute inset-0 bg-cover bg-center opacity-20 blur-xl grayscale")} style={{ backgroundImage: `url(${user.photoUrl})` }} />
-                  <div className="relative z-10 flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-1">
-                      <Lock size={18} className="text-white/30" />
+                <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+                  {user.photoUrl && (
+                    <div className="absolute inset-0 bg-cover bg-center opacity-10 blur-xl grayscale" style={{ backgroundImage: `url(${user.photoUrl})` }} />
+                  )}
+                  <div className="relative z-10 flex flex-col items-center gap-1">
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mb-0.5">
+                      <Lock size={14} className="text-white/20" />
                     </div>
                     {blurPhotos && (
-                      <div className="space-y-0.5">
-                        <p className="text-[8px] font-black text-primary uppercase tracking-[0.2em]">Elite Only</p>
-                        <p className="text-[7px] text-white/40 uppercase tracking-tighter">Upgrade to see identity photo</p>
+                      <div className="space-y-0">
+                        <p className="text-[7px] font-black text-primary uppercase tracking-widest">Elite Only</p>
                       </div>
                     )}
                   </div>
@@ -103,69 +98,60 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
               )}
             </div>
 
-            {/* Bottom Gradient Overlay */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#101014] via-transparent to-transparent pointer-events-none" />
+            {/* Bottom Gradient for Legibility */}
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
           </div>
         </SheetTrigger>
 
-        {/* Content Area - Optimized for Discovery Grid */}
-        <div className="p-3 flex-1 flex flex-col min-w-0 text-left space-y-2">
-          {/* Name Row */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="text-sm font-bold text-white tracking-tight truncate">
+        {/* Content Area - Quad Grid Optimized */}
+        <div className="p-2.5 flex-1 flex flex-col min-w-0 text-left space-y-1.5">
+          {/* Identity Row */}
+          <div className="flex items-center gap-1 min-w-0">
+            <h3 className="text-xs font-bold text-white tracking-tight truncate">
               {user.name}, {user.age}
             </h3>
             {user.verificationStatus === 'Verified' && (
-              <BadgeCheck size={14} className="text-primary shrink-0" />
+              <BadgeCheck size={12} className="text-primary shrink-0" />
             )}
           </div>
           
-          {/* Distance Metadata */}
-          {user.distance && (
-            <div className="flex items-center gap-1 text-[10px] text-white/40 font-bold uppercase tracking-tight truncate">
-              <MapPin size={10} className="text-primary shrink-0" />
-              {user.distance}
-            </div>
-          )}
-
-          {/* Connection intent chip */}
-          <div className="flex">
-            <span className="h-6 px-2 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-primary/80 uppercase flex items-center truncate max-w-full tracking-tighter">
-              Looking for: {lookingFor}
-            </span>
-          </div>
-
-          {/* Identity Tags - Max 2 in grid view */}
-          <div className="flex flex-wrap gap-1.5">
-            {identityTags.map((tag, i) => (
-              <span key={`card-tag-${tag}-${i}`} className="h-6 px-2 rounded-lg bg-[#17171D] border border-white/5 text-[9px] font-bold text-white/40 uppercase tracking-widest flex items-center whitespace-nowrap">
-                {tag}
+          {/* Metadata Row */}
+          <div className="flex flex-col gap-1">
+            {user.distance && (
+              <div className="flex items-center gap-1 text-[9px] text-white/40 font-bold uppercase tracking-tight truncate">
+                <MapPin size={8} className="text-primary shrink-0" />
+                {user.distance}
+              </div>
+            )}
+            <div className="flex">
+              <span className="h-5 px-1.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-primary/80 uppercase flex items-center truncate max-w-full tracking-tighter">
+                {user.interestedIn?.slice(0, 1).join("") || "Discovering"}
               </span>
-            ))}
+            </div>
           </div>
 
-          {/* Grid Action Row */}
+          {/* Action Row - Compact Icons */}
           <div className="flex items-center gap-2 pt-1 mt-auto">
             <button 
               onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
               className={cn(
-                "w-10 h-10 rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-                isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
+                "w-9 h-9 rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
+                isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/40 hover:text-white"
               )}
             >
-              <Heart size={18} className={cn(isLiked && "fill-current")} />
+              <Heart size={16} className={cn(isLiked && "fill-current")} />
             </button>
 
             <button 
               onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-              className="flex-1 h-10 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-lg shadow-primary/20"
+              className="flex-1 h-9 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-primary/20"
             >
-              <MessageSquare size={16} />
+              <MessageSquare size={14} />
             </button>
           </div>
         </div>
 
-        {/* Full Profile Detail Sheet */}
+        {/* Full Profile Sheet - High Detail Experience */}
         <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
           <div className="h-full flex flex-col">
             <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">

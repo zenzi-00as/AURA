@@ -85,7 +85,8 @@ export default function Dashboard() {
     
     const results = firestoreUsers
       .filter(user => {
-        if (!user.uid || user.uid === currentUserProfile.uid) return false;
+        const uid = user.uid || user.id;
+        if (!uid || uid === currentUserProfile.uid) return false;
         if (user.isSuspended) return false;
 
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
@@ -142,8 +143,8 @@ export default function Dashboard() {
         return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
 
-    // Final deduplication by UID to prevent key warnings
-    return Array.from(new Map(results.map(u => [u.uid, u])).values());
+    // Final deduplication by UID
+    return Array.from(new Map(results.map(u => [u.uid || u.id, u])).values());
   }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
   const handleApplyFilters = () => {
@@ -165,15 +166,6 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col min-h-screen-safe relative transition-colors overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.1)_0%,transparent_70%)]"
-          />
-        </div>
-
         <header className="px-5 h-16 flex justify-between items-center sticky top-0 bg-background/40 backdrop-blur-2xl z-20 border-b border-white/5 safe-top">
           <div className="flex items-center gap-2">
             <motion.div 
@@ -191,12 +183,12 @@ export default function Dashboard() {
             <SheetTrigger asChild>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 rounded-full glass border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
+                className="w-9 h-9 rounded-full glass flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
               >
                 <SlidersHorizontal size={16} />
               </motion.button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto backdrop-blur-2xl">
+            <SheetContent side="bottom" className="glass-dark text-white rounded-t-[40px] px-8 pt-8 pb-12 outline-none max-h-[85dvh] overflow-y-auto">
               <SheetHeader className="mb-8">
                 <SheetTitle className="text-2xl font-bold text-white">Discovery Filters</SheetTitle>
               </SheetHeader>
@@ -238,10 +230,10 @@ export default function Dashboard() {
           </Sheet>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-hide pb-32 relative z-10">
+        <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-hide pb-32 relative z-10 motion-safe">
           {usersLoading ? (
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.3] w-full rounded-2xl glass animate-pulse" />)}
+              {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.4] w-full rounded-2xl glass animate-pulse" />)}
             </div>
           ) : (
             <>
@@ -252,19 +244,19 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="popLayout" initial={false}>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
                   {filteredUsers.map((user, idx) => (
-                    <React.Fragment key={user.uid || `user-${idx}`}>
+                    <React.Fragment key={user.uid || user.id || `user-${idx}`}>
                       <motion.div 
                         layout 
-                        initial={{ opacity: 0, y: 15, scale: 0.98 }} 
-                        animate={{ opacity: 1, y: 0, scale: 1 }} 
+                        initial={{ opacity: 0, scale: 0.95 }} 
+                        animate={{ opacity: 1, scale: 1 }} 
                         exit={{ opacity: 0, scale: 0.95 }} 
-                        transition={{ duration: 0.3, delay: idx * 0.02 }}
+                        transition={{ duration: 0.2, delay: Math.min(idx * 0.02, 0.2) }}
                         className="w-full h-full"
                       >
-                        <AuraCard user={user} onClick={() => handleUserClick(user.uid)} />
+                        <AuraCard user={user} onClick={() => handleUserClick(user.uid || user.id)} />
                       </motion.div>
                       {(idx + 1) % 6 === 0 && (
                         <div key={`ad-block-${idx}`} className="col-span-full py-2">
@@ -277,30 +269,21 @@ export default function Dashboard() {
 
                 {filteredUsers.length === 0 && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 15 }} 
+                    initial={{ opacity: 0, y: 10 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     className="flex flex-col items-center justify-center py-6 text-center space-y-6 px-4"
                   >
-                    <div className="relative">
-                      <motion.div 
-                        animate={{ scale: [1, 1.1, 1], rotate: [0, 3, -3, 0] }}
-                        transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                        className="w-16 h-16 rounded-[24px] glass flex items-center justify-center text-primary relative z-10"
-                      >
-                        <Search size={24} strokeWidth={1.5} />
-                      </motion.div>
-                    </div>
                     <div className="space-y-2">
                       <h2 className="text-lg font-bold text-white tracking-tight">Ethereal Silence...</h2>
-                      <p className="text-[10px] text-white/50 font-light leading-relaxed max-w-[200px] mx-auto">
-                        No matches synchronized. Expand your search radius to discover more connections.
+                      <p className="text-[10px] text-white/40 font-light leading-relaxed max-w-[200px] mx-auto">
+                        No matches were synchronized in your current realm. Try expanding your search radius.
                       </p>
                     </div>
                     
                     <div className="w-full max-w-[360px] mx-auto space-y-3 pt-2">
                       <p className="text-[8px] font-bold text-primary/40 uppercase tracking-[0.3em]">Demo Synchronicity</p>
                       <div className="grid grid-cols-2 gap-2 justify-center">
-                        <div className="col-start-1 col-end-3 sm:col-end-2 max-w-[180px] mx-auto w-full">
+                        <div className="col-start-1 col-end-3 sm:col-end-2 max-w-[160px] mx-auto w-full">
                            <AuraCard user={DEMO_USER as any} onClick={() => handleUserClick(DEMO_USER.uid!)} />
                         </div>
                       </div>
