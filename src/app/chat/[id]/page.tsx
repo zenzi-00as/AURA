@@ -259,8 +259,12 @@ export default function ChatRoomPage() {
 
         <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border safe-bottom">
           <div className="flex items-center gap-2 max-w-md mx-auto">
-            <Button variant="ghost" size="icon" className="rounded-full shrink-0" onClick={() => handleSend(true, 'https://picsum.photos/400/300')}>
-              <Image size={20} className="text-muted-foreground" />
+            <Button 
+              variant="ghost" 
+              className="w-14 h-14 rounded-full shrink-0 flex items-center justify-center p-0" 
+              onClick={() => handleSend(true, 'https://picsum.photos/400/300')}
+            >
+              <Image size={24} className="text-muted-foreground" />
             </Button>
             <div className="relative flex-1 h-14">
               <Input 
@@ -274,9 +278,9 @@ export default function ChatRoomPage() {
             <Button 
               onClick={() => handleSend()} 
               disabled={!input.trim()} 
-              className="w-14 h-14 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-95"
+              className="w-14 h-14 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-95 flex items-center justify-center"
             >
-              <Send size={24} className="text-white ml-0.5" />
+              <Send size={24} className="text-white translate-x-0.5" />
             </Button>
           </div>
         </div>
