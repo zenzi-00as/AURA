@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -50,54 +49,37 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   const isUserElite = user.plan === 'Elite';
   const hasSuperLikes = (currentUser?.superLikeBalance || 0) > 0;
 
-  // Formatting chips
+  // Formatting chips - limit to 2
   const identityTags = [
     user.gender,
     user.position,
-  ].filter(Boolean);
+  ].filter(Boolean).slice(0, 2);
 
-  const lookingFor = user.interestedIn?.slice(0, 2).join(" & ") || "New connections";
+  const lookingFor = user.interestedIn?.slice(0, 2).join(" & ") || "Connections";
 
   const ActionRow = ({ className, compact = false }: { className?: string, compact?: boolean }) => (
-    <div className={cn("flex items-center gap-2 w-full", className)}>
+    <div className={cn("flex items-center gap-1.5 w-full", className)}>
       <button 
         onClick={(e) => { e.stopPropagation(); setIsLiked(!isLiked); }}
         className={cn(
-          "rounded-full glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-          compact ? "w-[48px] h-[48px]" : "w-12 h-12",
+          "rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
+          compact ? "w-10 h-10" : "w-12 h-12",
           isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
         )}
       >
-        <Heart size={compact ? 18 : 20} className={cn(isLiked && "fill-current")} />
+        <Heart size={compact ? 16 : 20} className={cn(isLiked && "fill-current")} />
       </button>
 
-      {compact ? (
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-          className="flex-1 h-[48px] rounded-2xl fuchsia-gradient text-white font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
-        >
-          <MessageSquare size={16} />
-          <span>Chat</span>
-        </button>
-      ) : (
-        <>
-          <button 
-            onClick={(e) => { e.stopPropagation(); }}
-            className="flex-1 h-12 rounded-2xl glass border border-white/10 flex items-center justify-center gap-2 text-white/80 font-bold text-xs uppercase tracking-widest hover:bg-white/5 transition-all active:scale-95"
-          >
-            <Zap size={16} className="text-amber-400 fill-amber-400" />
-            {hasSuperLikes ? "Super Like" : "Buy Super Like"}
-          </button>
-
-          <button 
-            onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-            className="flex-1 h-12 rounded-2xl fuchsia-gradient text-white font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
-          >
-            <MessageSquare size={16} />
-            <span>Chat</span>
-          </button>
-        </>
-      )}
+      <button 
+        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+        className={cn(
+          "flex-1 rounded-xl fuchsia-gradient text-white font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-1.5",
+          compact ? "h-10 text-[10px] uppercase tracking-widest" : "h-12 text-xs uppercase tracking-widest"
+        )}
+      >
+        <MessageSquare size={compact ? 14 : 16} />
+        <span>Chat</span>
+      </button>
     </div>
   );
 
@@ -105,27 +87,25 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
       <motion.div
         layout
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ y: -2 }}
-        className="w-full bg-[#101014] border border-[#FFFFFF1A] rounded-[18px] overflow-hidden shadow-xl group transition-all h-full flex flex-col"
+        whileHover={{ y: -1 }}
+        className="w-full bg-[#101014] border border-[#FFFFFF1A] rounded-2xl overflow-hidden shadow-xl group transition-all h-full flex flex-col"
       >
-        {/* Profile Image Area - Reduced height for compact layout */}
+        {/* Profile Image Area - Shorter height (1:1 aspect) */}
         <SheetTrigger asChild>
-          <div className="relative aspect-[4/4.5] cursor-pointer overflow-hidden shrink-0">
-            {/* Online Indicator - Compact */}
+          <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
+            {/* Online Indicator - Tiny dot */}
             {!user.incognitoMode && (
-              <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
-                <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-emerald-500 animate-pulse shadow-[0_0_6px_#10b981]" : "bg-white/20")} />
-                <span className="text-[9px] font-bold text-white uppercase tracking-wider">{user.isOnline ? "Online" : "Active"}</span>
+              <div className="absolute top-2 left-2 z-10">
+                <div className={cn("w-2 h-2 rounded-full", user.isOnline ? "bg-emerald-500 shadow-[0_0_6px_#10b981]" : "bg-white/20")} />
               </div>
             )}
 
-            {/* Spotlight Badge - Compact */}
+            {/* Spotlight Badge - Tiny icon only */}
             {hasSpotlight && (
-              <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1 bg-primary/20 backdrop-blur-xl px-1.5 py-0.5 rounded-md border border-primary/40">
-                <Sparkles size={8} className="text-primary" />
-                <span className="text-[8px] font-bold text-primary uppercase tracking-tighter">Spotlight</span>
+              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-xl p-1 rounded-md border border-primary/40">
+                <Sparkles size={10} className="text-primary" />
               </div>
             )}
 
@@ -138,14 +118,12 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 />
               ) : (
-                <div className="w-full h-full bg-[#17171D] flex flex-col items-center justify-center p-4 text-center relative">
-                  <div className={cn("absolute inset-0 bg-cover bg-center opacity-20", blurPhotos && "blur-2xl grayscale")} style={{ backgroundImage: `url(${user.photoUrl})` }} />
+                <div className="w-full h-full bg-[#17171D] flex flex-col items-center justify-center p-3 text-center relative">
+                  <div className={cn("absolute inset-0 bg-cover bg-center opacity-20", blurPhotos && "blur-xl grayscale")} style={{ backgroundImage: `url(${user.photoUrl})` }} />
                   <div className="relative z-10 flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md">
-                      <Lock size={14} className="text-white/40" />
-                    </div>
+                    <Lock size={16} className="text-white/30" />
                     {blurPhotos && (
-                      <p className="text-[8px] font-bold text-white/60 uppercase tracking-widest">Elite Only</p>
+                      <p className="text-[7px] font-bold text-white/50 uppercase tracking-widest">Elite Only</p>
                     )}
                   </div>
                 </div>
@@ -153,58 +131,51 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             </div>
 
             {/* Bottom Gradient Overlay */}
-            <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-[#101014] via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#101014] via-transparent to-transparent pointer-events-none" />
           </div>
         </SheetTrigger>
 
-        {/* Content Area - Compact padding and consistent left alignment */}
-        <div className="p-3 flex-1 flex flex-col min-w-0 text-left">
-          <div className="space-y-1 mb-2.5">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <h3 className="text-[18px] font-bold text-white tracking-tight truncate">
+        {/* Content Area - Compact padding and strictly essential info */}
+        <div className="p-2 flex-1 flex flex-col min-w-0 text-left">
+          <div className="space-y-0.5 mb-1.5">
+            <div className="flex items-center gap-1 min-w-0">
+              <h3 className="text-[14px] font-bold text-white tracking-tight truncate">
                 {user.name}, {user.age}
               </h3>
               {user.verificationStatus === 'Verified' && (
-                <BadgeCheck size={14} className="text-primary shrink-0" />
+                <BadgeCheck size={12} className="text-primary shrink-0" />
               )}
             </div>
             
             {user.distance && (
-              <div className="flex items-center gap-1 text-[11px] text-white/40 font-bold uppercase tracking-tight truncate">
-                <MapPin size={10} className="text-primary shrink-0" />
+              <div className="flex items-center gap-0.5 text-[9px] text-white/30 font-bold uppercase tracking-tight truncate">
+                <MapPin size={8} className="text-primary shrink-0" />
                 {user.distance}
               </div>
             )}
           </div>
 
-          {/* Looking For - Compact chip */}
-          <div className="flex mb-2.5">
-            <span className="h-7 px-2.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-semibold text-primary uppercase flex items-center truncate max-w-full">
+          {/* Looking For - Tiny chip */}
+          <div className="flex mb-1.5">
+            <span className="h-5 px-1.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-semibold text-primary/80 uppercase flex items-center truncate max-w-full">
               {lookingFor}
             </span>
           </div>
 
-          {/* Bio Preview - Strictly 2 lines */}
-          <div className="mb-3 flex-1">
-            <p className="text-[12px] text-white/70 leading-[1.4] font-light line-clamp-2 italic">
-              "{user.bio || "No bio added yet."}"
-            </p>
-          </div>
-
-          {/* Identity Tags - Consolidated row */}
-          <div className="flex flex-wrap gap-1.5 mb-4 overflow-hidden h-[30px]">
+          {/* Identity Tags - Consolidated row, max 2 */}
+          <div className="flex flex-wrap gap-1 mb-2 overflow-hidden h-[20px]">
             {identityTags.map((tag, i) => (
-              <span key={i} className="h-7 px-2.5 rounded-lg bg-[#17171D] border border-white/5 text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center whitespace-nowrap">
+              <span key={i} className="h-5 px-1.5 rounded-md bg-[#17171D] border border-white/5 text-[8px] font-bold text-white/40 uppercase tracking-widest flex items-center whitespace-nowrap">
                 {tag}
               </span>
             ))}
           </div>
 
-          {/* Action Row - Compact and aligned */}
+          {/* Action Row - Fixed height, aligned */}
           <ActionRow compact className="mt-auto" />
         </div>
 
-        {/* Detail Sheet - Preserve high-fidelity detail view */}
+        {/* Full Profile Detail Sheet */}
         <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
           <div className="h-full flex flex-col">
             <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
@@ -291,7 +262,24 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             </div>
 
             <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0 safe-bottom">
-               <ActionRow />
+               <div className="flex items-center gap-3 w-full">
+                <button 
+                  onClick={() => setIsLiked(!isLiked)}
+                  className={cn(
+                    "w-14 h-14 rounded-2xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
+                    isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
+                  )}
+                >
+                  <Heart size={24} className={cn(isLiked && "fill-current")} />
+                </button>
+                <button 
+                  onClick={() => onClick?.()}
+                  className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
+                >
+                  <MessageSquare size={18} />
+                  <span>Send Message</span>
+                </button>
+              </div>
             </div>
           </div>
         </SheetContent>
@@ -299,4 +287,3 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
     </Sheet>
   );
 }
-
