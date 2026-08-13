@@ -464,7 +464,7 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} className="h-2 w-full" />
         </div>
 
-        <div className="p-4 bg-black/60 backdrop-blur-2xl border-t border-white/5 safe-bottom">
+        <div className="px-4 pt-4 pb-12 bg-black/60 backdrop-blur-2xl border-t border-white/5 safe-bottom">
           <div className="flex items-center gap-2 max-w-md mx-auto h-14">
             <input 
               type="file" 
