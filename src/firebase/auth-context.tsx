@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { initializeFirebase } from './index';
+import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 
@@ -26,9 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { auth, db } = initializeFirebase();
 
   useEffect(() => {
+    // We initialize here once inside the effect to ensure stability and avoid HMR issues
+    const { auth, db } = initializeFirebase();
+    if (!auth || !db) return;
+
     const timeoutId = setTimeout(() => {
       if (loading) setLoading(false);
     }, 5000);
@@ -39,7 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authUser) {
         const userRef = doc(db, 'users', authUser.uid);
         
-        // Listen to profile
         const unsubscribeProfile = onSnapshot(
           userRef,
           (docSnap) => {
@@ -47,14 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const data = docSnap.data() as UserProfile;
               setProfile(data);
 
-              // Daily Limit Reset Logic (Midnight local time)
               const today = format(new Date(), 'yyyy-MM-dd');
               if (data.lastResetDate !== today) {
                 updateDoc(userRef, {
                   dailyChatCount: 0,
                   dailyMediaCount: 0,
                   lastResetDate: today
-                });
+                }).catch(() => {});
               }
             } else {
               setProfile(null);
@@ -69,26 +70,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
-        // Presence Logic
         updateDoc(userRef, {
           isOnline: true,
           lastActive: serverTimestamp()
         }).catch(() => {});
 
         const handleVisibilityChange = () => {
-          if (!profile?.incognitoMode) {
-            updateDoc(userRef, { 
-              isOnline: document.visibilityState !== 'hidden', 
-              lastActive: serverTimestamp() 
-            });
-          }
+          updateDoc(userRef, { 
+            isOnline: document.visibilityState !== 'hidden', 
+            lastActive: serverTimestamp() 
+          }).catch(() => {});
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
           unsubscribeProfile();
           document.removeEventListener('visibilitychange', handleVisibilityChange);
-          updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() });
+          updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() }).catch(() => {});
         };
       } else {
         setProfile(null);
@@ -101,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth();
       clearTimeout(timeoutId);
     };
-  }, [auth, db]);
+  }, []); // Only run once on mount
 
   const value = {
     user,

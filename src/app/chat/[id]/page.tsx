@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useDoc, useCollection, useMemoFirebase, initializeFirebase } from "@/firebase";
+import { useFirestore, useDoc, useCollection, useMemoFirebase, useStorage } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { 
   doc, 
@@ -35,10 +35,8 @@ import {
   serverTimestamp, 
   addDoc, 
   updateDoc, 
-  writeBatch, 
   increment,
-  setDoc,
-  Timestamp 
+  setDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message } from "@/lib/types";
@@ -61,7 +59,7 @@ export default function ChatRoomPage() {
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
-  const { storage } = initializeFirebase();
+  const storage = useStorage();
   const { user: authUser, profile } = useAuthContext();
   
   const [input, setInput] = useState("");
@@ -76,11 +74,9 @@ export default function ChatRoomPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Deterministic roomId calculation if the param is a userId
   const roomId = useMemo(() => {
     if (!authUser || !idParam) return "";
     if (idParam.startsWith('system_') || idParam.includes('_')) return idParam;
-    // If it's a UID, generate stable conversation ID
     return [authUser.uid, idParam].sort().join("_");
   }, [authUser, idParam]);
 
@@ -92,7 +88,7 @@ export default function ChatRoomPage() {
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
 
   const otherUid = useMemo(() => {
-    if (!room || !authUser) return idParam; // Fallback to idParam if room not loaded yet
+    if (!room || !authUser) return idParam;
     return room.participants.find(uid => uid !== authUser.uid) || 'system';
   }, [room, authUser, idParam]);
 
@@ -110,7 +106,6 @@ export default function ChatRoomPage() {
 
   const { data: rawMessages } = useCollection<Message>(messagesQuery as any);
 
-  // Filter expired messages client-side for immediate consistency
   const messages = useMemo(() => {
     const now = new Date();
     return rawMessages.filter(m => {
@@ -120,11 +115,9 @@ export default function ChatRoomPage() {
     });
   }, [rawMessages]);
 
-  // Mark as read & Ensure room exists
   useEffect(() => {
     if (db && authUser && roomId && otherUid && !roomLoading) {
       if (!room) {
-        // Create room if it doesn't exist
         setDoc(doc(db, "chatRooms", roomId), {
           id: roomId,
           participants: [authUser.uid, otherUid],
@@ -189,9 +182,8 @@ export default function ChatRoomPage() {
   };
 
   const handleSendMedia = async () => {
-    if (!pendingFile || !db || !roomId || !authUser || !otherUid || !profile) return;
+    if (!pendingFile || !db || !storage || !roomId || !authUser || !otherUid || !profile) return;
     
-    // Media Limit Check
     if (profile.dailyMediaCount >= checkPlanLimit(profile, 'dailyMediaUploads')) {
       toast({ variant: "destructive", title: "Limit Reached", description: "Upgrade to Elite for more media sharing." });
       return;
@@ -245,7 +237,6 @@ export default function ChatRoomPage() {
   const handleSendText = async () => {
     if (!input.trim() || !db || !roomId || !authUser || !otherUid || !profile) return;
     
-    // Daily Limit Check
     const dailyMsgLimit = checkPlanLimit(profile, 'dailyMessagesPerProfile');
     const myMessagesToday = messages.filter(m => m.senderId === authUser.uid && m.timestamp?.toDate() > new Date(new Date().setHours(0,0,0,0))).length;
     
@@ -297,12 +288,9 @@ export default function ChatRoomPage() {
     if (!db || !authUser || !roomId) return;
     
     const count = msg.viewCount?.[authUser.uid] || 0;
-    
-    // Check if expired for this user
     if (msg.viewMode === 'one' && count >= 1) return;
     if (msg.viewMode === 'two' && count >= 2) return;
 
-    // Increment view count
     const msgRef = doc(db, "chatRooms", roomId, "messages", msg.id);
     await updateDoc(msgRef, {
       [`viewCount.${authUser.uid}`]: increment(1)
@@ -319,7 +307,6 @@ export default function ChatRoomPage() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-[#070709] h-screen-safe overflow-hidden transition-colors">
-        {/* Header */}
         <header className="px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-20 safe-top">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
@@ -384,7 +371,6 @@ export default function ChatRoomPage() {
           </div>
         </header>
 
-        {/* Message Area */}
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -396,11 +382,10 @@ export default function ChatRoomPage() {
                 <p className="text-xs text-white/40 font-light">Say hello and see where it goes.</p>
               </div>
             </div>
-          ) : messages.map((msg, idx) => {
+          ) : messages.map((msg) => {
             const isMe = msg.senderId === authUser?.uid;
             const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             
-            // View count logic for media
             const myViews = msg.viewCount?.[authUser?.uid || ""] || 0;
             const isMediaExpired = msg.isMedia && (
               (msg.viewMode === 'one' && myViews >= 1) || 
@@ -409,7 +394,7 @@ export default function ChatRoomPage() {
 
             return (
               <motion.div 
-                key={msg.id || `msg-${idx}`} 
+                key={msg.id} 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }} 
                 animate={{ opacity: 1, scale: 1, y: 0 }} 
                 className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}
@@ -479,7 +464,6 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} className="h-2 w-full" />
         </div>
 
-        {/* Input Bar */}
         <div className="p-4 bg-black/60 backdrop-blur-2xl border-t border-white/5 safe-bottom">
           <div className="flex items-center gap-2 max-w-md mx-auto h-14">
             <input 
@@ -494,7 +478,7 @@ export default function ChatRoomPage() {
               onClick={() => fileInputRef.current?.click()}
               className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all shrink-0 active:scale-90"
             >
-              <ImageIcon size={22} />
+              <ImageIcon size={24} />
             </button>
 
             <div className="flex-1 h-14 relative">
@@ -517,7 +501,6 @@ export default function ChatRoomPage() {
           </div>
         </div>
 
-        {/* Media Options Dialog */}
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
           <DialogContent className="glass-dark border-white/10 rounded-[32px] p-6 max-w-[320px]">
             <DialogHeader className="space-y-2">
@@ -562,7 +545,6 @@ export default function ChatRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Media Viewer Dialog */}
         <Dialog open={!!selectedMedia} onOpenChange={(open) => !open && setSelectedMedia(null)}>
           <DialogContent className="p-0 border-none bg-black/95 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center">
             <header className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
