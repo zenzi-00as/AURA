@@ -19,8 +19,7 @@ import {
   Shield, 
   Eye, 
   EyeOff, 
-  X, 
-  Plus 
+  X 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,8 +134,11 @@ export default function ChatRoomPage() {
     }
   }, [db, authUser, roomId, otherUid, room, roomLoading]);
 
+  // Handle auto-scroll to bottom
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const setTypingState = (isTyping: boolean) => {
@@ -182,7 +184,12 @@ export default function ChatRoomPage() {
   };
 
   const handleSendMedia = async () => {
-    if (!pendingFile || !db || !storage || !roomId || !authUser || !otherUid || !profile) return;
+    if (!authUser) {
+      toast({ variant: "destructive", title: "Identity required", description: "Please sign in to share media." });
+      return;
+    }
+    
+    if (!pendingFile || !db || !storage || !roomId || !otherUid || !profile) return;
     
     if (profile.dailyMediaCount >= checkPlanLimit(profile, 'dailyMediaUploads')) {
       toast({ variant: "destructive", title: "Limit Reached", description: "Upgrade to Elite for more media sharing." });
@@ -193,7 +200,7 @@ export default function ChatRoomPage() {
     setShowMediaOptions(false);
 
     try {
-      const messageId = doc(collection(db, "dummy")).id;
+      const messageId = doc(collection(db, "temp")).id;
       const storagePath = `chat-media/${roomId}/${authUser.uid}/${messageId}`;
       const storageRef = ref(storage, storagePath);
       
@@ -228,7 +235,7 @@ export default function ChatRoomPage() {
       setPendingFile(null);
       setPendingPreview(null);
     } catch (error) {
-      toast({ variant: "destructive", title: "Upload failed" });
+      toast({ variant: "destructive", title: "Upload failed", description: "The Ethereal stage encountered a synchronization error." });
     } finally {
       setIsUploading(false);
     }
@@ -280,7 +287,7 @@ export default function ChatRoomPage() {
         });
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Failed to send" });
+      toast({ variant: "destructive", title: "Synchronization failed" });
     }
   };
 
@@ -306,8 +313,8 @@ export default function ChatRoomPage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-[#070709] h-screen-safe overflow-hidden transition-colors">
-        <header className="px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-20 safe-top">
+      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden transition-colors">
+        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-20 safe-top">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
               <ArrowLeft size={22} />
@@ -371,9 +378,9 @@ export default function ChatRoomPage() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide flex flex-col">
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-4">
               <div className="w-16 h-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-white/20">
                 <ImageIcon size={32} />
               </div>
@@ -394,7 +401,7 @@ export default function ChatRoomPage() {
 
             return (
               <motion.div 
-                key={msg.id} 
+                key={`msg-${msg.id}`} 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }} 
                 animate={{ opacity: 1, scale: 1, y: 0 }} 
                 className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}
@@ -461,11 +468,11 @@ export default function ChatRoomPage() {
               </motion.div>
             );
           })}
-          <div ref={scrollRef} className="h-2 w-full" />
+          <div ref={scrollRef} className="h-1 flex-shrink-0" />
         </div>
 
-        <div className="px-4 pt-4 pb-12 bg-black/60 backdrop-blur-2xl border-t border-white/5 safe-bottom">
-          <div className="flex items-center gap-2 max-w-md mx-auto h-14">
+        <div className="flex-shrink-0 px-4 pt-3 pb-8 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom">
+          <div className="flex items-center gap-3 max-w-md mx-auto h-14">
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -477,11 +484,12 @@ export default function ChatRoomPage() {
             <button 
               onClick={() => fileInputRef.current?.click()}
               className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all shrink-0 active:scale-90"
+              aria-label="Send image"
             >
-              <ImageIcon size={24} />
+              <ImageIcon size={26} />
             </button>
 
-            <div className="flex-1 h-14 relative">
+            <div className="flex-1 h-14 relative flex items-center">
               <Input 
                 value={input} 
                 onChange={handleInputChange} 
@@ -495,66 +503,76 @@ export default function ChatRoomPage() {
               onClick={handleSendText} 
               disabled={!input.trim()} 
               className="w-14 h-14 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-95 flex items-center justify-center disabled:opacity-20 disabled:grayscale"
+              aria-label="Send message"
             >
-              <Send size={22} className="text-white translate-x-0.5" />
+              <Send size={24} className="text-white translate-x-0.5" />
             </button>
           </div>
         </div>
 
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
-          <DialogContent className="bg-[#070709] border-white/10 rounded-[28px] p-5 max-w-[280px]">
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[320px] shadow-2xl">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-base font-bold text-white">Media View Mode</DialogTitle>
-              <DialogDescription className="text-[10px] text-white/40">Control visual synchronization.</DialogDescription>
+              <DialogDescription className="text-[10px] text-white/40">Control the visibility of this transmission.</DialogDescription>
             </DialogHeader>
             
-            <div className="py-3 space-y-3">
+            <div className="py-3 space-y-4">
               {pendingPreview && (
-                <div className="aspect-[4/3] w-full rounded-xl overflow-hidden border border-white/10">
+                <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden border border-white/10 shadow-lg">
                   <img src={pendingPreview} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
               
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 gap-2">
                 {[
-                  { id: 'unlimited', label: 'Unlimited', icon: Eye },
+                  { id: 'unlimited', label: 'Unlimited Views', icon: Eye },
                   { id: 'one', label: 'View Once', icon: EyeOff },
                   { id: 'two', label: 'View Twice', icon: Clock }
                 ].map((opt) => (
                   <button
-                    key={opt.id}
+                    key={`opt-${opt.id}`}
                     onClick={() => setViewMode(opt.id as any)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                      "flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left group",
                       viewMode === opt.id ? "bg-primary/20 border-primary/40 text-white" : "bg-white/5 border-white/5 text-white/40"
                     )}
                   >
-                    <opt.icon size={16} className={viewMode === opt.id ? "text-primary" : ""} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{opt.label}</span>
+                    <opt.icon size={18} className={cn("transition-colors", viewMode === opt.id ? "text-primary" : "group-hover:text-white")} />
+                    <span className="text-[11px] font-bold uppercase tracking-widest">{opt.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setShowMediaOptions(false)} className="flex-1 h-10 rounded-xl text-white/40 text-xs">Cancel</Button>
-              <Button onClick={handleSendMedia} className="flex-1 h-10 rounded-xl fuchsia-gradient font-bold text-xs">
-                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Send"}
+              <Button 
+                variant="ghost" 
+                onClick={() => { setShowMediaOptions(false); setPendingFile(null); setPendingPreview(null); }} 
+                className="flex-1 h-12 rounded-xl text-white/40 text-xs font-bold uppercase tracking-widest"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendMedia} 
+                className="flex-1 h-12 rounded-xl fuchsia-gradient font-bold text-xs uppercase tracking-widest shadow-lg"
+              >
+                {isUploading ? <Loader2 size={16} className="animate-spin" /> : "Send"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         <Dialog open={!!selectedMedia} onOpenChange={(open) => !open && setSelectedMedia(null)}>
-          <DialogContent className="p-0 border-none bg-black/95 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center">
+          <DialogContent className="p-0 border-none bg-black/95 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center overflow-hidden">
             <header className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
                <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary aura-glow-purple" />
                   <span className="text-[10px] font-bold text-white uppercase tracking-[0.2em]">
-                    {selectedMedia?.viewMode === 'unlimited' ? "Unlimited Discovery" : "Private Insight"}
+                    {selectedMedia?.viewMode === 'unlimited' ? "Permanent Discovery" : "Ephemeral View"}
                   </span>
                </div>
-               <button onClick={() => setSelectedMedia(null)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+               <button onClick={() => setSelectedMedia(null)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md" aria-label="Close">
                  <X size={24} />
                </button>
             </header>
@@ -564,19 +582,16 @@ export default function ChatRoomPage() {
                 <img 
                   src={selectedMedia.mediaUrl} 
                   alt="Aura Content" 
-                  className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
                 />
                 
                 <div className="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-4 text-center px-8">
                   <div className="bg-white/10 backdrop-blur-xl px-6 py-3 rounded-full border border-white/20 flex items-center gap-3">
                     <Shield size={16} className="text-primary" />
                     <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-                      {selectedMedia.viewMode === 'one' ? "1 View Remaining" : selectedMedia.viewMode === 'two' ? "Final Insight" : "Unlimited Access"}
+                      {selectedMedia.viewMode === 'one' ? "Single View Remaining" : selectedMedia.viewMode === 'two' ? "Second View Active" : "Unlimited Access"}
                     </span>
                   </div>
-                  <p className="text-[9px] text-white/40 uppercase tracking-widest leading-relaxed">
-                    Screenshot protection active where supported.<br />Contents disappear upon closing.
-                  </p>
                 </div>
               </div>
             )}
