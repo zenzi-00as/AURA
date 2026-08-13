@@ -44,7 +44,7 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider>
               <LanguageProvider>
-                <main className="min-h-screen-safe flex flex-col w-full max-w-md mx-auto relative sm:border-x sm:border-white/5 shadow-2xl transition-opacity duration-300">
+                <main className="min-h-screen-safe flex flex-col w-full relative transition-opacity duration-300">
                   {children}
                 </main>
                 <Toaster />
