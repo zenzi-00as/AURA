@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -80,7 +79,7 @@ export default function ChatList() {
             {!isSearchOpen ? (
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20">
-                  <span className="text-white font-bold text-sm">A</span>
+                  <MessageSquare size={18} className="text-white" />
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-xl font-bold tracking-tight text-white">{t('messages')}</h1>
