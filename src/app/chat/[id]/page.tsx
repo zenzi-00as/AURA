@@ -24,7 +24,8 @@ import {
   Flag,
   UserX,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,7 +125,7 @@ export default function ChatRoomPage() {
     return query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc"));
   }, [db, roomId]);
 
-  const { data: rawMessages } = useCollection<Message>(messagesQuery as any);
+  const { data: rawMessages, loading: messagesLoading } = useCollection<Message>(messagesQuery as any);
 
   const messages = useMemo(() => {
     const now = new Date();
@@ -205,7 +206,10 @@ export default function ChatRoomPage() {
   };
 
   const handleSendMedia = async () => {
-    if (!authUser || !profile) return;
+    if (!authUser || !profile || !db || !storage) {
+      toast({ variant: "destructive", title: "Action Denied", description: "Please sign in to continue chatting." });
+      return;
+    }
     
     if (profile.dailyMediaCount >= checkPlanLimit(profile, 'dailyMediaUploads')) {
       toast({ variant: "destructive", title: "Limit Reached", description: "Upgrade to Elite for more media sharing." });
@@ -216,16 +220,16 @@ export default function ChatRoomPage() {
     setShowMediaOptions(false);
 
     try {
-      const messageId = doc(collection(db!, "temp")).id;
+      const messageId = doc(collection(db, "temp")).id;
       const storagePath = `chat-media/${authUser.uid}/${roomId}/${messageId}`;
-      const storageRef = ref(storage!, storagePath);
+      const storageRef = ref(storage, storagePath);
       
       await uploadBytes(storageRef, pendingFile!);
       const mediaUrl = await getDownloadURL(storageRef);
 
       const expiresAt = room?.privacyEnabled ? new Date(Date.now() + 86400000) : null;
 
-      await addDoc(collection(db!, "chatRooms", roomId, "messages"), {
+      await addDoc(collection(db, "chatRooms", roomId, "messages"), {
         id: messageId,
         senderId: authUser.uid,
         text: "[Media]",
@@ -240,13 +244,13 @@ export default function ChatRoomPage() {
         expiresAt
       });
 
-      await updateDoc(doc(db!, "chatRooms", roomId), {
+      await updateDoc(doc(db, "chatRooms", roomId), {
         lastMessage: "Shared media",
         lastTimestamp: serverTimestamp(),
         [`unreadCount.${otherUid}`]: increment(1)
       });
 
-      await updateDoc(doc(db!, "users", authUser.uid), { dailyMediaCount: increment(1) });
+      await updateDoc(doc(db, "users", authUser.uid), { dailyMediaCount: increment(1) });
       
       setPendingFile(null);
       setPendingPreview(null);
@@ -284,7 +288,8 @@ export default function ChatRoomPage() {
         timestamp: serverTimestamp(), 
         seen: false,
         privacyMode: room?.privacyEnabled,
-        expiresAt
+        expiresAt,
+        status: 'sent'
       });
 
       await updateDoc(doc(db, "chatRooms", roomId), { 
@@ -368,8 +373,6 @@ export default function ChatRoomPage() {
     if (!confirm) return;
     
     try {
-      // Note: In a real app, this might just hide messages for the user locally.
-      // Here we simulate it or just let the expiring messages handle it if incognito.
       toast({ title: "History Cleared" });
     } catch (e) {
       toast({ variant: "destructive", title: "Action Failed" });
@@ -381,13 +384,22 @@ export default function ChatRoomPage() {
   const isOtherOnline = !room?.isSystem && otherUser?.isOnline && !otherUser?.incognitoMode;
   const isOtherTyping = otherUid && room?.typing?.[otherUid] && !otherUser?.incognitoMode;
 
+  if (roomLoading) {
+    return (
+      <div className="flex flex-col h-screen-safe items-center justify-center bg-[#070709]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="mt-4 text-white/40 text-xs font-bold uppercase tracking-widest">Opening secure chat…</p>
+      </div>
+    );
+  }
+
   return (
     <AuthGuard>
       <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden selection:bg-primary/20">
         {/* Header Interaction Stage */}
         <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-30 safe-top">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2 active:scale-90">
+            <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2 active:scale-90" aria-label="Back">
               <ArrowLeft size={22} />
             </button>
             <div className="flex flex-col" onClick={() => otherUid !== 'system' && router.push(`/dashboard`)}>
@@ -417,14 +429,15 @@ export default function ChatRoomPage() {
                 "w-10 h-10 rounded-full flex items-center justify-center transition-all border active:scale-95",
                 room?.privacyEnabled ? "bg-primary/20 border-primary/40 text-primary aura-glow-purple" : "bg-white/5 border-white/10 text-white/40"
               )}
-              title="Toggle Incognito"
+              title="Open privacy settings"
+              aria-label="Open privacy settings"
             >
               <Shield size={18} />
             </button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white active:scale-95">
+                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white active:scale-95" aria-label="More options">
                   <MoreVertical size={18} />
                 </button>
               </DropdownMenuTrigger>
@@ -459,13 +472,13 @@ export default function ChatRoomPage() {
 
         {/* Message Flow Area */}
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide flex flex-col z-10">
-          {messages.length === 0 ? (
+          {messages.length === 0 && !messagesLoading ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-6">
               <div className="w-20 h-20 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center text-white/20">
-                <ImageIcon size={40} />
+                <X size={40} />
               </div>
               <div className="space-y-2">
-                <h3 className="text-white font-bold text-lg tracking-tight">Start the synchronicity</h3>
+                <h3 className="text-white font-bold text-lg tracking-tight">Start the conversation</h3>
                 <p className="text-xs text-white/40 font-light max-w-[200px] mx-auto">Say hello and see where your auras take you.</p>
               </div>
               
@@ -584,7 +597,7 @@ export default function ChatRoomPage() {
               className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all shrink-0 active:scale-90"
               aria-label="Send image"
             >
-              <ImageIcon size={22} />
+              <Plus size={22} />
             </button>
 
             <div className="flex-1 h-12 relative flex items-center">
@@ -656,7 +669,7 @@ export default function ChatRoomPage() {
                 onClick={handleSendMedia} 
                 className="flex-1 h-10 rounded-xl premium-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg"
               >
-                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Materialize"}
+                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Send"}
               </Button>
             </div>
           </DialogContent>
@@ -672,7 +685,7 @@ export default function ChatRoomPage() {
                     {selectedMedia?.viewMode === 'unlimited' ? "Permanent Discovery" : "Ephemeral View"}
                   </span>
                </div>
-               <button onClick={() => setSelectedMedia(null)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md active:scale-90" aria-label="Close">
+               <button onClick={() => setSelectedMedia(null)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md active:scale-90" aria-label="Close media">
                  <X size={20} />
                </button>
             </header>
@@ -756,24 +769,5 @@ export default function ChatRoomPage() {
 
       </div>
     </AuthGuard>
-  );
-}
-
-function Loader2(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
   );
 }
