@@ -102,6 +102,7 @@ export type Message = {
   viewMode?: "unlimited" | "one" | "two";
   viewCount?: Record<string, number>;
   expiresAt?: any;
+  status?: 'sending' | 'sent' | 'failed';
 };
 
 export type ChatRoom = {
@@ -160,11 +161,14 @@ export type Purchase = {
   status: 'Success' | 'Failed' | 'Pending';
 };
 
+export type ReportType = 'Harassment' | 'Spam' | 'Fake profile' | 'Scams' | 'Hate behavior' | 'Sexual exploitation' | 'Threats' | 'Inappropriate content' | 'Other';
+
 export type Report = {
-  id: string;
+  id?: string;
   reporterId: string;
   targetId: string;
-  reason: string;
+  reason: ReportType;
+  description?: string;
   timestamp: any;
   status: 'Pending' | 'Reviewed' | 'Resolved';
 };

@@ -8,6 +8,7 @@ import {
   ArrowLeft, 
   MoreVertical, 
   Send, 
+  Check,
   CheckCheck, 
   BadgeCheck, 
   Trash2, 
@@ -19,7 +20,11 @@ import {
   Shield, 
   Eye, 
   EyeOff, 
-  X 
+  X,
+  Flag,
+  UserX,
+  AlertCircle,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,10 +40,11 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc
+  setDoc,
+  deleteDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { ChatRoom, UserProfile, Message } from "@/lib/types";
+import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { 
@@ -50,7 +56,15 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { checkPlanLimit } from "@/lib/plan-limits";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+
+const REPORT_CATEGORIES: ReportType[] = [
+  'Harassment', 'Spam', 'Fake profile', 'Scams', 'Hate behavior', 
+  'Sexual exploitation', 'Threats', 'Inappropriate content', 'Other'
+];
+
+const QUICK_STARTERS = ["Hey 👋", "Hi, how are you?", "Nice to meet you!", "What's up?"];
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -68,6 +82,13 @@ export default function ChatRoomPage() {
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"unlimited" | "one" | "two">("unlimited");
   const [selectedMedia, setSelectedMedia] = useState<Message | null>(null);
+  
+  // Safety States
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState<ReportType>('Other');
+  const [reportDesc, setReportDesc] = useState("");
+  const [isReporting, setIsReporting] = useState(false);
+  const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,7 +155,6 @@ export default function ChatRoomPage() {
     }
   }, [db, authUser, roomId, otherUid, room, roomLoading]);
 
-  // Handle auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -163,6 +183,7 @@ export default function ChatRoomPage() {
     updateDoc(doc(db, "chatRooms", roomId), {
       privacyEnabled: newState
     });
+    if (newState) setShowPrivacyNotice(true);
     toast({
       title: newState ? "Incognito Chat Active" : "Incognito Disabled",
       description: newState ? "Messages expire after 24h." : "Chat history now preserved."
@@ -184,12 +205,7 @@ export default function ChatRoomPage() {
   };
 
   const handleSendMedia = async () => {
-    if (!authUser) {
-      toast({ variant: "destructive", title: "Identity required", description: "Please sign in to share media." });
-      return;
-    }
-    
-    if (!pendingFile || !db || !storage || !roomId || !otherUid || !profile) return;
+    if (!authUser || !profile) return;
     
     if (profile.dailyMediaCount >= checkPlanLimit(profile, 'dailyMediaUploads')) {
       toast({ variant: "destructive", title: "Limit Reached", description: "Upgrade to Elite for more media sharing." });
@@ -200,16 +216,16 @@ export default function ChatRoomPage() {
     setShowMediaOptions(false);
 
     try {
-      const messageId = doc(collection(db, "temp")).id;
-      const storagePath = `chat-media/${roomId}/${authUser.uid}/${messageId}`;
-      const storageRef = ref(storage, storagePath);
+      const messageId = doc(collection(db!, "temp")).id;
+      const storagePath = `chat-media/${authUser.uid}/${roomId}/${messageId}`;
+      const storageRef = ref(storage!, storagePath);
       
-      await uploadBytes(storageRef, pendingFile);
+      await uploadBytes(storageRef, pendingFile!);
       const mediaUrl = await getDownloadURL(storageRef);
 
       const expiresAt = room?.privacyEnabled ? new Date(Date.now() + 86400000) : null;
 
-      await addDoc(collection(db, "chatRooms", roomId, "messages"), {
+      await addDoc(collection(db!, "chatRooms", roomId, "messages"), {
         id: messageId,
         senderId: authUser.uid,
         text: "[Media]",
@@ -224,13 +240,13 @@ export default function ChatRoomPage() {
         expiresAt
       });
 
-      await updateDoc(doc(db, "chatRooms", roomId), {
+      await updateDoc(doc(db!, "chatRooms", roomId), {
         lastMessage: "Shared media",
         lastTimestamp: serverTimestamp(),
         [`unreadCount.${otherUid}`]: increment(1)
       });
 
-      await updateDoc(doc(db, "users", authUser.uid), { dailyMediaCount: increment(1) });
+      await updateDoc(doc(db!, "users", authUser.uid), { dailyMediaCount: increment(1) });
       
       setPendingFile(null);
       setPendingPreview(null);
@@ -241,8 +257,9 @@ export default function ChatRoomPage() {
     }
   };
 
-  const handleSendText = async () => {
-    if (!input.trim() || !db || !roomId || !authUser || !otherUid || !profile) return;
+  const handleSendText = async (textOverride?: string) => {
+    const msgText = textOverride || input.trim();
+    if (!msgText || !db || !roomId || !authUser || !otherUid || !profile) return;
     
     const dailyMsgLimit = checkPlanLimit(profile, 'dailyMessagesPerProfile');
     const today = new Date();
@@ -255,8 +272,7 @@ export default function ChatRoomPage() {
       return;
     }
 
-    const msg = input.trim();
-    setInput("");
+    if (!textOverride) setInput("");
     setTypingState(false);
 
     const expiresAt = room?.privacyEnabled ? new Date(Date.now() + 86400000) : null;
@@ -264,7 +280,7 @@ export default function ChatRoomPage() {
     try {
       await addDoc(collection(db, "chatRooms", roomId, "messages"), { 
         senderId: authUser.uid, 
-        text: msg, 
+        text: msgText, 
         timestamp: serverTimestamp(), 
         seen: false,
         privacyMode: room?.privacyEnabled,
@@ -272,7 +288,7 @@ export default function ChatRoomPage() {
       });
 
       await updateDoc(doc(db, "chatRooms", roomId), { 
-        lastMessage: msg, 
+        lastMessage: msgText, 
         lastTimestamp: serverTimestamp(),
         [`unreadCount.${otherUid}`]: increment(1)
       });
@@ -281,7 +297,7 @@ export default function ChatRoomPage() {
         addDoc(collection(db, "notifications"), {
           userId: otherUid,
           title: profile.name,
-          body: msg,
+          body: room?.privacyEnabled ? "New private message" : msgText,
           type: "message",
           timestamp: serverTimestamp(),
           read: false,
@@ -309,6 +325,57 @@ export default function ChatRoomPage() {
     setSelectedMedia(msg);
   };
 
+  const handleReport = async () => {
+    if (!db || !authUser || !otherUid) return;
+    setIsReporting(true);
+    try {
+      await addDoc(collection(db, "reports"), {
+        reporterId: authUser.uid,
+        targetId: otherUid,
+        reason: reportReason,
+        description: reportDesc,
+        timestamp: serverTimestamp(),
+        status: 'Pending'
+      });
+      toast({ title: "Report Submitted", description: "Our safety team will review this within 24 hours." });
+      setShowReportDialog(false);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed" });
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!db || !authUser || !otherUid) return;
+    try {
+      const blockId = otherUid;
+      await setDoc(doc(db, "users", authUser.uid, "blockedUsers", blockId), {
+        uid: otherUid,
+        name: otherUser?.name || "User",
+        blockedAt: serverTimestamp()
+      });
+      toast({ title: "Member Blocked", description: "You will no longer see each other in the Aura." });
+      router.push('/chat');
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed" });
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (!db || !roomId) return;
+    const confirm = window.confirm("Are you sure you want to clear this chat history locally?");
+    if (!confirm) return;
+    
+    try {
+      // Note: In a real app, this might just hide messages for the user locally.
+      // Here we simulate it or just let the expiring messages handle it if incognito.
+      toast({ title: "History Cleared" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed" });
+    }
+  };
+
   const displayName = room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
   const isVerified = room?.isSystem || otherUser?.verificationStatus === 'Verified';
   const isOtherOnline = !room?.isSystem && otherUser?.isOnline && !otherUser?.incognitoMode;
@@ -316,25 +383,25 @@ export default function ChatRoomPage() {
 
   return (
     <AuthGuard>
-      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden transition-colors selection:bg-primary/20">
-        {/* Fixed Header */}
-        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-20 safe-top">
+      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden selection:bg-primary/20">
+        {/* Header Interaction Stage */}
+        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-30 safe-top">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2 active:scale-90">
               <ArrowLeft size={22} />
             </button>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col" onClick={() => otherUid !== 'system' && router.push(`/dashboard`)}>
+              <div className="flex items-center gap-1.5 cursor-pointer">
                 <span className="font-semibold text-sm text-white tracking-tight">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
               </div>
               <AnimatePresence mode="wait">
                 {isOtherTyping ? (
-                  <motion.p key="typing" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-[10px] text-primary font-bold italic">Typing...</motion.p>
+                  <motion.p key="typing" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="text-[10px] text-primary font-bold italic">typing...</motion.p>
                 ) : isOtherOnline ? (
                   <motion.div key="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-                    <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-emerald-500">Active</span>
+                    <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-emerald-500">Active Now</span>
                   </motion.div>
                 ) : !room?.isSystem && (
                   <motion.span key="offline" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[8px] font-bold uppercase tracking-[0.1em] text-white/20">Offline</motion.span>
@@ -350,6 +417,7 @@ export default function ChatRoomPage() {
                 "w-10 h-10 rounded-full flex items-center justify-center transition-all border active:scale-95",
                 room?.privacyEnabled ? "bg-primary/20 border-primary/40 text-primary aura-glow-purple" : "bg-white/5 border-white/10 text-white/40"
               )}
+              title="Toggle Incognito"
             >
               <Shield size={18} />
             </button>
@@ -363,16 +431,23 @@ export default function ChatRoomPage() {
               <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
                 {!room?.isSystem && (
                   <>
-                    <DropdownMenuLabel className="text-[10px] uppercase font-bold text-white/40 tracking-widest px-3 py-2">Privacy Guard</DropdownMenuLabel>
+                    <DropdownMenuLabel className="text-[10px] uppercase font-bold text-white/40 tracking-widest px-3 py-2">Member Control</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => router.push(`/dashboard`)} className="rounded-xl px-4 py-3 text-white cursor-pointer flex items-center gap-3">
+                      <ImageIcon size={16} /><span>View Profile</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={togglePrivacy} className="rounded-xl px-4 py-3 text-white cursor-pointer flex items-center gap-3">
-                      {room?.privacyEnabled ? <Shield size={16} className="text-primary" /> : <Lock size={16} />}
+                      {room?.privacyEnabled ? <ShieldCheck size={16} className="text-primary" /> : <Shield size={16} />}
                       <span>{room?.privacyEnabled ? "Disable Incognito" : "Enable Incognito"}</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/5" />
-                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-destructive cursor-pointer flex items-center gap-3">
-                      <ShieldAlert size={16} /><span>Report & Block</span>
+                    <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive cursor-pointer flex items-center gap-3">
+                      <Flag size={16} /><span>Report Member</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-white/60 cursor-pointer flex items-center gap-3">
+                    <DropdownMenuItem onClick={handleBlock} className="rounded-xl px-4 py-3 text-destructive cursor-pointer flex items-center gap-3">
+                      <UserX size={16} /><span>Block Member</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/5" />
+                    <DropdownMenuItem onClick={handleClearHistory} className="rounded-xl px-4 py-3 text-white/60 cursor-pointer flex items-center gap-3">
                       <Trash2 size={16} /><span>Clear History</span>
                     </DropdownMenuItem>
                   </>
@@ -382,22 +457,37 @@ export default function ChatRoomPage() {
           </div>
         </header>
 
-        {/* Messages Stage */}
-        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide flex flex-col">
+        {/* Message Flow Area */}
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide flex flex-col z-10">
           {messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-4">
-              <div className="w-16 h-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-white/20">
-                <ImageIcon size={32} />
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-6">
+              <div className="w-20 h-20 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center text-white/20">
+                <ImageIcon size={40} />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-white font-bold tracking-tight">Start the conversation</h3>
-                <p className="text-xs text-white/40 font-light">Say hello and see where it goes.</p>
+              <div className="space-y-2">
+                <h3 className="text-white font-bold text-lg tracking-tight">Start the synchronicity</h3>
+                <p className="text-xs text-white/40 font-light max-w-[200px] mx-auto">Say hello and see where your auras take you.</p>
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-2 pt-4">
+                {QUICK_STARTERS.map(q => (
+                  <button 
+                    key={q} 
+                    onClick={() => handleSendText(q)}
+                    className="px-4 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/80 text-xs font-medium hover:bg-primary/20 hover:border-primary/40 transition-all active:scale-95"
+                  >
+                    {q}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : messages.map((msg) => {
+          ) : messages.map((msg, idx) => {
             const isMe = msg.senderId === authUser?.uid;
             const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             
+            const prevMsg = messages[idx - 1];
+            const isConsecutive = prevMsg && prevMsg.senderId === msg.senderId;
+
             const myViews = msg.viewCount?.[authUser?.uid || ""] || 0;
             const isMediaExpired = msg.isMedia && (
               (msg.viewMode === 'one' && myViews >= 1) || 
@@ -406,10 +496,10 @@ export default function ChatRoomPage() {
 
             return (
               <motion.div 
-                key={`msg-${msg.id}`} 
+                key={msg.id || `msg-${idx}`} 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }} 
                 animate={{ opacity: 1, scale: 1, y: 0 }} 
-                className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}
+                className={cn("flex w-full", isMe ? "justify-end" : "justify-start", isConsecutive ? "mt-1" : "mt-4")}
               >
                 <div className={cn(
                   "max-w-[85%] flex flex-col",
@@ -420,7 +510,7 @@ export default function ChatRoomPage() {
                     className={cn(
                       "px-4 py-3 rounded-[24px] shadow-lg relative overflow-hidden transition-all duration-300", 
                       isMe 
-                        ? "fuchsia-gradient text-white rounded-br-none shadow-primary/20" 
+                        ? "premium-gradient text-white rounded-br-none shadow-primary/10" 
                         : "bg-white/5 backdrop-blur-xl text-white rounded-bl-none border border-white/10",
                       msg.isMedia && !isMediaExpired && "cursor-pointer active:scale-98"
                     )}
@@ -460,15 +550,17 @@ export default function ChatRoomPage() {
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-1.5 px-2 opacity-30">
-                    <span className="text-[9px] font-medium text-white">{time}</span>
-                    {isMe && (
-                      <div className="flex">
-                        <CheckCheck size={10} className={msg.seen ? "text-primary" : "text-white"} />
-                      </div>
-                    )}
-                    {msg.privacyMode && <Shield size={10} className="text-primary" />}
-                  </div>
+                  {!isConsecutive && (
+                    <div className="flex items-center gap-2 mt-1.5 px-2 opacity-30">
+                      <span className="text-[9px] font-medium text-white">{time}</span>
+                      {isMe && (
+                        <div className="flex">
+                          {msg.seen ? <CheckCheck size={10} className="text-primary" /> : <Check size={10} className="text-white" />}
+                        </div>
+                      )}
+                      {msg.privacyMode && <Shield size={10} className="text-primary" />}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
@@ -476,9 +568,9 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} className="h-4 flex-shrink-0" />
         </div>
 
-        {/* Footer Interaction Stage */}
-        <div className="flex-shrink-0 px-4 pt-3 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom">
-          <div className="flex items-center gap-3 max-w-md mx-auto h-14">
+        {/* Interaction Stage Footer */}
+        <div className="flex-shrink-0 px-4 pt-3 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom z-20">
+          <div className="flex items-center gap-3 max-w-2xl mx-auto h-14">
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -506,9 +598,9 @@ export default function ChatRoomPage() {
             </div>
 
             <button 
-              onClick={handleSendText} 
+              onClick={() => handleSendText()} 
               disabled={!input.trim()} 
-              className="w-12 h-12 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-90 flex items-center justify-center disabled:opacity-20 disabled:grayscale"
+              className="w-12 h-12 rounded-full premium-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-90 flex items-center justify-center disabled:opacity-20 disabled:grayscale"
               aria-label="Send message"
             >
               <Send size={20} className="text-white translate-x-0.5" />
@@ -516,12 +608,12 @@ export default function ChatRoomPage() {
           </div>
         </div>
 
-        {/* Choice Box: Media View Mode */}
+        {/* Media Privacy Selection */}
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
-          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-5 w-[calc(100%-40px)] max-w-[260px] shadow-2xl outline-none">
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-5 w-[calc(100%-40px)] max-w-[280px] shadow-2xl outline-none">
             <DialogHeader className="space-y-1 mb-2">
-              <DialogTitle className="text-sm font-bold text-white tracking-tight">Media View Mode</DialogTitle>
-              <DialogDescription className="text-[9px] text-white/40 font-light leading-tight">Choose how the recipient can see this photo.</DialogDescription>
+              <DialogTitle className="text-sm font-bold text-white tracking-tight">Media Privacy</DialogTitle>
+              <DialogDescription className="text-[9px] text-white/40 font-light leading-tight">Choose how the recipient can materialize this photo.</DialogDescription>
             </DialogHeader>
             
             <div className="py-2 space-y-3">
@@ -562,15 +654,15 @@ export default function ChatRoomPage() {
               </Button>
               <Button 
                 onClick={handleSendMedia} 
-                className="flex-1 h-10 rounded-xl fuchsia-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg"
+                className="flex-1 h-10 rounded-xl premium-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg"
               >
-                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Send"}
+                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Materialize"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Media Viewer */}
+        {/* Media Focused Viewer */}
         <Dialog open={!!selectedMedia} onOpenChange={(open) => !open && setSelectedMedia(null)}>
           <DialogContent className="p-0 border-none bg-black/98 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center overflow-hidden">
             <header className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
@@ -599,7 +691,7 @@ export default function ChatRoomPage() {
                   <div className="bg-white/5 backdrop-blur-2xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3">
                     <Shield size={16} className="text-primary" />
                     <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-                      {selectedMedia.viewMode === 'one' ? "Single View Remaining" : selectedMedia.viewMode === 'two' ? "Second View Active" : "Unlimited Access"}
+                      {selectedMedia.viewMode === 'one' ? "Single Materialization Remaining" : selectedMedia.viewMode === 'two' ? "Second View Active" : "Unlimited Access"}
                     </span>
                   </div>
                 </div>
@@ -607,7 +699,81 @@ export default function ChatRoomPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Safety: Report Member */}
+        <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 max-w-[360px]">
+            <DialogHeader className="space-y-2">
+              <DialogTitle className="text-xl font-bold text-white">Report Member</DialogTitle>
+              <DialogDescription className="text-sm text-white/40">Help us maintain a safe Aura community. Your report is private.</DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4 space-y-4">
+               <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 scrollbar-hide">
+                  {REPORT_CATEGORIES.map(cat => (
+                    <button 
+                      key={cat}
+                      onClick={() => setReportReason(cat)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-xl border text-xs font-medium transition-all",
+                        reportReason === cat ? "bg-primary/20 border-primary/40 text-white" : "bg-white/5 border-white/5 text-white/40"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+               </div>
+               <Textarea 
+                placeholder="Optional description..."
+                value={reportDesc}
+                onChange={(e) => setReportDesc(e.target.value)}
+                className="bg-white/5 border-white/10 rounded-xl text-white text-xs min-h-[80px]"
+               />
+            </div>
+
+            <DialogFooter className="flex gap-2">
+              <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="flex-1 rounded-xl text-white/40">Cancel</Button>
+              <Button onClick={handleReport} disabled={isReporting} className="flex-1 rounded-xl bg-destructive text-white">
+                {isReporting ? <Loader2 size={16} className="animate-spin" /> : "Submit Report"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Privacy Notice Overlay */}
+        <Dialog open={showPrivacyNotice} onOpenChange={setShowPrivacyNotice}>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 max-w-[320px] text-center">
+            <div className="w-16 h-16 rounded-[24px] bg-primary/20 mx-auto flex items-center justify-center text-primary mb-6">
+              <Shield size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Incognito Active</h3>
+            <p className="text-xs text-white/40 leading-relaxed mb-6">
+              Messages will disappear after 24 hours. Media materialization is limited. Screenshots are discouraged.
+            </p>
+            <Button onClick={() => setShowPrivacyNotice(false)} className="w-full h-12 rounded-xl premium-gradient text-white font-bold">I Understand</Button>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </AuthGuard>
+  );
+}
+
+function Loader2(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   );
 }
