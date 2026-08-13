@@ -4,6 +4,7 @@ import { PlanType, UserProfile } from "./types";
 export const PLAN_LIMITS = {
   Free: {
     maxRadiusKm: 50,
+    dailyLikes: 25,
     dailyNewChats: 5,
     dailyMessagesPerProfile: 10,
     dailyMediaUploads: 2,
@@ -13,6 +14,7 @@ export const PLAN_LIMITS = {
   },
   Elite: {
     maxRadiusKm: 100,
+    dailyLikes: Infinity,
     dailyNewChats: Infinity,
     dailyMessagesPerProfile: Infinity,
     dailyMediaUploads: Infinity,

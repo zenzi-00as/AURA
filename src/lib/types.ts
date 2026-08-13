@@ -58,6 +58,8 @@ export type UserProfile = {
   subscriptionPrice?: number;
   dailyChatCount: number;
   dailyMediaCount: number;
+  dailyLikeCount: number;
+  lastLikeResetDate?: string;
   lastResetDate?: string;
   superLikeBalance: number;
   spotlightExpiry?: any;
@@ -114,7 +116,7 @@ export type ChatRoom = {
   privacyEnabled?: boolean;
 };
 
-export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight';
+export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight' | 'like' | 'super_like' | 'match';
 
 export type Notification = {
   id: string;
@@ -126,6 +128,26 @@ export type Notification = {
   read: boolean;
   roomId?: string;
   senderId?: string;
+  referenceId?: string;
+};
+
+export type InteractionType = 'like' | 'super_like';
+
+export type LikeRecord = {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  type: InteractionType;
+  createdAt: any;
+  status: 'active' | 'deleted';
+};
+
+export type MatchRecord = {
+  id: string;
+  userIds: string[];
+  createdAt: any;
+  status: 'active';
+  matchSource: InteractionType;
 };
 
 export type Purchase = {

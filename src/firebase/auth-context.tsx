@@ -28,7 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We initialize here once inside the effect to ensure stability and avoid HMR issues
     const { auth, db } = initializeFirebase();
     if (!auth || !db) return;
 
@@ -50,12 +49,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(data);
 
               const today = format(new Date(), 'yyyy-MM-dd');
+              const updates: any = {};
+              
               if (data.lastResetDate !== today) {
-                updateDoc(userRef, {
-                  dailyChatCount: 0,
-                  dailyMediaCount: 0,
-                  lastResetDate: today
-                }).catch(() => {});
+                updates.dailyChatCount = 0;
+                updates.dailyMediaCount = 0;
+                updates.lastResetDate = today;
+              }
+              
+              if (data.lastLikeResetDate !== today) {
+                updates.dailyLikeCount = 0;
+                updates.lastLikeResetDate = today;
+              }
+
+              if (Object.keys(updates).length > 0) {
+                updateDoc(userRef, updates).catch(() => {});
               }
             } else {
               setProfile(null);
@@ -99,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth();
       clearTimeout(timeoutId);
     };
-  }, []); // Only run once on mount
+  }, []);
 
   const value = {
     user,
