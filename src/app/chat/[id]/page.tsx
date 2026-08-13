@@ -502,22 +502,22 @@ export default function ChatRoomPage() {
         </div>
 
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
-          <DialogContent className="glass-dark border-white/10 rounded-[32px] p-6 max-w-[320px]">
-            <DialogHeader className="space-y-2">
-              <DialogTitle className="text-lg font-bold text-white">Media View Mode</DialogTitle>
-              <DialogDescription className="text-xs text-white/40">Choose how the recipient can see this photo.</DialogDescription>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[28px] p-5 max-w-[280px]">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-base font-bold text-white">Media View Mode</DialogTitle>
+              <DialogDescription className="text-[10px] text-white/40">Control visual synchronization.</DialogDescription>
             </DialogHeader>
             
-            <div className="py-4 space-y-4">
+            <div className="py-3 space-y-3">
               {pendingPreview && (
-                <div className="aspect-square w-full rounded-2xl overflow-hidden border border-white/10">
+                <div className="aspect-[4/3] w-full rounded-xl overflow-hidden border border-white/10">
                   <img src={pendingPreview} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
               
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-1.5">
                 {[
-                  { id: 'unlimited', label: 'Unlimited Views', icon: Eye },
+                  { id: 'unlimited', label: 'Unlimited', icon: Eye },
                   { id: 'one', label: 'View Once', icon: EyeOff },
                   { id: 'two', label: 'View Twice', icon: Clock }
                 ].map((opt) => (
@@ -525,21 +525,21 @@ export default function ChatRoomPage() {
                     key={opt.id}
                     onClick={() => setViewMode(opt.id as any)}
                     className={cn(
-                      "flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
-                      viewMode === opt.id ? "bg-primary/20 border-primary/40 text-white" : "bg-white/5 border-white/5 text-white/60"
+                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                      viewMode === opt.id ? "bg-primary/20 border-primary/40 text-white" : "bg-white/5 border-white/5 text-white/40"
                     )}
                   >
-                    <opt.icon size={18} className={viewMode === opt.id ? "text-primary" : ""} />
-                    <span className="text-sm font-bold uppercase tracking-widest">{opt.label}</span>
+                    <opt.icon size={16} className={viewMode === opt.id ? "text-primary" : ""} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{opt.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setShowMediaOptions(false)} className="flex-1 rounded-xl text-white/40">Cancel</Button>
-              <Button onClick={handleSendMedia} className="flex-1 rounded-xl fuchsia-gradient font-bold">
-                {isUploading ? <Loader2 size={16} className="animate-spin" /> : "Send"}
+              <Button variant="ghost" onClick={() => setShowMediaOptions(false)} className="flex-1 h-10 rounded-xl text-white/40 text-xs">Cancel</Button>
+              <Button onClick={handleSendMedia} className="flex-1 h-10 rounded-xl fuchsia-gradient font-bold text-xs">
+                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Send"}
               </Button>
             </div>
           </DialogContent>
