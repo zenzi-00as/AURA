@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -59,6 +60,15 @@ const Sparkle = ({ index }: { index: number }) => {
   );
 };
 
+const BlueRipple = () => (
+  <motion.div
+    initial={{ scale: 0, opacity: 0.8 }}
+    animate={{ scale: 2.5, opacity: 0 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    className="absolute inset-0 rounded-full bg-[#1877F2]/30 pointer-events-none z-0"
+  />
+);
+
 export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardProps) {
   const { profile: currentUser } = useAuthContext();
   const db = useFirestore();
@@ -71,6 +81,7 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
   const [showMatch, setShowMatch] = useState(false);
   const [matchType, setMatchType] = useState<'like' | 'super_like'>('like');
   const [showSparkles, setShowSparkles] = useState(false);
+  const [showRipple, setShowRipple] = useState(false);
 
   // Long press logic
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -132,6 +143,8 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
       if (type === 'like') {
         setIsLiked(true);
         setIsSuperLiked(false);
+        setShowRipple(true);
+        setTimeout(() => setShowRipple(false), 600);
         await updateDoc(userRef, { dailyLikeCount: increment(1) });
       } else {
         setIsSuperLiked(true);
@@ -240,24 +253,31 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
 
   const interactionButtons = (
     <div className="flex items-center gap-2 w-full">
-      <button 
+      <motion.button 
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerLeave}
         onPointerCancel={handlePointerLeave}
         onContextMenu={(e) => e.preventDefault()}
+        whileTap={{ scale: 0.82 }}
+        animate={isLiked ? { scale: [0.82, 1.18, 1] } : {}}
+        transition={{ duration: 0.45, ease: "easeOut" }}
         disabled={isLoading || isLiked || isSuperLiked}
         className={cn(
-          "h-10 w-14 rounded-xl glass border border-white/10 flex items-center justify-center transition-all relative overflow-hidden shrink-0 touch-none",
+          "h-12 w-14 rounded-2xl glass border border-white/10 flex items-center justify-center transition-all relative overflow-hidden shrink-0 touch-none",
           isHolding && "scale-110 shadow-lg aura-glow-purple",
-          isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : 
+          isLiked ? "bg-[#1877F2] border-[#1877F2] text-white shadow-[0_0_15px_rgba(24,119,242,0.5)]" : 
           isSuperLiked ? "bg-primary/20 border-primary/40 text-primary shadow-[0_0_15px_rgba(168,85,247,0.4)]" : 
           "text-white/40 hover:text-white"
         )}
         aria-label={isLiked ? "Liked" : isSuperLiked ? "Super Liked" : "Like. Hold to Super Like."}
       >
+        <AnimatePresence>
+          {showRipple && <BlueRipple />}
+        </AnimatePresence>
+
         {isLoading ? <Loader2 size={14} className="animate-spin" /> : (
-          <Heart size={18} className={cn((isLiked || isSuperLiked) && "fill-current")} />
+          <Heart size={20} className={cn((isLiked || isSuperLiked) && "fill-current")} />
         )}
         
         {isHolding && (
@@ -265,20 +285,21 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
             initial={{ width: 0 }}
             animate={{ width: "100%" }}
             transition={{ duration: 0.6 }}
-            className="absolute bottom-0 left-0 h-0.5 bg-primary"
+            className="absolute bottom-0 left-0 h-1 bg-primary z-10"
           />
         )}
         
         {showSparkles && [...Array(8)].map((_, i) => (
           <Sparkle key={`sparkle-${i}`} index={i} />
         ))}
-      </button>
+      </motion.button>
 
       <button 
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-        className="flex-1 h-10 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-primary/20"
+        className="flex-1 h-12 rounded-2xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-primary/20 gap-2"
       >
-        <MessageSquare size={16} />
+        <MessageSquare size={18} />
+        <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Chat</span>
       </button>
     </div>
   );
@@ -295,17 +316,23 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full bg-[#111116] border border-[#FFFFFF1A] rounded-2xl overflow-hidden shadow-lg group transition-all h-full flex flex-col will-change-transform"
+        className="w-full bg-[#111116] border border-[#FFFFFF1A] rounded-[22px] overflow-hidden shadow-lg group transition-all h-full flex flex-col will-change-transform relative"
       >
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
-            {!user.incognitoMode && user.isOnline && (
-              <div className="absolute top-2 left-2 z-10 w-2 h-2 bg-emerald-500 rounded-full border border-black shadow-[0_0_8px_#10b981] animate-pulse" />
-            )}
+            <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+              <div className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                user.isOnline && !user.incognitoMode ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" : "bg-white/20"
+              )} />
+              <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
+                {user.isOnline && !user.incognitoMode ? "Online" : "Offline"}
+              </span>
+            </div>
 
             {hasSpotlight && (
-              <div className="absolute top-2 right-2 z-10 bg-primary/20 backdrop-blur-md p-1 rounded-md border border-primary/30">
-                <Sparkles size={8} className="text-primary" />
+              <div className="absolute top-2.5 right-2.5 z-10 bg-primary/20 backdrop-blur-md p-1.5 rounded-lg border border-primary/30">
+                <Sparkles size={10} className="text-primary" />
               </div>
             )}
 
@@ -322,47 +349,61 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
                   {user.photoUrl && (
                     <div className="absolute inset-0 bg-cover bg-center opacity-10 blur-xl grayscale" style={{ backgroundImage: `url(${user.photoUrl})` }} />
                   )}
-                  <div className="relative z-10 flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mb-0.5">
-                      <Lock size={14} className="text-white/20" />
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 shadow-inner">
+                      <Lock size={18} className="text-white/20" />
                     </div>
                     {blurPhotos && (
-                      <p className="text-[7px] font-black text-primary uppercase tracking-widest">Elite Only</p>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Elite Only</p>
+                        <p className="text-[7px] text-white/30 uppercase font-medium">Upgrade to see identity photo</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
           </div>
         </SheetTrigger>
 
-        <div className="p-2.5 flex-1 flex flex-col min-w-0 text-left space-y-1.5">
-          <div className="flex items-center gap-1 min-w-0">
-            <h3 className="text-xs font-bold text-white tracking-tight truncate">
+        <div className="p-3 flex-1 flex flex-col min-w-0 text-left space-y-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="text-sm font-bold text-white tracking-tight truncate leading-none">
               {user.name}, {user.age}
             </h3>
             {user.verificationStatus === 'Verified' && (
-              <BadgeCheck size={12} className="text-primary shrink-0" />
+              <BadgeCheck size={14} className="text-primary shrink-0" />
             )}
           </div>
           
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             {user.distance && (
-              <div className="flex items-center gap-1 text-[9px] text-white/40 font-bold uppercase tracking-tight truncate">
-                <MapPin size={8} className="text-primary shrink-0" />
+              <div className="flex items-center gap-1.5 text-[10px] text-white/50 font-bold uppercase tracking-tight truncate">
+                <MapPin size={10} className="text-primary shrink-0" />
                 {user.distance}
               </div>
             )}
+            
+            <div className="flex items-center gap-1">
+               <span className="bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded border border-primary/20 uppercase tracking-widest truncate">
+                 {user.interestedIn?.[0] || "Discovery"}
+               </span>
+               {user.position && (
+                 <span className="bg-white/5 text-white/40 text-[8px] font-bold px-1.5 py-0.5 rounded border border-white/5 uppercase tracking-widest truncate">
+                   {user.position}
+                 </span>
+               )}
+            </div>
           </div>
 
-          <div className="pt-1 mt-auto">
+          <div className="pt-2 mt-auto">
             {interactionButtons}
           </div>
         </div>
 
-        <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+        <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
           <div className="h-full flex flex-col">
             <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
               <div className="flex items-center gap-3">
@@ -421,7 +462,7 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
               </div>
             </div>
 
-            <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0 safe-bottom">
+            <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
                {interactionButtons}
             </div>
           </div>
@@ -430,7 +471,7 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
     </Sheet>
 
     <Dialog open={showSuperLikeConfirm} onOpenChange={setShowSuperLikeConfirm}>
-      <DialogContent className="glass-dark border-white/10 rounded-[32px] p-8 max-w-[320px]">
+      <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 max-w-[320px]">
         <div className="text-center space-y-6">
           <div className="w-16 h-16 rounded-[24px] premium-gradient mx-auto flex items-center justify-center shadow-lg aura-glow-purple">
             <Sparkles size={32} className="text-white fill-white" />

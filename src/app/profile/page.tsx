@@ -376,7 +376,7 @@ export default function ProfilePage() {
                     </div>
                   </motion.button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+                <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
                   <div className="h-full flex flex-col">
                     <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                       <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
@@ -455,7 +455,7 @@ export default function ProfilePage() {
                        </div>
                     </div>
 
-                    <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0">
+                    <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                        <Button 
                          onClick={buyElite} 
                          disabled={elite}
@@ -485,7 +485,7 @@ export default function ProfilePage() {
                        </div>
                     </button>
                   </SheetTrigger>
-                  <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
                     <div className="h-full flex flex-col">
                        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                           <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
@@ -544,7 +544,7 @@ export default function ProfilePage() {
                              </div>
                           </div>
                        </div>
-                       <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0">
+                       <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                           <Button 
                             onClick={buySpotlight}
                             className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg aura-glow-purple flex items-center justify-between px-8"
@@ -569,7 +569,7 @@ export default function ProfilePage() {
                        </div>
                     </button>
                   </SheetTrigger>
-                  <SheetContent side="bottom" className="glass-dark border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
                     <div className="h-full flex flex-col">
                        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                           <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
@@ -626,7 +626,7 @@ export default function ProfilePage() {
                              <p className="text-center text-[10px] font-bold text-accent uppercase tracking-widest">Total: ₹{superLikeQty * 3}</p>
                           </div>
                        </div>
-                       <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0">
+                       <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                           <Button 
                             onClick={buySuperLikes}
                             className="w-full h-16 rounded-[24px] bg-accent text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center justify-between px-8"
@@ -649,7 +649,7 @@ export default function ProfilePage() {
                   <div className="flex gap-2">
                     <Dialog open={isEditing} onOpenChange={setIsEditing}>
                       <DialogTrigger asChild><button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary"><Pencil size={14} /></button></DialogTrigger>
-                      <DialogContent className="glass-dark border-border rounded-[32px] p-8">
+                      <DialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
                         <DialogHeader><DialogTitle>Edit Presence</DialogTitle></DialogHeader>
                         <Textarea value={tempBio} onChange={(e) => setTempBio(e.target.value)} className="bg-muted min-h-[120px] rounded-2xl p-4 focus:ring-primary" placeholder="Describe your aura..." />
                         <DialogFooter><Button onClick={handleSave} className="w-full h-14 premium-gradient rounded-2xl font-bold">Save Aura</Button></DialogFooter>
@@ -688,7 +688,7 @@ export default function ProfilePage() {
             ))}
             <AlertDialog>
               <AlertDialogTrigger asChild><button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-destructive/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><LogOut size={18} /></div><span className="font-medium text-foreground">{t('sign_out')}</span></div><div className="text-muted-foreground">→</div></button></AlertDialogTrigger>
-              <AlertDialogContent className="glass-dark border-border rounded-[32px] p-8">
+              <AlertDialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
                 <AlertDialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="text-center"><AlertDialogTitle>{t('sign_out')}</AlertDialogTitle><AlertDialogDescription>Are you sure you want to exit the Aura?</AlertDialogDescription></div></AlertDialogHeader>
                 <AlertDialogFooter className="flex flex-col gap-3 pt-4"><AlertDialogAction onClick={handleSignOut} className="w-full h-14 premium-gradient rounded-2xl">Sign Out</AlertDialogAction><AlertDialogCancel className="w-full h-12 rounded-xl">Cancel</AlertDialogCancel></AlertDialogFooter>
               </AlertDialogContent>
