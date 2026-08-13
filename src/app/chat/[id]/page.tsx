@@ -245,7 +245,10 @@ export default function ChatRoomPage() {
     if (!input.trim() || !db || !roomId || !authUser || !otherUid || !profile) return;
     
     const dailyMsgLimit = checkPlanLimit(profile, 'dailyMessagesPerProfile');
-    const myMessagesToday = messages.filter(m => m.senderId === authUser.uid && m.timestamp?.toDate() > new Date(new Date().setHours(0,0,0,0))).length;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const myMessagesToday = messages.filter(m => m.senderId === authUser.uid && (m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp)) > today).length;
     
     if (myMessagesToday >= dailyMsgLimit) {
       toast({ variant: "destructive", title: "Daily Limit", description: "Elite members get unlimited messages." });
@@ -313,15 +316,16 @@ export default function ChatRoomPage() {
 
   return (
     <AuthGuard>
-      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden transition-colors">
+      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden transition-colors selection:bg-primary/20">
+        {/* Fixed Header */}
         <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-20 safe-top">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
+            <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2 active:scale-90">
               <ArrowLeft size={22} />
             </button>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-white">{displayName}</span>
+                <span className="font-semibold text-sm text-white tracking-tight">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
               </div>
               <AnimatePresence mode="wait">
@@ -343,7 +347,7 @@ export default function ChatRoomPage() {
             <button 
               onClick={togglePrivacy}
               className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center transition-all border",
+                "w-10 h-10 rounded-full flex items-center justify-center transition-all border active:scale-95",
                 room?.privacyEnabled ? "bg-primary/20 border-primary/40 text-primary aura-glow-purple" : "bg-white/5 border-white/10 text-white/40"
               )}
             >
@@ -352,11 +356,11 @@ export default function ChatRoomPage() {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white">
+                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white active:scale-95">
                   <MoreVertical size={18} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="glass-dark border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
+              <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
                 {!room?.isSystem && (
                   <>
                     <DropdownMenuLabel className="text-[10px] uppercase font-bold text-white/40 tracking-widest px-3 py-2">Privacy Guard</DropdownMenuLabel>
@@ -378,6 +382,7 @@ export default function ChatRoomPage() {
           </div>
         </header>
 
+        {/* Messages Stage */}
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 scrollbar-hide flex flex-col">
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-4">
@@ -385,7 +390,7 @@ export default function ChatRoomPage() {
                 <ImageIcon size={32} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-white font-bold">Start the conversation</h3>
+                <h3 className="text-white font-bold tracking-tight">Start the conversation</h3>
                 <p className="text-xs text-white/40 font-light">Say hello and see where it goes.</p>
               </div>
             </div>
@@ -407,23 +412,23 @@ export default function ChatRoomPage() {
                 className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}
               >
                 <div className={cn(
-                  "max-w-[80%] flex flex-col",
+                  "max-w-[85%] flex flex-col",
                   isMe ? "items-end" : "items-start"
                 )}>
                   <div 
                     onClick={() => msg.isMedia && !isMediaExpired && handleViewMedia(msg)}
                     className={cn(
-                      "px-4 py-3 rounded-[22px] shadow-sm relative overflow-hidden transition-all", 
+                      "px-4 py-3 rounded-[24px] shadow-lg relative overflow-hidden transition-all duration-300", 
                       isMe 
-                        ? "fuchsia-gradient text-white rounded-br-none" 
+                        ? "fuchsia-gradient text-white rounded-br-none shadow-primary/20" 
                         : "bg-white/5 backdrop-blur-xl text-white rounded-bl-none border border-white/10",
-                      msg.isMedia && !isMediaExpired && "cursor-pointer active:scale-95"
+                      msg.isMedia && !isMediaExpired && "cursor-pointer active:scale-98"
                     )}
                   >
                     {msg.isMedia ? (
                       <div className="space-y-2">
                         {isMediaExpired ? (
-                          <div className="flex flex-col items-center gap-2 py-4 px-8 text-white/20">
+                          <div className="flex flex-col items-center gap-2 py-6 px-10 text-white/20">
                             <EyeOff size={32} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Media Expired</span>
                           </div>
@@ -433,29 +438,29 @@ export default function ChatRoomPage() {
                               src={msg.mediaUrl} 
                               alt="Media" 
                               className={cn(
-                                "rounded-xl max-w-full max-h-60 object-cover",
-                                (msg.viewMode === 'one' || msg.viewMode === 'two') && !isMe && "blur-2xl grayscale"
+                                "rounded-2xl max-w-full max-h-[300px] object-cover",
+                                (msg.viewMode === 'one' || msg.viewMode === 'two') && !isMe && "blur-3xl grayscale opacity-40"
                               )} 
                             />
                             {(msg.viewMode === 'one' || msg.viewMode === 'two') && !isMe && (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 rounded-xl">
-                                <Eye size={24} className="text-white" />
-                                <span className="text-[10px] font-bold uppercase tracking-tighter text-white">Tap to view</span>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 rounded-2xl">
+                                <Eye size={28} className="text-white drop-shadow-2xl" />
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-white/80">Tap to materialize</span>
                               </div>
                             )}
                           </div>
                         )}
-                        <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest opacity-40">
+                        <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-[0.2em] opacity-40 px-1">
                           {msg.viewMode === 'one' ? <EyeOff size={10} /> : <Eye size={10} />}
-                          <span>{msg.viewMode === 'unlimited' ? "Unlimited" : msg.viewMode === 'one' ? "View Once" : "View Twice"}</span>
+                          <span>{msg.viewMode === 'unlimited' ? "Permanent Discovery" : msg.viewMode === 'one' ? "View Once" : "View Twice"}</span>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap font-light">{msg.text}</p>
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-1.5 px-1 opacity-30">
+                  <div className="flex items-center gap-2 mt-1.5 px-2 opacity-30">
                     <span className="text-[9px] font-medium text-white">{time}</span>
                     {isMe && (
                       <div className="flex">
@@ -468,10 +473,11 @@ export default function ChatRoomPage() {
               </motion.div>
             );
           })}
-          <div ref={scrollRef} className="h-1 flex-shrink-0" />
+          <div ref={scrollRef} className="h-4 flex-shrink-0" />
         </div>
 
-        <div className="flex-shrink-0 px-4 pt-3 pb-8 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom">
+        {/* Footer Interaction Stage */}
+        <div className="flex-shrink-0 px-4 pt-3 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom">
           <div className="flex items-center gap-3 max-w-md mx-auto h-14">
             <input 
               type="file" 
@@ -483,13 +489,13 @@ export default function ChatRoomPage() {
             
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all shrink-0 active:scale-90"
+              className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all shrink-0 active:scale-90"
               aria-label="Send image"
             >
-              <ImageIcon size={26} />
+              <ImageIcon size={22} />
             </button>
 
-            <div className="flex-1 h-14 relative flex items-center">
+            <div className="flex-1 h-12 relative flex items-center">
               <Input 
                 value={input} 
                 onChange={handleInputChange} 
@@ -502,29 +508,30 @@ export default function ChatRoomPage() {
             <button 
               onClick={handleSendText} 
               disabled={!input.trim()} 
-              className="w-14 h-14 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-95 flex items-center justify-center disabled:opacity-20 disabled:grayscale"
+              className="w-12 h-12 rounded-full fuchsia-gradient p-0 shadow-xl shadow-primary/20 shrink-0 border-none transition-transform active:scale-90 flex items-center justify-center disabled:opacity-20 disabled:grayscale"
               aria-label="Send message"
             >
-              <Send size={24} className="text-white translate-x-0.5" />
+              <Send size={20} className="text-white translate-x-0.5" />
             </button>
           </div>
         </div>
 
+        {/* Choice Box: Media View Mode */}
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
-          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[320px] shadow-2xl">
-            <DialogHeader className="space-y-1">
-              <DialogTitle className="text-base font-bold text-white">Media View Mode</DialogTitle>
-              <DialogDescription className="text-[10px] text-white/40">Control the visibility of this transmission.</DialogDescription>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-5 w-[calc(100%-40px)] max-w-[260px] shadow-2xl outline-none">
+            <DialogHeader className="space-y-1 mb-2">
+              <DialogTitle className="text-sm font-bold text-white tracking-tight">Media View Mode</DialogTitle>
+              <DialogDescription className="text-[9px] text-white/40 font-light leading-tight">Choose how the recipient can see this photo.</DialogDescription>
             </DialogHeader>
             
-            <div className="py-3 space-y-4">
+            <div className="py-2 space-y-3">
               {pendingPreview && (
-                <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden border border-white/10 shadow-lg bg-[#151515]">
                   <img src={pendingPreview} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
               
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-1.5">
                 {[
                   { id: 'unlimited', label: 'Unlimited Views', icon: Eye },
                   { id: 'one', label: 'View Once', icon: EyeOff },
@@ -534,37 +541,38 @@ export default function ChatRoomPage() {
                     key={`opt-${opt.id}`}
                     onClick={() => setViewMode(opt.id as any)}
                     className={cn(
-                      "flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left group",
+                      "flex items-center gap-3 p-3 rounded-xl border transition-all text-left group active:scale-95",
                       viewMode === opt.id ? "bg-primary/20 border-primary/40 text-white" : "bg-white/5 border-white/5 text-white/40"
                     )}
                   >
-                    <opt.icon size={18} className={cn("transition-colors", viewMode === opt.id ? "text-primary" : "group-hover:text-white")} />
-                    <span className="text-[11px] font-bold uppercase tracking-widest">{opt.label}</span>
+                    <opt.icon size={16} className={cn("transition-colors", viewMode === opt.id ? "text-primary" : "group-hover:text-white")} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{opt.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button 
                 variant="ghost" 
                 onClick={() => { setShowMediaOptions(false); setPendingFile(null); setPendingPreview(null); }} 
-                className="flex-1 h-12 rounded-xl text-white/40 text-xs font-bold uppercase tracking-widest"
+                className="flex-1 h-10 rounded-xl text-white/40 text-[10px] font-bold uppercase tracking-widest active:bg-white/5"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleSendMedia} 
-                className="flex-1 h-12 rounded-xl fuchsia-gradient font-bold text-xs uppercase tracking-widest shadow-lg"
+                className="flex-1 h-10 rounded-xl fuchsia-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg"
               >
-                {isUploading ? <Loader2 size={16} className="animate-spin" /> : "Send"}
+                {isUploading ? <Loader2 size={14} className="animate-spin" /> : "Send"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
+        {/* Media Viewer */}
         <Dialog open={!!selectedMedia} onOpenChange={(open) => !open && setSelectedMedia(null)}>
-          <DialogContent className="p-0 border-none bg-black/95 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center overflow-hidden">
+          <DialogContent className="p-0 border-none bg-black/98 max-w-full h-full sm:rounded-none flex flex-col items-center justify-center overflow-hidden">
             <header className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
                <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary aura-glow-purple" />
@@ -572,21 +580,23 @@ export default function ChatRoomPage() {
                     {selectedMedia?.viewMode === 'unlimited' ? "Permanent Discovery" : "Ephemeral View"}
                   </span>
                </div>
-               <button onClick={() => setSelectedMedia(null)} className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md" aria-label="Close">
-                 <X size={24} />
+               <button onClick={() => setSelectedMedia(null)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md active:scale-90" aria-label="Close">
+                 <X size={20} />
                </button>
             </header>
             
             {selectedMedia && (
               <div className="relative w-full h-full flex items-center justify-center p-4">
-                <img 
+                <motion.img 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
                   src={selectedMedia.mediaUrl} 
                   alt="Aura Content" 
-                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+                  className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                 />
                 
                 <div className="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-4 text-center px-8">
-                  <div className="bg-white/10 backdrop-blur-xl px-6 py-3 rounded-full border border-white/20 flex items-center gap-3">
+                  <div className="bg-white/5 backdrop-blur-2xl px-6 py-3 rounded-full border border-white/10 flex items-center gap-3">
                     <Shield size={16} className="text-primary" />
                     <span className="text-[10px] font-bold text-white uppercase tracking-widest">
                       {selectedMedia.viewMode === 'one' ? "Single View Remaining" : selectedMedia.viewMode === 'two' ? "Second View Active" : "Unlimited Access"}
