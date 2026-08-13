@@ -1,8 +1,7 @@
-
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   BadgeCheck, 
   MapPin, 
@@ -12,11 +11,10 @@ import {
   Heart, 
   MessageSquare,
   X,
-  Compass,
-  SlidersHorizontal,
-  Zap,
-  Star,
-  Loader2
+  Loader2,
+  Info,
+  Clock,
+  Star
 } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -35,12 +33,31 @@ import { doc, getDoc, setDoc, serverTimestamp, updateDoc, increment, collection,
 import { useToast } from "@/hooks/use-toast";
 import { MatchModal } from "./MatchModal";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface AuraCardProps {
   user: UserProfile;
   onClick?: () => void;
   showDetailsOnly?: boolean;
 }
+
+const Sparkle = ({ index }: { index: number }) => {
+  const angle = (index / 8) * Math.PI * 2;
+  const distance = 35 + Math.random() * 20;
+  const x = Math.cos(angle) * distance;
+  const y = Math.sin(angle) * distance;
+  
+  return (
+    <motion.div
+      initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+      animate={{ scale: [0, 1.2, 0], x, y, opacity: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut", delay: Math.random() * 0.2 }}
+      className="absolute z-50 pointer-events-none"
+    >
+      <Sparkles size={12} className="text-primary fill-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+    </motion.div>
+  );
+};
 
 export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardProps) {
   const { profile: currentUser } = useAuthContext();
@@ -52,6 +69,19 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showMatch, setShowMatch] = useState(false);
+  const [matchType, setMatchType] = useState<'like' | 'super_like'>('like');
+  const [showSparkles, setShowSparkles] = useState(false);
+
+  // Long press logic
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasTriggeredLongPress = useRef(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const [showSuperLikeConfirm, setShowSuperLikeConfirm] = useState(false);
+
+  useEffect(() => {
+    if ((user as any).interactionType === 'like') setIsLiked(true);
+    if ((user as any).interactionType === 'super_like') setIsSuperLiked(true);
+  }, [user]);
 
   const blurPhotos = !isElite(currentUser);
   const hasSpotlight = isSpotlightActive(user);
@@ -62,7 +92,7 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
     // Check Plan Limits for Normal Likes
     if (type === 'like' && !isElite(currentUser)) {
       const limit = checkPlanLimit(currentUser, 'dailyLikes') as number;
-      if (currentUser.dailyLikeCount >= limit) {
+      if (currentUser.dailyLikeCount >= (limit || 0)) {
         toast({
           title: "Out of Likes",
           description: "Upgrade to Elite for unlimited interactions.",
@@ -73,12 +103,8 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
     }
 
     // Check Super Like Balance
-    if (type === 'super_like' && currentUser.superLikeBalance <= 0) {
-      toast({
-        title: "Super Like",
-        description: "₹3 each. Refill your balance to use.",
-      });
-      // Launch Super Like purchase sheet logic or redirect to profile
+    if (type === 'super_like' && (currentUser.superLikeBalance || 0) <= 0) {
+      setShowSuperLikeConfirm(true);
       return;
     }
 
@@ -105,15 +131,20 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
       const userRef = doc(db, "users", currentUser.uid);
       if (type === 'like') {
         setIsLiked(true);
+        setIsSuperLiked(false);
         await updateDoc(userRef, { dailyLikeCount: increment(1) });
       } else {
         setIsSuperLiked(true);
+        setIsLiked(false);
+        setShowSparkles(true);
+        setTimeout(() => setShowSparkles(false), 2000);
         await updateDoc(userRef, { superLikeBalance: increment(-1) });
       }
 
       // Check for Match
       if (reverseLikeSnap.exists()) {
         const matchId = [currentUser.uid, user.uid].sort().join("_");
+        setMatchType(type);
         await setDoc(doc(db, "matches", matchId), {
           id: matchId,
           userIds: [currentUser.uid, user.uid],
@@ -161,8 +192,99 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
     }
   };
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (isLoading || isLiked || isSuperLiked) return;
+    e.stopPropagation();
+    hasTriggeredLongPress.current = false;
+    setIsHolding(true);
+    timerRef.current = setTimeout(() => {
+      hasTriggeredLongPress.current = true;
+      setIsHolding(false);
+      setShowSuperLikeConfirm(true);
+    }, 600);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isLoading || isLiked || isSuperLiked) return;
+    e.stopPropagation();
+    setIsHolding(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      if (!hasTriggeredLongPress.current) {
+        handleInteraction('like');
+      }
+    }
+  };
+
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    setIsHolding(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  };
+
+  const buySuperLikeCredit = () => {
+    initializeRazorpayPayment({
+      amount: 3,
+      itemType: 'SuperLike',
+      onSuccess: async (res) => {
+        if (!db || !currentUser) return;
+        await updateDoc(doc(db, "users", currentUser.uid), { 
+          superLikeBalance: increment(1) 
+        });
+        setShowSuperLikeConfirm(false);
+        handleInteraction('super_like');
+      }
+    });
+  };
+
+  const interactionButtons = (
+    <div className="flex items-center gap-2 w-full">
+      <button 
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
+        onPointerCancel={handlePointerLeave}
+        onContextMenu={(e) => e.preventDefault()}
+        disabled={isLoading || isLiked || isSuperLiked}
+        className={cn(
+          "h-10 w-14 rounded-xl glass border border-white/10 flex items-center justify-center transition-all relative overflow-hidden shrink-0 touch-none",
+          isHolding && "scale-110 shadow-lg aura-glow-purple",
+          isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : 
+          isSuperLiked ? "bg-primary/20 border-primary/40 text-primary shadow-[0_0_15px_rgba(168,85,247,0.4)]" : 
+          "text-white/40 hover:text-white"
+        )}
+        aria-label={isLiked ? "Liked" : isSuperLiked ? "Super Liked" : "Like. Hold to Super Like."}
+      >
+        {isLoading ? <Loader2 size={14} className="animate-spin" /> : (
+          <Heart size={18} className={cn((isLiked || isSuperLiked) && "fill-current")} />
+        )}
+        
+        {isHolding && (
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 0.6 }}
+            className="absolute bottom-0 left-0 h-0.5 bg-primary"
+          />
+        )}
+        
+        {showSparkles && [...Array(8)].map((_, i) => (
+          <Sparkle key={`sparkle-${i}`} index={i} />
+        ))}
+      </button>
+
+      <button 
+        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+        className="flex-1 h-10 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-primary/20"
+      >
+        <MessageSquare size={16} />
+      </button>
+    </div>
+  );
+
   if (showDetailsOnly) {
-     return <MatchModal isOpen={showMatch} onClose={() => setShowMatch(false)} user={user} currentUser={currentUser} />;
+     return <MatchModal isOpen={showMatch} onClose={() => setShowMatch(false)} user={user} currentUser={currentUser} matchType={matchType} />;
   }
 
   return (
@@ -235,35 +357,8 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 pt-1 mt-auto">
-            <button 
-              disabled={isLoading || isLiked || isSuperLiked}
-              onClick={(e) => { e.stopPropagation(); handleInteraction('like'); }}
-              className={cn(
-                "w-9 h-9 rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-                isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/40 hover:text-white"
-              )}
-            >
-              {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Heart size={16} className={cn(isLiked && "fill-current")} />}
-            </button>
-
-            <button 
-              disabled={isLoading || isLiked || isSuperLiked}
-              onClick={(e) => { e.stopPropagation(); handleInteraction('super_like'); }}
-              className={cn(
-                "w-9 h-9 rounded-xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-                isSuperLiked ? "bg-primary/20 border-primary/40 text-primary" : "text-white/40 hover:text-white"
-              )}
-            >
-              <Star size={16} className={cn(isSuperLiked && "fill-current")} />
-            </button>
-
-            <button 
-              onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-              className="flex-1 h-9 rounded-xl fuchsia-gradient text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-primary/20"
-            >
-              <MessageSquare size={14} />
-            </button>
+          <div className="pt-1 mt-auto">
+            {interactionButtons}
           </div>
         </div>
 
@@ -327,41 +422,54 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
             </div>
 
             <div className="p-8 border-t border-white/5 bg-background/80 backdrop-blur-xl shrink-0 safe-bottom">
-               <div className="flex items-center gap-3 w-full">
-                <button 
-                  disabled={isLoading || isLiked}
-                  onClick={() => handleInteraction('like')}
-                  className={cn(
-                    "w-14 h-14 rounded-2xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-                    isLiked ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "text-white/60 hover:text-white"
-                  )}
-                >
-                  <Heart size={24} className={cn(isLiked && "fill-current")} />
-                </button>
-                <button 
-                  disabled={isLoading || isSuperLiked}
-                  onClick={() => handleInteraction('super_like')}
-                  className={cn(
-                    "w-14 h-14 rounded-2xl glass border border-white/10 flex items-center justify-center transition-all active:scale-90 shrink-0",
-                    isSuperLiked ? "bg-primary/20 border-primary/40 text-primary" : "text-white/60 hover:text-white"
-                  )}
-                >
-                  <Star size={24} className={cn(isSuperLiked && "fill-current")} />
-                </button>
-                <button 
-                  onClick={() => onClick?.()}
-                  className="flex-1 h-14 rounded-2xl fuchsia-gradient text-white font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
-                >
-                  <MessageSquare size={18} />
-                  <span>Send Message</span>
-                </button>
-              </div>
+               {interactionButtons}
             </div>
           </div>
         </SheetContent>
       </motion.div>
     </Sheet>
-    <MatchModal isOpen={showMatch} onClose={() => setShowMatch(false)} user={user} currentUser={currentUser} />
+
+    <Dialog open={showSuperLikeConfirm} onOpenChange={setShowSuperLikeConfirm}>
+      <DialogContent className="glass-dark border-white/10 rounded-[32px] p-8 max-w-[320px]">
+        <div className="text-center space-y-6">
+          <div className="w-16 h-16 rounded-[24px] premium-gradient mx-auto flex items-center justify-center shadow-lg aura-glow-purple">
+            <Sparkles size={32} className="text-white fill-white" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-white tracking-tight">Super Like?</h3>
+            <p className="text-sm text-white/60 font-light leading-relaxed px-4">Let them know you're especially interested ✨</p>
+          </div>
+          
+          <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-white/40 font-bold uppercase tracking-widest">Aura Balance</span>
+              <span className="text-primary font-bold">{currentUser?.superLikeBalance || 0}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Button 
+              onClick={() => {
+                if ((currentUser?.superLikeBalance || 0) > 0) {
+                  setShowSuperLikeConfirm(false);
+                  handleInteraction('super_like');
+                } else {
+                  buySuperLikeCredit();
+                }
+              }}
+              className="w-full h-14 rounded-2xl premium-gradient text-white font-bold shadow-xl shadow-primary/20"
+            >
+              {(currentUser?.superLikeBalance || 0) > 0 ? "Send Super Like" : "Get 1 for ₹3"}
+            </Button>
+            <Button variant="ghost" onClick={() => setShowSuperLikeConfirm(false)} className="w-full h-12 rounded-xl text-white/20 font-bold uppercase tracking-widest text-[10px]">
+              Maybe Later
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <MatchModal isOpen={showMatch} onClose={() => setShowMatch(false)} user={user} currentUser={currentUser} matchType={matchType} />
     </>
   );
 }
