@@ -210,7 +210,7 @@ export default function ChatRoomPage() {
       return;
     }
     
-    if (profile.dailyMediaCount >= checkPlanLimit(profile, 'dailyMediaUploads')) {
+    if (profile.dailyMediaCount >= (checkPlanLimit(profile, 'dailyMediaUploads') as number)) {
       toast({ variant: "destructive", title: "Limit Reached", description: "Upgrade to Elite for more media sharing." });
       return;
     }
@@ -264,7 +264,7 @@ export default function ChatRoomPage() {
     const msgText = textOverride || input.trim();
     if (!msgText || !db || !roomId || !authUser || !otherUid || !profile) return;
     
-    const dailyMsgLimit = checkPlanLimit(profile, 'dailyMessagesPerProfile');
+    const dailyMsgLimit = checkPlanLimit(profile, 'dailyMessagesPerProfile') as number;
     const today = new Date();
     today.setHours(0,0,0,0);
     
@@ -581,7 +581,7 @@ export default function ChatRoomPage() {
         </div>
 
         {/* Interaction Stage Footer */}
-        <div className="flex-shrink-0 px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
+        <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
           <div className="flex items-center gap-3 w-full h-14">
             <input 
               type="file" 
@@ -603,7 +603,7 @@ export default function ChatRoomPage() {
               <Input 
                 value={input} 
                 onChange={handleInputChange} 
-                onKeyPress={(e) => e.key === 'Enter' && handleSendText()} 
+                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendText()} 
                 placeholder={room?.privacyEnabled ? "Incognito message..." : "Message..."} 
                 className="h-full bg-white/5 border-white/10 rounded-[28px] px-6 text-sm text-white focus:ring-1 focus:ring-primary shadow-none border-none placeholder:text-white/20" 
               />
@@ -624,8 +624,8 @@ export default function ChatRoomPage() {
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
           <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-5 w-[calc(100%-40px)] max-w-[280px] shadow-2xl outline-none">
             <DialogHeader className="space-y-1 mb-2">
-              <DialogTitle className="text-sm font-bold text-white tracking-tight">Media Privacy</DialogTitle>
-              <DialogDescription className="text-[9px] text-white/40 font-light leading-tight">Choose how the recipient can materialize this photo.</DialogDescription>
+              <DialogTitle className="text-sm font-bold text-white tracking-tight">Media View Mode</DialogTitle>
+              <DialogDescription className="text-[9px] text-white/40 font-light leading-tight">Choose how the recipient can see this photo.</DialogDescription>
             </DialogHeader>
             
             <div className="py-2 space-y-3">
