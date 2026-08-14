@@ -2,40 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Aura Blue/Black Premium Design System Tokens */
-  --background: 224 40% 3%; /* #05070D */
-  --foreground: 0 0% 100%;
-  
-  --card: 224 25% 9%; /* #11141C */
-  --card-foreground: 0 0% 100%;
-  
-  --popover: 224 40% 4%;
-  --popover-foreground: 0 0% 100%;
-  
-  --primary: 220 100% 50%; /* #0057FF Primary Blue */
-  --primary-foreground: 0 0% 100%;
-  
-  --secondary: 220 100% 54%; /* #155CFF Bright Blue */
-  --secondary-foreground: 0 0% 100%;
-  
-  --muted: 224 25% 12%; /* #171B25 */
-  --muted-foreground: 224 10% 65%;
-  
-  --accent: 214 100% 50%; /* #0084FF */
-  --accent-foreground: 0 0% 100%;
-  
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  
-  --border: 0 0% 100% / 0.08;
-  --input: 0 0% 100% / 0.05;
-  --ring: 220 100% 50%;
-  
-  --radius: 1.75rem; /* 28px */
-}
-
 @layer base {
+  :root {
+    /* Default Dark Mode (Aura Signature) */
+    --background: 224 40% 3%; /* #05070D */
+    --foreground: 0 0% 100%;
+    
+    --card: 224 25% 9%; /* #11141C */
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 224 40% 4%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 220 100% 50%; /* #0057FF Primary Blue */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 100% 54%; /* #155CFF Bright Blue */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 224 25% 12%; /* #171B25 */
+    --muted-foreground: 224 10% 65%;
+    
+    --accent: 214 100% 50%; /* #0084FF */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 100% / 0.05;
+    --ring: 220 100% 50%;
+    
+    --radius: 1.75rem; /* 28px */
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 224 40% 3%;
+    
+    --card: 0 0% 98%;
+    --card-foreground: 224 40% 3%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 40% 3%;
+    
+    --primary: 220 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 100% 45%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    
+    --accent: 214 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 100% 50%;
+  }
+
   * {
     @apply border-border;
   }
@@ -55,6 +85,10 @@
     -webkit-backdrop-filter: blur(24px);
     transform: translateZ(0);
   }
+
+  .light .glass {
+    @apply bg-black/5 border-black/10;
+  }
   
   .glass-dark {
     @apply bg-black/60 border border-white/5;
@@ -63,9 +97,18 @@
     transform: translateZ(0);
   }
 
+  .light .glass-dark {
+    @apply bg-white/60 border-black/5;
+  }
+
   .glass-card {
     background: linear-gradient(145deg, rgba(25,30,42,0.95), rgba(10,13,20,0.98));
     @apply border border-white/10 rounded-[28px] shadow-2xl;
+  }
+
+  .light .glass-card {
+    background: linear-gradient(145deg, rgba(245,245,250,0.95), rgba(255,255,255,0.98));
+    @apply border-black/5 shadow-xl;
   }
   
   /* Aura Premium Blue Gradients */
@@ -96,6 +139,11 @@
   .aura-blob-cyan { background-color: #00CFFF; filter: blur(100px); opacity: 0.15; }
   .aura-blob-blue { background-color: #0066FF; filter: blur(100px); opacity: 0.2; }
 
+  .light .aura-blob-pink { opacity: 0.05; }
+  .light .aura-blob-purple { opacity: 0.05; }
+  .light .aura-blob-cyan { opacity: 0.05; }
+  .light .aura-blob-blue { opacity: 0.05; }
+
   /* Full Screen & Safe Area Utilities */
   .h-screen-safe {
     height: 100vh;
@@ -117,7 +165,7 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-color: #05070D;
+  background-color: hsl(var(--background));
   overflow: hidden;
   pointer-events: none;
 }
@@ -130,7 +178,7 @@
 }
 
 .hero-radial {
-  background: radial-gradient(circle at 15% 20%, rgba(0, 87, 255, 0.4) 0%, rgba(0, 87, 255, 0.1) 22%, transparent 75%), #05070D;
+  background: radial-gradient(circle at 15% 20%, rgba(0, 87, 255, 0.4) 0%, rgba(0, 87, 255, 0.1) 22%, transparent 75%), hsl(var(--background));
 }
 
 @keyframes breathe {
