@@ -1,9 +1,11 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
+import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
 import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Lock } from "lucide-react";
@@ -17,6 +19,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { PLAN_LIMITS, isElite, isSpotlightActive } from "@/lib/plan-limits";
+import { useToast } from "@/hooks/use-toast";
 
 const DEMO_USER: UserProfile = {
   uid: "demo-artemis",
@@ -48,6 +51,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
   const db = useFirestore();
+  const { toast } = useToast();
   const { profile: currentUserProfile } = useAuthContext();
   
   const eliteUser = isElite(currentUserProfile);
@@ -103,6 +107,18 @@ export default function Dashboard() {
       });
   }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
+  const discoveryItems = useMemo(() => {
+    const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
+    filteredUsers.forEach((user, index) => {
+      items.push({ type: 'user', data: user });
+      // Insert an ad after every 5 users if not elite
+      if (!eliteUser && (index + 1) % 5 === 0) {
+        items.push({ type: 'ad' });
+      }
+    });
+    return items;
+  }, [filteredUsers, eliteUser]);
+
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col min-h-screen bg-[#05070D] relative transition-colors overflow-hidden">
@@ -153,19 +169,18 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 relative z-10">
           {usersLoading ? (
             <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[1/1.4] w-full rounded-3xl bg-white/[0.04] animate-pulse border border-white/5" />)}
+              {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.5] w-full rounded-[22px] bg-white/[0.04] animate-pulse border border-white/5" />)}
             </div>
-          ) : filteredUsers.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {filteredUsers.map((user, idx) => (
-                <motion.div 
-                  key={user.uid} 
-                  initial={{ opacity: 0, y: 15 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <AuraCard user={user} onClick={() => router.push(`/chat/${user.uid}`)} />
-                </motion.div>
+          ) : discoveryItems.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 items-stretch">
+              {discoveryItems.map((item, idx) => (
+                <div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} className="h-full">
+                  {item.type === 'user' ? (
+                    <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
+                  ) : (
+                    <NativeAdCard />
+                  )}
+                </div>
               ))}
             </div>
           ) : (
@@ -187,12 +202,17 @@ export default function Dashboard() {
                 </Button>
               </div>
 
-              <div className="w-full max-w-[280px] mx-auto">
-                <div className="mb-4 flex items-center gap-2 px-1">
+              <div className="w-full max-w-[320px] mx-auto grid grid-cols-2 gap-4">
+                <div className="col-span-2 mb-2 flex items-center gap-2 px-1">
                    <div className="w-1.5 h-1.5 rounded-full bg-[#0057FF] aura-glow-blue" />
                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
                 </div>
-                <AuraCard user={DEMO_USER} onClick={() => toast({ title: "Demo Interaction", description: "This is a preview of the messaging experience." })} />
+                <div className="col-span-1 h-full">
+                  <AuraCard user={DEMO_USER} onClick={() => toast({ title: "Demo Interaction", description: "This is a preview of the discovery experience." })} />
+                </div>
+                <div className="col-span-1 h-full">
+                  <NativeAdCard />
+                </div>
               </div>
             </div>
           )}

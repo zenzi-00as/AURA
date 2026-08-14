@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -38,7 +39,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 interface AuraCardProps {
   user: UserProfile;
   onClick?: () => void;
-  showDetailsOnly?: boolean;
 }
 
 const BlueRipple = () => (
@@ -50,7 +50,7 @@ const BlueRipple = () => (
   />
 );
 
-export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardProps) {
+export function AuraCard({ user, onClick }: AuraCardProps) {
   const { profile: currentUser } = useAuthContext();
   const db = useFirestore();
   const { toast } = useToast();
@@ -269,12 +269,16 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
               <MapPin size={10} className="text-[#0057FF]" />
               {user.distance || "Nearby"}
             </div>
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
                <span className="bg-[#0057FF]/10 text-[#0057FF] text-[8px] font-black px-1.5 py-0.5 rounded border border-[#0057FF]/20 uppercase tracking-widest">
-                 {user.interestedIn?.[0] || "Discover"}
+                 {user.gender || "Citizen"}
                </span>
             </div>
           </div>
+
+          <p className="text-[10px] text-white/40 font-light line-clamp-2 italic leading-relaxed flex-1">
+            {user.bio || "Connecting with the Aura..."}
+          </p>
 
           <div className="pt-2 mt-auto">
             {interactionButtons}
@@ -353,7 +357,6 @@ export function AuraCard({ user, onClick, showDetailsOnly = false }: AuraCardPro
                   setShowSuperLikeConfirm(false);
                   handleInteraction('super_like');
                 } else {
-                  // Reusing existing purchase logic
                   initializeRazorpayPayment({
                     amount: 3,
                     itemType: 'SuperLike',
