@@ -122,7 +122,7 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col min-h-screen bg-[#05070D] relative transition-colors overflow-hidden">
-        <header className="px-6 h-20 flex justify-between items-center sticky top-0 bg-[#080A10E0] backdrop-blur-[18px] z-20 border-b border-white/5 safe-top">
+        <header className="px-4 h-20 flex justify-between items-center sticky top-0 bg-[#080A10E0] backdrop-blur-[18px] z-20 border-b border-white/5 safe-top">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center neon-glow">
               <span className="text-white font-bold text-sm">A</span>
@@ -166,13 +166,13 @@ export default function Dashboard() {
           </Sheet>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 relative z-10">
+        <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
           {usersLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.5] w-full rounded-[22px] bg-white/[0.04] animate-pulse border border-white/5" />)}
             </div>
           ) : discoveryItems.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 items-stretch">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
               {discoveryItems.map((item, idx) => (
                 <div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} className="h-full">
                   {item.type === 'user' ? (
@@ -202,7 +202,7 @@ export default function Dashboard() {
                 </Button>
               </div>
 
-              <div className="w-full max-w-[320px] mx-auto grid grid-cols-2 gap-4">
+              <div className="w-full max-w-[320px] mx-auto grid grid-cols-2 gap-2">
                 <div className="col-span-2 mb-2 flex items-center gap-2 px-1">
                    <div className="w-1.5 h-1.5 rounded-full bg-[#0057FF] aura-glow-blue" />
                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
