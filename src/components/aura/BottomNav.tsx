@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -34,63 +33,57 @@ export function BottomNav() {
   const hasUnreadAlerts = unreadNotifications.some(n => n.type !== 'message' && n.type !== 'like' && n.type !== 'super_like');
 
   const navItems = [
-    { icon: Compass, path: "/dashboard", label: t('discovery'), hasBadge: false },
+    { icon: Compass, path: "/dashboard", label: t('discovery') },
     { icon: Heart, path: "/likes", label: "Interests", hasBadge: hasUnreadLikes },
     { icon: MessageCircle, path: "/chat", label: t('chats'), hasBadge: hasUnreadMessages },
     { icon: Bell, path: "/notifications", label: t('alerts'), hasBadge: hasUnreadAlerts },
-    { icon: User, path: "/profile", label: t('me'), hasBadge: false },
+    { icon: User, path: "/profile", label: t('me') },
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-10">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-8">
       <nav className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-[32px] glass-dark border border-white/10 shadow-2xl w-full max-w-[380px] mx-auto mb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          const showBadge = item.hasBadge;
 
           return (
             <button
               key={`nav-item-${item.path}`}
               onClick={() => router.replace(item.path)}
               className={cn(
-                "relative flex-1 py-3.5 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 active:scale-90",
-                isActive ? "text-primary" : "text-white/40 hover:text-white"
+                "relative flex-1 py-3 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300",
+                isActive ? "text-[#1680FF]" : "text-white/55 hover:text-white"
               )}
-              aria-label={item.label}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 bg-primary/10 rounded-[24px]"
+                  className="absolute inset-0 bg-[#1680FF15] rounded-[24px]"
                   transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 />
               )}
               
-              <div className="relative z-10 flex items-center justify-center">
+              <div className="relative z-10">
                 <item.icon 
                   size={20} 
                   className={cn(
                     "transition-all duration-500",
-                    isActive ? "scale-110 drop-shadow(0 0 10px rgba(168,85,247,0.8))" : "scale-100"
+                    isActive ? "scale-110 drop-shadow(0 0 10px rgba(0, 87, 255, 0.6))" : "scale-100"
                   )} 
                 />
                 
-                {showBadge && (
-                  <motion.div 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 flex h-2 w-2"
-                  >
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary border border-black shadow-[0_0_8px_#EC4899]"></span>
-                  </motion.div>
+                {item.hasBadge && (
+                  <div className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1680FF] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1680FF] border border-black"></span>
+                  </div>
                 )}
               </div>
 
               {isActive && (
                 <motion.div 
                   layoutId="activeDot"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_#A855F7]"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-[#1680FF] shadow-[0_0_8px_#1680FF]"
                 />
               )}
             </button>

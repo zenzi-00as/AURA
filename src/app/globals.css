@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 :root {
-  /* Premium Dark Theme Variables - Calibrated for OLED and Glassmorphism */
-  --background: 0 0% 3%; /* #080808 Deep Black */
+  /* Aura Blue/Black Premium Design System Tokens */
+  --background: 224 40% 3%; /* #05070D */
   --foreground: 0 0% 100%;
   
-  --card: 0 0% 6%; /* #0F0F0F */
+  --card: 224 25% 9%; /* #11141C */
   --card-foreground: 0 0% 100%;
   
-  --popover: 0 0% 4%;
+  --popover: 224 40% 4%;
   --popover-foreground: 0 0% 100%;
   
-  --primary: 270 91% 65%; /* #A855F7 */
+  --primary: 220 100% 50%; /* #0057FF Primary Blue */
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 330 81% 60%; /* #EC4899 */
+  --secondary: 220 100% 54%; /* #155CFF Bright Blue */
   --secondary-foreground: 0 0% 100%;
   
-  --muted: 0 0% 10%; /* #1A1A1A */
-  --muted-foreground: 0 0% 70%;
+  --muted: 224 25% 12%; /* #171B25 */
+  --muted-foreground: 224 10% 65%;
   
-  --accent: 217 91% 60%; /* #3B82F6 */
+  --accent: 214 100% 50%; /* #0084FF */
   --accent-foreground: 0 0% 100%;
   
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --border: 0 0% 100% / 0.1;
+  --border: 0 0% 100% / 0.08;
   --input: 0 0% 100% / 0.05;
-  --ring: 270 91% 65%;
+  --ring: 220 100% 50%;
   
   --radius: 1.75rem; /* 28px */
 }
@@ -43,178 +43,89 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Poppins', sans-serif;
     overflow-x: hidden;
-    /* Hardware acceleration for body scrolling */
     -webkit-overflow-scrolling: touch;
   }
 }
 
 @layer utilities {
-  /* GPU-Accelerated Glassmorphism - Optimized for 120FPS */
+  /* High-Fidelity Glassmorphism */
   .glass {
     @apply bg-white/5 border border-white/10;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform, backdrop-filter;
-  }
-  .glass-dark {
-    @apply bg-black/40 border border-white/5;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform, backdrop-filter;
   }
+  
+  .glass-dark {
+    @apply bg-black/60 border border-white/5;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    transform: translateZ(0);
+  }
+
   .glass-card {
-    @apply glass rounded-[28px] shadow-2xl;
+    background: linear-gradient(145deg, rgba(25,30,42,0.95), rgba(10,13,20,0.98));
+    @apply border border-white/10 rounded-[28px] shadow-2xl;
   }
   
-  /* High-Performance Animated Gradients */
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient-move 12s linear infinite;
-    will-change: background-position;
-  }
-  
+  /* Aura Premium Blue Gradients */
   .premium-gradient {
-    background: linear-gradient(135deg, #A855F7 0%, #EC4899 50%, #3B82F6 100%);
-    @apply animate-gradient;
+    background: linear-gradient(110deg, #0057FF 0%, #003FD6 28%, #07142B 58%, #05070D 100%);
   }
 
-  .fuchsia-gradient {
-    background: linear-gradient(135deg, #C93CFF 0%, #A855F7 100%);
-    @apply animate-gradient;
+  .blue-gradient {
+    background: linear-gradient(100deg, #0057FF, #0B6CFF, #003ED1);
+  }
+
+  .elite-gradient {
+    background: linear-gradient(115deg, #004CFF, #0034B8 40%, #081020 75%, #05070D);
   }
   
-  /* Optimized Glow Effects */
+  /* Interaction Tokens */
   .neon-glow {
-    box-shadow: 0 0 20px -5px rgba(168,85,247,0.4);
-    will-change: box-shadow;
-  }
-  .aura-glow-purple {
-    box-shadow: 0 0 15px -3px rgba(201, 60, 255, 0.3);
-    will-change: box-shadow;
+    box-shadow: 0 8px 30px rgba(0, 87, 255, 0.3);
   }
   
-  /* Safe Area Helpers */
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .min-h-screen-safe {
-    min-height: 100dvh;
+  .aura-glow-blue {
+    box-shadow: 0 0 20px -5px rgba(0, 87, 255, 0.4);
   }
 
-  /* Chat Specific Cards */
-  .aura-card {
-    @apply transition-transform duration-300 cursor-pointer border;
-    will-change: transform;
-  }
-  .aura-card-unread {
-    @apply bg-[#151515] border-l-4 border-l-[#C93CFF] border-y-[#2A2A2A] border-r-[#2A2A2A] aura-glow-purple;
-  }
-  .aura-card-read {
-    @apply bg-[#0F0F0F] border-[#2A2A2A];
-  }
-
-  /* Aura Animations - Optimized for high refresh rates */
-  .aura-pulse {
-    animation: aura-pulse-fast 4s ease-in-out infinite;
-    will-change: transform, opacity;
-  }
-  
-  .aura-glow {
-    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4));
-    will-change: filter;
-  }
+  /* LGBTQ+ Atmospheric Highlights */
+  .aura-blob-pink { background-color: #FF2DAA; filter: blur(100px); opacity: 0.15; }
+  .aura-blob-purple { background-color: #9B4DFF; filter: blur(100px); opacity: 0.15; }
+  .aura-blob-cyan { background-color: #00CFFF; filter: blur(100px); opacity: 0.15; }
+  .aura-blob-blue { background-color: #0066FF; filter: blur(100px); opacity: 0.2; }
 }
 
-/* Global Background Layers - Optimized for Zero Lag */
 .aura-bg-container {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-color: #080808;
+  background-color: #05070D;
   overflow: hidden;
   pointer-events: none;
-  transform: translateZ(0);
 }
 
 .aura-noise {
   position: absolute;
   inset: 0;
-  opacity: 0.03;
+  opacity: 0.02;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  pointer-events: none;
 }
 
-.aura-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.12;
-  animation: blob-float 30s infinite alternate ease-in-out;
-  will-change: transform;
-  transform: translateZ(0);
+.hero-radial {
+  background: radial-gradient(circle at 15% 20%, rgba(0, 87, 255, 0.4) 0%, rgba(0, 87, 255, 0.1) 22%, transparent 75%), #05070D;
 }
 
-.aura-doodle {
-  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.015) 1px, transparent 0);
-  background-size: 24px 24px;
+@keyframes breathe {
+  0%, 100% { opacity: 0.75; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.03); }
 }
 
-@keyframes aura-pulse-fast {
-  0%, 100% { opacity: 0.3; transform: scale(1) translateZ(0); }
-  50% { opacity: 0.5; transform: scale(1.05) translateZ(0); }
-}
-
-@keyframes blob-float {
-  0% { transform: translate(-5%, -5%) scale(1) rotate(0deg) translateZ(0); }
-  50% { transform: translate(10%, 5%) scale(1.05) rotate(90deg) translateZ(0); }
-  100% { transform: translate(-3%, 10%) scale(0.95) rotate(180deg) translateZ(0); }
-}
-
-@keyframes gradient-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg) translateZ(0); }
-  to { transform: rotate(360deg) translateZ(0); }
-}
-
-.aurora-waves {
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  top: -50%;
-  left: -50%;
-  background: radial-gradient(circle at center, transparent 0%, rgba(168, 85, 247, 0.03) 20%, rgba(59, 130, 246, 0.03) 40%, transparent 70%);
-  animation: rotate 120s linear infinite;
-  opacity: 0.4;
-  will-change: transform;
-  transform: translateZ(0);
+.animate-breathe {
+  animation: breathe 2s ease-in-out infinite;
 }
 
 ::-webkit-scrollbar {
   width: 0px;
-}
-
-/* Custom Animation for Energy Ring */
-@keyframes energy-sweep {
-  0% { stroke-dashoffset: 283; }
-  100% { stroke-dashoffset: 0; }
-}
-
-/* Fix for stuttering transitions */
-.motion-safe {
-  backface-visibility: hidden;
-  transform: translateZ(0);
 }

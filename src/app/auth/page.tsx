@@ -29,10 +29,6 @@ const COUNTRIES = [
   { code: "+1", flag: "🇺🇸", name: "USA", maxLength: 10 },
   { code: "+44", flag: "🇬🇧", name: "UK", maxLength: 10 },
   { code: "+55", flag: "🇧🇷", name: "Brazil", maxLength: 11 },
-  { code: "+33", flag: "🇫🇷", name: "France", maxLength: 10 },
-  { code: "+49", flag: "🇩🇪", name: "Germany", maxLength: 10 },
-  { code: "+34", flag: "🇪🇸", name: "Spain", maxLength: 9 },
-  { code: "+61", flag: "🇦🇺", name: "Australia", maxLength: 9 },
 ];
 
 export default function AuthPage() {
@@ -64,106 +60,41 @@ export default function AuthPage() {
     }
   }, [user, authLoading, onboardingCompleted, router]);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
-
   const handleNext = async () => {
     if (!auth) return;
     
-    if (step === "details") {
-      if (!email.includes("@")) {
-        toast({ variant: "destructive", title: "Invalid Email", description: "Please enter a valid email address." });
-        return;
-      }
-      if (phone.length < 5) {
-        toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid phone number." });
-        return;
-      }
-      if (!agreedToTerms) {
-        toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms & Conditions." });
-        return;
-      }
-    }
-
     setIsLoading(true);
     try {
       if (step === "details") {
+        if (!email.includes("@")) throw new Error("Invalid Email");
+        if (phone.length < 5) throw new Error("Invalid Phone");
+        if (!agreedToTerms) throw new Error("Terms required");
+
         await new Promise(resolve => setTimeout(resolve, 1500));
         setStep("otp");
         setResendTimer(60);
-        toast({ title: "Verification Sent", description: `A verification code has been sent to ${email}` });
-      } else if (step === "otp") {
-        if (otp.length !== 6) throw new Error("Please enter a valid 6-digit code.");
-        
-        const password = "aura_secure_pass_" + otp;
+      } else {
+        if (otp.length !== 6) throw new Error("Invalid 6-digit code");
+        const password = "aura_secure_" + otp;
         try {
           await createUserWithEmailAndPassword(auth, email, password);
-          toast({ title: "Verified", description: "Email identity synchronized." });
         } catch (err: any) {
           if (err.code === 'auth/email-already-in-use') {
             await signInWithEmailAndPassword(auth, email, password);
-          } else {
-            throw err;
-          }
+          } else throw err;
         }
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Auth Error",
-        description: error.message || "Authentication failed. Please try again.",
-      });
-      if (step === "otp") setOtp("");
+      toast({ variant: "destructive", title: "Auth Error", description: error.message });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResend = () => {
-    if (resendTimer > 0 || isLoading) return;
-    setResendTimer(60);
-    toast({ title: "Code Resent", description: "A new verification code has been sent to your email." });
-  };
-
-  if (authLoading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-screen-safe relative overflow-hidden">
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="w-24 h-24 rounded-[32px] premium-gradient flex items-center justify-center neon-glow shadow-2xl mb-8"
-        >
-          <span className="text-4xl font-bold text-white tracking-tighter">A</span>
-        </motion.div>
-        <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen-safe safe-top safe-bottom overflow-hidden">
-      {/* Auth Specific Wallpaper - Inherits from Splash */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-background" />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]"
-        />
-        <div className="aura-noise" />
-      </div>
-      
+    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen hero-radial overflow-hidden">
       <header className="h-16 mb-8 relative z-10 flex items-center">
-        {/* Placeholder for Logo shrink animation */}
-        <div className="w-10 h-10 rounded-2xl glass-dark border border-white/10 flex items-center justify-center neon-glow">
+        <div className="w-10 h-10 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow">
           <span className="text-white font-bold text-lg">A</span>
         </div>
       </header>
@@ -171,152 +102,108 @@ export default function AuthPage() {
       <div className="mb-10 relative z-10">
         <div className="flex flex-col gap-3">
           <motion.h1 
-            initial={{ opacity: 0, x: -20, filter: "blur(10px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             className="text-4xl font-bold text-white tracking-tighter leading-tight"
           >
-            {step === "details" ? "Welcome back" : "Synchronize"}
+            {step === "details" ? "Welcome back" : "Verify Identity"}
           </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, x: -20, filter: "blur(5px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-            transition={{ delay: 0.1 }}
-            className="text-white/40 font-light leading-relaxed text-lg"
-          >
-            {step === "details" 
-              ? "Verify your digital presence to enter the Aura." 
-              : `A code was materialized for ${email}.`}
-          </motion.p>
+          <p className="text-white/60 font-light text-lg">
+            {step === "details" ? "Synchronize your presence." : `Sent code to ${email}`}
+          </p>
         </div>
       </div>
 
-      <div className="flex-1 relative z-10 overflow-y-auto scrollbar-hide py-2">
+      <div className="flex-1 relative z-10 space-y-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-            transition={{ duration: 0.4 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
           >
             {step === "details" ? (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow transition-all">
-                    <Mail size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" />
-                    <Input
-                      type="email"
-                      placeholder="Email Address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-14 h-14 bg-transparent border-none text-base text-white placeholder:text-white/20 focus:ring-0 shadow-none"
-                    />
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Select value={countryCode} onValueChange={(val) => {
-                      setCountryCode(val);
-                      setPhone(""); 
-                    }}>
-                      <SelectTrigger className="w-[100px] h-14 glass border-white/5 rounded-[24px] text-base font-medium text-white focus:ring-primary/40 px-5">
-                        <SelectValue placeholder="Code" />
-                      </SelectTrigger>
-                      <SelectContent className="glass-dark border-white/10 rounded-[24px] max-h-[300px]">
-                        {COUNTRIES.map((c) => (
-                          <SelectItem key={`${c.code}-${c.name}`} value={c.code} className="rounded-xl">
-                            <span className="mr-2">{c.flag}</span>
-                            <span>{c.code}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <div className="relative glass rounded-[24px] p-1 focus-within:neon-glow transition-all flex-1">
-                      <Phone size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" />
-                      <Input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={phone}
-                        maxLength={currentCountry.maxLength}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        className="pl-14 h-14 bg-transparent border-none text-base text-white placeholder:text-white/20 focus:ring-0 shadow-none"
-                      />
-                    </div>
-                  </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-[#0057FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
+                  <Input 
+                    type="email" 
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#1264FF] focus:ring-0"
+                  />
                 </div>
 
-                <div className="flex items-start space-x-4 px-2 pt-2">
+                <div className="flex gap-4">
+                  <div className="w-24">
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-2xl">
+                        {COUNTRIES.map(c => <SelectItem key={c.code} value={c.code}>{c.flag} {c.code}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input 
+                    type="tel" 
+                    placeholder="Phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1"
+                  />
+                </div>
+
+                <div className="flex items-start space-x-3 px-1 pt-2">
                   <Checkbox 
                     id="terms" 
                     checked={agreedToTerms} 
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                    className="mt-1 w-5 h-5 border-white/20 bg-white/5 data-[state=checked]:bg-primary rounded-lg"
+                    className="mt-1 border-white/20 data-[state=checked]:bg-[#0057FF]"
                   />
-                  <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed cursor-pointer select-none">
-                    I acknowledge the{" "}
-                    <Link href="/terms" className="text-white font-bold hover:text-primary transition-colors underline underline-offset-4 decoration-white/10">Terms</Link>
-                    {" "}and{" "}
-                    <Link href="/privacy" className="text-white font-bold hover:text-primary transition-colors underline underline-offset-4 decoration-white/10">Privacy Guard</Link>.
+                  <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed">
+                    I acknowledge the <Link href="/terms" className="text-white hover:text-[#0057FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#0057FF]">Privacy Guard</Link>.
                   </label>
                 </div>
               </div>
             ) : (
-              <div className="space-y-10">
-                <div className="relative glass rounded-[28px] p-1 focus-within:neon-glow transition-all">
-                  <Lock size={24} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/30" />
-                  <Input
-                    type="number"
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-[#0057FF] uppercase tracking-[0.2em] px-1">Verification Code</label>
+                  <Input 
+                    type="number" 
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.slice(0, 6))}
-                    className="pl-16 h-18 bg-transparent border-none text-2xl tracking-[0.6em] font-bold text-white placeholder:text-white/10 focus:ring-0 shadow-none text-center"
+                    className="h-20 bg-white/[0.045] border-white/10 rounded-[28px] text-3xl tracking-[0.6em] font-bold text-center text-white"
                   />
                 </div>
-
-                <div className="flex flex-col items-center gap-6">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    onClick={handleResend} 
-                    disabled={resendTimer > 0 || isLoading} 
-                    className="text-xs font-bold text-primary uppercase tracking-[0.2em] disabled:text-white/20 flex items-center gap-2 transition-colors"
-                  >
-                    <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
-                    {resendTimer > 0 ? `Resend Aura in ${resendTimer}s` : "Resend Sync Code"}
-                  </motion.button>
-                  <button onClick={() => { setStep("details"); setOtp(""); }} className="text-xs text-white/40 hover:text-white transition-colors font-bold flex items-center gap-1 uppercase tracking-widest">
-                    <ChevronLeft size={16} />
-                    Recalibrate Identity
-                  </button>
-                </div>
+                <button onClick={() => setStep("details")} className="text-xs text-white/40 hover:text-white transition-colors flex items-center gap-2">
+                  <ChevronLeft size={16} /> Recalibrate details
+                </button>
               </div>
             )}
 
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+            <Button 
               onClick={handleNext}
-              disabled={isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)}
-              className={cn(
-                "w-full h-14 rounded-[28px] premium-gradient text-white text-lg font-bold shadow-2xl neon-glow transition-all flex items-center justify-center gap-3",
-                (isLoading || (step === "details" ? (!email || phone.length < 5 || !agreedToTerms) : otp.length < 6)) && "opacity-40 grayscale"
-              )}
+              disabled={isLoading}
+              className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg shadow-2xl neon-glow transition-all active:scale-95"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-              ) : (
+              {isLoading ? <Loader2 className="animate-spin" /> : (
                 <>
-                  <span>{step === "details" ? "Generate Access" : "Synchronize Identity"}</span>
-                  <ArrowRight size={20} />
+                  {step === "details" ? "Generate Access" : "Verify & Synchronize"}
+                  <ArrowRight size={20} className="ml-2" />
                 </>
               )}
-            </motion.button>
+            </Button>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="mt-auto py-12 text-center">
-        <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Minimalist • Private • Real</p>
+      <div className="mt-auto py-8 text-center">
+        <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Premium • Private • Real</p>
       </div>
     </div>
   );
