@@ -317,7 +317,7 @@ export default function Onboarding() {
                   {step === 1 ? "Start your journey..." : "Step " + step + " of 8"}
                 </p>
               </div>
-              {step > 1 && step < 8 && (
+              {step < 8 && (
                 <motion.button 
                   whileTap={{ scale: 0.9 }}
                   onClick={handleBack} 
