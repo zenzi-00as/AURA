@@ -18,6 +18,32 @@ import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { PLAN_LIMITS, isElite, isSpotlightActive } from "@/lib/plan-limits";
 
+const DEMO_USER: UserProfile = {
+  uid: "demo-artemis",
+  name: "Artemis",
+  age: 26,
+  bio: "Architect of digital spaces and collector of ethereal moments. Looking for someone to synchronize with in the noise of the city.",
+  gender: "Non-binary",
+  orientation: "Queer",
+  interestedIn: ["Anyone"],
+  verificationStatus: "Verified",
+  plan: "Free",
+  dailyChatCount: 0,
+  dailyMediaCount: 0,
+  dailyLikeCount: 0,
+  superLikeBalance: 3,
+  incognitoMode: false,
+  isSuspended: false,
+  isAdmin: false,
+  lastActive: new Date(),
+  isOnline: true,
+  onboardingCompleted: true,
+  photoUrl: "https://picsum.photos/seed/aura_artemis/600/800",
+  phoneNumber: "+91 0000000000",
+  location: { lat: 0, lng: 0 },
+  distance: "Nearby"
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -129,7 +155,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[1/1.4] w-full rounded-3xl bg-white/[0.04] animate-pulse border border-white/5" />)}
             </div>
-          ) : (
+          ) : filteredUsers.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {filteredUsers.map((user, idx) => (
                 <motion.div 
@@ -142,13 +168,32 @@ export default function Dashboard() {
                 </motion.div>
               ))}
             </div>
-          )}
-          
-          {filteredUsers.length === 0 && !usersLoading && (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20"><Search size={32} /></div>
-              <p className="text-white/60 font-light max-w-[200px]">{t('no_results')}</p>
-              <Button onClick={() => setActiveFilters({ distance: maxSearchRadius, ageRange: [18, 80] })} variant="ghost" className="text-[#0057FF] font-bold text-sm uppercase">Expand Search</Button>
+          ) : (
+            <div className="flex flex-col items-center justify-center space-y-12 py-10">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20 mx-auto">
+                  <Search size={32} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white font-semibold">No one matches your filters</p>
+                  <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your search to discover more auras, or check out this demo profile.</p>
+                </div>
+                <Button 
+                  onClick={() => setActiveFilters({ distance: maxSearchRadius, ageRange: [18, 80] })} 
+                  variant="ghost" 
+                  className="text-[#0057FF] font-bold text-xs uppercase tracking-widest"
+                >
+                  Expand Search
+                </Button>
+              </div>
+
+              <div className="w-full max-w-[280px] mx-auto">
+                <div className="mb-4 flex items-center gap-2 px-1">
+                   <div className="w-1.5 h-1.5 rounded-full bg-[#0057FF] aura-glow-blue" />
+                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
+                </div>
+                <AuraCard user={DEMO_USER} onClick={() => toast({ title: "Demo Interaction", description: "This is a preview of the messaging experience." })} />
+              </div>
             </div>
           )}
         </div>
