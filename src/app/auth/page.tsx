@@ -67,7 +67,9 @@ export default function AuthPage() {
     try {
       if (step === "details") {
         if (!email.includes("@")) throw new Error("Invalid Email");
-        if (phone.length < 5) throw new Error("Invalid Phone");
+        if (phone.length !== currentCountry.maxLength) {
+          throw new Error(`Invalid Phone. Expected ${currentCountry.maxLength} digits for ${currentCountry.name}.`);
+        }
         if (!agreedToTerms) throw new Error("Terms required");
 
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -138,7 +140,13 @@ export default function AuthPage() {
 
                 <div className="flex gap-4">
                   <div className="w-24">
-                    <Select value={countryCode} onValueChange={setCountryCode}>
+                    <Select 
+                      value={countryCode} 
+                      onValueChange={(val) => {
+                        setCountryCode(val);
+                        setPhone(""); // Clear phone on country change to prevent invalid states
+                      }}
+                    >
                       <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white">
                         <SelectValue />
                       </SelectTrigger>
@@ -151,7 +159,12 @@ export default function AuthPage() {
                     type="tel" 
                     placeholder="Phone number"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      if (val.length <= currentCountry.maxLength) {
+                        setPhone(val);
+                      }
+                    }}
                     className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1"
                   />
                 </div>
