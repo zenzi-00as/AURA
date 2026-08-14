@@ -17,7 +17,8 @@ import {
   User,
   Check,
   Palette,
-  Mail
+  Mail,
+  Coins
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -43,8 +44,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
-import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useUser, useMemoFirebase, initializeFirebase } from "@/firebase";
 import { collection, query, orderBy, deleteDoc, doc, Query } from "firebase/firestore";
 import { BlockedUser } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
@@ -54,6 +56,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { t, language, setLanguage } = useTranslation();
   const { theme, toggleTheme } = useTheme();
+  const { currency, setCurrency } = useCurrency();
   const db = useFirestore();
   const { user: authUser } = useUser();
   
@@ -65,6 +68,7 @@ export default function SettingsPage() {
   
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
@@ -87,7 +91,7 @@ export default function SettingsPage() {
       }, 1000);
     } else if (isSignOutDialogOpen && signOutCountdown === 0) {
       const { auth } = initializeFirebase();
-      auth.signOut().then(() => router.push("/auth"));
+      if (auth) auth.signOut().then(() => router.push("/auth"));
     }
     return () => clearInterval(interval);
   }, [isSignOutDialogOpen, signOutCountdown, router]);
@@ -158,7 +162,7 @@ export default function SettingsPage() {
                   <AnimatePresence mode="popLayout">
                     {blockedLoading ? (
                       <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-                    ) : blockedUsers.length > 0 ? (
+                    ) : (blockedUsers && blockedUsers.length > 0) ? (
                       blockedUsers.map((user, idx) => (
                         <motion.div key={user.id || `block-${idx}`} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border group">
                           <div className="flex items-center gap-3">
@@ -216,6 +220,23 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 gap-2 py-4">
                   {LANGUAGES.map((lang) => (
                     <button key={`lang-${lang.code}`} onClick={() => { setLanguage(lang.code); setIsLanguageOpen(false); }} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${language === lang.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}><span className="flex items-center gap-3"><span>{lang.flag}</span><span className="font-medium">{lang.name}</span></span>{language === lang.code && <Check size={18} />}</button>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCurrencyOpen} onOpenChange={setIsCurrencyOpen}>
+              <DialogTrigger asChild>
+                <button className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group">
+                  <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><Coins size={18} /></div><span>Currency</span></div>
+                  <span className="text-xs text-muted-foreground">{currency.code} ({currency.symbol})</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
+                <DialogHeader><DialogTitle className="text-2xl font-semibold text-center">Currency</DialogTitle></DialogHeader>
+                <div className="grid grid-cols-1 gap-2 py-4">
+                  {CURRENCIES.map((curr) => (
+                    <button key={`curr-${curr.code}`} onClick={() => { setCurrency(curr.code); setIsCurrencyOpen(false); }} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${currency.code === curr.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}><span className="flex items-center gap-3"><span>{curr.flag}</span><span className="font-medium">{curr.name}</span></span>{currency.code === curr.code && <Check size={18} />}</button>
                   ))}
                 </div>
               </DialogContent>

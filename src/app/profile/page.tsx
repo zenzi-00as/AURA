@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -40,6 +39,7 @@ import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, addDoc, collection, increment } from "firebase/firestore";
@@ -54,6 +54,7 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { formatPrice, currency } = useCurrency();
   const db = useFirestore();
   const { user: authUser, profile } = useAuthContext();
   
@@ -98,6 +99,7 @@ function ProfileContent() {
   const buyElite = () => {
     initializeRazorpayPayment({
       amount: 199,
+      currency: currency.code,
       itemType: 'Elite',
       onSuccess: async (res) => {
         if (!db || !authUser) return;
@@ -112,6 +114,7 @@ function ProfileContent() {
           uid: authUser.uid,
           itemType: 'Elite',
           amount: 199,
+          currency: currency.code,
           timestamp: serverTimestamp(),
           razorpayOrderId: res.razorpay_order_id,
           status: 'Success'
@@ -125,6 +128,7 @@ function ProfileContent() {
   const buySpotlight = () => {
     initializeRazorpayPayment({
       amount: 30,
+      currency: currency.code,
       itemType: 'Spotlight',
       onSuccess: async (res) => {
         if (!db || !authUser) return;
@@ -135,6 +139,7 @@ function ProfileContent() {
           uid: authUser.uid,
           itemType: 'Spotlight',
           amount: 30,
+          currency: currency.code,
           timestamp: serverTimestamp(),
           razorpayOrderId: res.razorpay_order_id,
           status: 'Success'
@@ -146,9 +151,10 @@ function ProfileContent() {
   };
 
   const buySuperLikes = () => {
-    const total = superLikeQty * 3;
+    const totalINR = superLikeQty * 3;
     initializeRazorpayPayment({
-      amount: total,
+      amount: totalINR,
+      currency: currency.code,
       itemType: 'SuperLike',
       onSuccess: async (res) => {
         if (!db || !authUser) return;
@@ -158,7 +164,8 @@ function ProfileContent() {
         await addDoc(collection(db, "purchases"), {
           uid: authUser.uid,
           itemType: 'SuperLike',
-          amount: total,
+          amount: totalINR,
+          currency: currency.code,
           timestamp: serverTimestamp(),
           razorpayOrderId: res.razorpay_order_id,
           status: 'Success'
@@ -171,7 +178,7 @@ function ProfileContent() {
 
   const handleSignOut = () => {
     const { auth } = initializeFirebase();
-    auth.signOut().then(() => router.replace('/auth'));
+    if (auth) auth.signOut().then(() => router.replace('/auth'));
   };
 
   const elite = isElite(profile);
@@ -374,7 +381,7 @@ function ProfileContent() {
                          <span className="text-xs font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
                          {elite && <Check size={14} className="text-white" />}
                       </div>
-                      <h3 className="text-xl font-bold tracking-tight">₹199 / 28 Days</h3>
+                      <h3 className="text-xl font-bold tracking-tight">{formatPrice(199)} / 28 Days</h3>
                       <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
@@ -469,7 +476,7 @@ function ProfileContent() {
                        className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-between px-8"
                      >
                         <span>{elite ? "Elite Plus Active" : "Upgrade to Elite Plus"}</span>
-                        <span className="text-sm opacity-80">₹199 • 28d</span>
+                        <span className="text-sm opacity-80">{formatPrice(199)} • 28d</span>
                      </Button>
                   </div>
                 </div>
@@ -488,7 +495,7 @@ function ProfileContent() {
                      </div>
                      <div className="space-y-1">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
-                        <p className="text-sm font-bold text-white">₹30 / 7 Days</p>
+                        <p className="text-sm font-bold text-white">{formatPrice(30)} / 7 Days</p>
                      </div>
                   </button>
                 </SheetTrigger>
@@ -557,7 +564,7 @@ function ProfileContent() {
                           className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg aura-glow-purple flex items-center justify-between px-8"
                         >
                            <span>Activate Spotlight</span>
-                           <span className="text-sm opacity-80">₹30</span>
+                           <span className="text-sm opacity-80">{formatPrice(30)}</span>
                         </Button>
                      </div>
                   </div>
@@ -573,7 +580,7 @@ function ProfileContent() {
                        </div>
                        <div className="space-y-1">
                           <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
-                          <p className="text-sm font-bold text-white">₹3 / Each</p>
+                          <p className="text-sm font-bold text-white">{formatPrice(3)} / Each</p>
                        </div>
                     </button>
                   </SheetTrigger>
@@ -631,7 +638,7 @@ function ProfileContent() {
                                    <Plus size={24} />
                                 </button>
                              </div>
-                             <p className="text-center text-[10px] font-bold text-accent uppercase tracking-widest">Total: ₹{superLikeQty * 3}</p>
+                             <p className="text-center text-[10px] font-bold text-accent uppercase tracking-widest">Total: {formatPrice(superLikeQty * 3)}</p>
                           </div>
                        </div>
                        <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
@@ -640,7 +647,7 @@ function ProfileContent() {
                             className="w-full h-16 rounded-[24px] bg-accent text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center justify-between px-8"
                           >
                              <span>Buy Super Likes</span>
-                             <span className="text-sm opacity-80">₹{superLikeQty * 3}</span>
+                             <span className="text-sm opacity-80">{formatPrice(superLikeQty * 3)}</span>
                           </Button>
                        </div>
                     </div>

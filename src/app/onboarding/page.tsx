@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
+import { useCurrency } from "@/context/CurrencyContext";
 import { doc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
@@ -36,6 +37,7 @@ export default function Onboarding() {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
   const db = useFirestore();
   const { storage, auth } = initializeFirebase();
   const { user, loading: authLoading, profile } = useAuthContext();
@@ -97,15 +99,15 @@ export default function Onboarding() {
 
   const handleBack = () => {
     if (step === 1) {
-      auth.signOut().then(() => router.replace('/auth'));
+      if (auth) auth.signOut().then(() => router.replace('/auth'));
     } else {
       setStep(s => s - 1);
     }
   };
 
   const finalizeProfile = async () => {
-    if (!db || !auth.currentUser) {
-      if (!auth.currentUser && !authLoading) {
+    if (!db || !auth?.currentUser) {
+      if (!auth?.currentUser && !authLoading) {
         toast({ variant: "destructive", title: "Session Expired", description: "Please sign in again." });
         router.replace('/auth');
       }
@@ -116,7 +118,7 @@ export default function Onboarding() {
     setIsSubmitting(true);
     try {
       let verificationPath = "";
-      if (formData.verificationImage) {
+      if (formData.verificationImage && storage) {
         setIsUploading(true);
         const fileName = `verification_${Date.now()}_${formData.verificationImage.name}`;
         const storageRef = ref(storage, `verifications/${currentUser.uid}/${fileName}`);
@@ -218,7 +220,7 @@ export default function Onboarding() {
     if (step === 8) {
       await finalizeProfile();
     } else {
-      setStep(s => s - 1);
+      setStep(s => s + 1);
     }
   };
 
@@ -561,7 +563,7 @@ export default function Onboarding() {
                 <div className="w-full p-8 rounded-[32px] glass border-white/10 space-y-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-3xl -mr-12 -mt-12" />
                   <div className="space-y-2 relative z-10">
-                    <h3 className="text-3xl font-bold text-white tracking-tighter">₹ 1 <span className="text-xs font-normal text-white/40">/ 28 Days</span></h3>
+                    <h3 className="text-3xl font-bold text-white tracking-tighter">{formatPrice(1)} <span className="text-xs font-normal text-white/40">/ 28 Days</span></h3>
                     <p className="text-[9px] font-bold text-primary uppercase tracking-[0.3em]">AURA ELITE ACCESS</p>
                   </div>
                   <div className="space-y-3 pt-4 border-t border-white/5 relative z-10">

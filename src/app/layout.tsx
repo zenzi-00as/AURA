@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { AuthProvider } from "@/firebase/auth-context";
 
@@ -43,10 +44,12 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider>
               <LanguageProvider>
-                <main className="min-h-screen-safe flex flex-col w-full relative transition-opacity duration-300">
-                  {children}
-                </main>
-                <Toaster />
+                <CurrencyProvider>
+                  <main className="min-h-screen-safe flex flex-col w-full relative transition-opacity duration-300">
+                    {children}
+                  </main>
+                  <Toaster />
+                </CurrencyProvider>
               </LanguageProvider>
             </ThemeProvider>
           </AuthProvider>

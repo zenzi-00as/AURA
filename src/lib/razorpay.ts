@@ -1,23 +1,24 @@
-
 /**
  * Mock Razorpay implementation for payment simulation.
  */
 export async function initializeRazorpayPayment(options: {
   amount: number;
+  currency?: string;
   itemType: 'Elite' | 'SuperLike' | 'Spotlight';
   onSuccess: (response: any) => void;
   onFailure?: (error: any) => void;
 }) {
   // Simulate order creation
   const orderId = 'order_' + Math.random().toString(36).substr(2, 9);
+  const displayCurrency = options.currency || 'INR';
   
-  console.log(`Initializing payment for ${options.itemType}: ₹${options.amount}`);
+  console.log(`Initializing payment for ${options.itemType}: ${displayCurrency} ${options.amount}`);
   
   // Simulate UI delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   // In a real implementation, this would open the Razorpay SDK checkout
-  const success = confirm(`Proceed with payment for ${options.itemType} (₹${options.amount})?`);
+  const success = confirm(`Proceed with payment for ${options.itemType} (${displayCurrency} ${options.amount})?`);
   
   if (success) {
     options.onSuccess({
