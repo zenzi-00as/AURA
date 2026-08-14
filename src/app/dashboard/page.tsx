@@ -202,7 +202,7 @@ export default function Dashboard() {
                 </Button>
               </div>
 
-              <div className="w-full max-w-[320px] mx-auto grid grid-cols-2 gap-2">
+              <div className="w-full max-w-2xl mx-auto grid grid-cols-2 gap-2">
                 <div className="col-span-2 mb-2 flex items-center gap-2 px-1">
                    <div className="w-1.5 h-1.5 rounded-full bg-[#0057FF] aura-glow-blue" />
                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
