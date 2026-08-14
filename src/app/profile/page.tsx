@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { 
@@ -49,8 +49,9 @@ import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
   const db = useFirestore();
@@ -68,6 +69,13 @@ export default function ProfilePage() {
     if (profile?.bio) setTempBio(profile.bio);
     if (profile?.incognitoMode) setIsIncognito(true);
   }, [profile]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'elite') setActiveSheet('elite');
+    else if (tab === 'spotlight') setActiveSheet('spotlight');
+    else if (tab === 'superlike') setActiveSheet('superlike');
+  }, [searchParams]);
 
   const handleSave = async () => {
     if (!db || !authUser) return;
@@ -210,353 +218,353 @@ export default function ProfilePage() {
   );
 
   return (
-    <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-        <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
-          <div className="flex gap-2">
-            {profile?.isAdmin && (
-              <button onClick={() => router.push('/admin')} className="w-11 h-11 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
-            )}
-            <button onClick={() => router.push('/settings')} className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
-          </div>
-        </header>
-
-        <div className="px-8 space-y-10">
-          {profile && (
-            <div className="flex flex-col items-center text-center space-y-6 pt-6">
-              <div className="relative">
-                <div className={cn(
-                  "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
-                  elite ? "border-accent shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-primary/20"
-                )}>
-                  {profile.photoUrl ? (
-                    <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-5xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
-                  )}
-                  {elite && (
-                    <div className="absolute inset-0 border-4 border-accent/20 rounded-[48px] animate-pulse pointer-events-none" />
-                  )}
-                </div>
-                {profile.verificationStatus === 'Verified' && (
-                  <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-xl">
-                    <BadgeCheck size={22} className="text-white" />
-                  </div>
-                )}
-                {spotlight && (
-                  <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl animate-bounce">
-                    <Zap size={22} className="text-white" />
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-1">
-                <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
-                  {profile.name}, {profile.age}
-                  {elite && <Star size={20} className="text-accent fill-accent" />}
-                </h2>
-                <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
-                  <Shield size={12} />
-                  {profile.plan} {profile.verificationStatus === 'Verified' ? "Verified Member" : "Aura Citizen"}
-                </div>
-              </div>
-            </div>
+    <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
+      <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
+        <div className="flex gap-2">
+          {profile?.isAdmin && (
+            <button onClick={() => router.push('/admin')} className="w-11 h-11 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
           )}
+          <button onClick={() => router.push('/settings')} className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
+        </div>
+      </header>
 
-          <div className="grid grid-cols-3 gap-2 px-1">
-             <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
-                <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Super Likes</span>
-                <span className="text-sm font-bold text-white">{profile?.superLikeBalance || 0}</span>
-             </div>
-             <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
-                <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Spotlight</span>
-                <span className={cn("text-[9px] font-bold", spotlight ? "text-primary" : "text-white/40")}>
-                  {spotlight ? `${spotlightDaysRemaining}d left` : "Inactive"}
-                </span>
-             </div>
-             <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
-                <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Elite</span>
-                <span className={cn("text-[9px] font-bold", elite ? "text-accent" : "text-white/40")}>
-                  {elite ? `${eliteDaysRemaining}d left` : "Free"}
-                </span>
-             </div>
-          </div>
-
-          <div className="mx-1 p-6 glass-card border-primary/10 bg-primary/5 space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Shield size={20} />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-white uppercase tracking-widest">Identity Verification</h4>
-                  <p className="text-[10px] text-white/40 leading-relaxed">
-                    {vStatus === 'approved' ? "Identity Verified" : vStatus === 'pending' ? "Under Review" : vStatus === 'rejected' ? "Needs Attention" : "Not Verified"}
-                  </p>
-                </div>
+      <div className="px-8 space-y-10">
+        {profile && (
+          <div className="flex flex-col items-center text-center space-y-6 pt-6">
+            <div className="relative">
+              <div className={cn(
+                "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
+                elite ? "border-accent shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-primary/20"
+              )}>
+                {profile.photoUrl ? (
+                  <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-5xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
+                )}
+                {elite && (
+                  <div className="absolute inset-0 border-4 border-accent/20 rounded-[48px] animate-pulse pointer-events-none" />
+                )}
               </div>
-              {vStatus === 'approved' && <BadgeCheck size={20} className="text-primary mt-2" />}
-            </div>
-
-            <div className="pt-2">
-              {vStatus === 'approved' ? (
-                <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-3">
-                  <Check size={14} className="text-emerald-500" />
-                  <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Verification Approved</span>
+              {profile.verificationStatus === 'Verified' && (
+                <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-xl">
+                  <BadgeCheck size={22} className="text-white" />
                 </div>
-              ) : vStatus === 'pending' ? (
-                <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-3">
-                  <Clock size={14} className="text-amber-500" />
-                  <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Review in Progress</span>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {vStatus === 'rejected' && profile?.verification?.rejectionReason && (
-                    <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 flex items-start gap-3 mb-2">
-                      <AlertCircle size={14} className="text-rose-500 shrink-0 mt-0.5" />
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Rejection Reason</span>
-                        <p className="text-[11px] text-rose-400/80">{profile.verification.rejectionReason}</p>
-                      </div>
-                    </div>
-                  )}
-                  <Button 
-                    onClick={() => router.push('/profile/verify')}
-                    className="w-full h-11 rounded-xl glass border-primary/20 text-primary text-[11px] font-bold uppercase tracking-widest hover:bg-primary/5"
-                  >
-                    {vStatus === 'rejected' ? "Upload New Image" : "Verify Profile"}
-                    <ChevronRight size={14} className="ml-2" />
-                  </Button>
+              )}
+              {spotlight && (
+                <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl animate-bounce">
+                  <Zap size={22} className="text-white" />
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="mx-1 p-6 glass-card border-primary/20 bg-primary/5 flex items-center justify-between">
-            <div className="flex items-start gap-3">
-              <Lock size={20} className="text-primary mt-1 shrink-0" />
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-white uppercase tracking-widest">Incognito Mode</h4>
-                <p className="text-[10px] text-white/40 leading-relaxed">Hide online status and typing indicators.</p>
+            
+            <div className="space-y-1">
+              <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
+                {profile.name}, {profile.age}
+                {elite && <Star size={20} className="text-accent fill-accent" />}
+              </h2>
+              <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
+                <Shield size={12} />
+                {profile.plan} {profile.verificationStatus === 'Verified' ? "Verified Member" : "Aura Citizen"}
               </div>
             </div>
-            <Switch checked={isIncognito} onCheckedChange={toggleIncognito} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-2 px-1">
+           <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
+              <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Super Likes</span>
+              <span className="text-sm font-bold text-white">{profile?.superLikeBalance || 0}</span>
+           </div>
+           <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
+              <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Spotlight</span>
+              <span className={cn("text-[9px] font-bold", spotlight ? "text-primary" : "text-white/40")}>
+                {spotlight ? `${spotlightDaysRemaining}d left` : "Inactive"}
+              </span>
+           </div>
+           <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
+              <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Elite</span>
+              <span className={cn("text-[9px] font-bold", elite ? "text-accent" : "text-white/40")}>
+                {elite ? `${eliteDaysRemaining}d left` : "Free"}
+              </span>
+           </div>
+        </div>
+
+        <div className="mx-1 p-6 glass-card border-primary/10 bg-primary/5 space-y-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Shield size={20} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-white uppercase tracking-widest">Identity Verification</h4>
+                <p className="text-[10px] text-white/40 leading-relaxed">
+                  {vStatus === 'approved' ? "Identity Verified" : vStatus === 'pending' ? "Under Review" : vStatus === 'rejected' ? "Needs Attention" : "Not Verified"}
+                </p>
+              </div>
+            </div>
+            {vStatus === 'approved' && <BadgeCheck size={20} className="text-primary mt-2" />}
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-               <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Aura Premium Hub</h3>
+          <div className="pt-2">
+            {vStatus === 'approved' ? (
+              <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-3">
+                <Check size={14} className="text-emerald-500" />
+                <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Verification Approved</span>
+              </div>
+            ) : vStatus === 'pending' ? (
+              <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex items-center gap-3">
+                <Clock size={14} className="text-amber-500" />
+                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Review in Progress</span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {vStatus === 'rejected' && profile?.verification?.rejectionReason && (
+                  <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 flex items-start gap-3 mb-2">
+                    <AlertCircle size={14} className="text-rose-500 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Rejection Reason</span>
+                      <p className="text-[11px] text-rose-400/80">{profile.verification.rejectionReason}</p>
+                    </div>
+                  </div>
+                )}
+                <Button 
+                  onClick={() => router.push('/profile/verify')}
+                  className="w-full h-11 rounded-xl glass border-primary/20 text-primary text-[11px] font-bold uppercase tracking-widest hover:bg-primary/5"
+                >
+                  {vStatus === 'rejected' ? "Upload New Image" : "Verify Profile"}
+                  <ChevronRight size={14} className="ml-2" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mx-1 p-6 glass-card border-primary/20 bg-primary/5 flex items-center justify-between">
+          <div className="flex items-start gap-3">
+            <Lock size={20} className="text-primary mt-1 shrink-0" />
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-white uppercase tracking-widest">Incognito Mode</h4>
+              <p className="text-[10px] text-white/40 leading-relaxed">Hide online status and typing indicators.</p>
             </div>
-            
-            <div className="space-y-3">
-              <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
-                <SheetTrigger asChild>
-                  <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "w-full p-7 rounded-[32px] premium-gradient text-white relative overflow-hidden group shadow-2xl text-left border border-white/10",
-                      elite && "grayscale-[0.5] opacity-80"
-                    )}
-                  >
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                    <div className="relative z-10 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                           <span className="text-xs font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
-                           {elite && <Check size={14} className="text-white" />}
+          </div>
+          <Switch checked={isIncognito} onCheckedChange={toggleIncognito} />
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+             <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Aura Premium Hub</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
+              <SheetTrigger asChild>
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    "w-full p-7 rounded-[32px] premium-gradient text-white relative overflow-hidden group shadow-2xl text-left border border-white/10",
+                    elite && "grayscale-[0.5] opacity-80"
+                  )}
+                >
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                         <span className="text-xs font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
+                         {elite && <Check size={14} className="text-white" />}
+                      </div>
+                      <h3 className="text-xl font-bold tracking-tight">₹199 / 28 Days</h3>
+                      <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
+                       View Benefits <ChevronRight size={14} />
+                    </div>
+                  </div>
+                </motion.button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+                <div className="h-full flex flex-col">
+                  <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                    <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                    <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Elite Plus</SheetTitle>
+                    <div className="w-10 h-10" />
+                  </header>
+                  
+                  <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
+                     <div className="text-center space-y-3">
+                        <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center neon-glow">
+                           <Star size={32} className="text-white fill-white" />
                         </div>
-                        <h3 className="text-xl font-bold tracking-tight">₹199 / 28 Days</h3>
-                        <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
-                         View Benefits <ChevronRight size={14} />
-                      </div>
-                    </div>
-                  </motion.button>
+                        <div className="space-y-1">
+                           <h3 className="text-3xl font-bold tracking-tighter">Aura Elite Plus</h3>
+                           <p className="text-sm text-white/60 font-light">More discovery. More connections. More control.</p>
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-1 gap-8">
+                        <div className="space-y-4">
+                           <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Discover</h4>
+                           <div className="grid grid-cols-1 gap-3">
+                              {[
+                                { icon: Compass, label: "100 km search radius" },
+                                { icon: SlidersHorizontal, label: "Advanced discovery filters" },
+                                { icon: Eye, label: "See who likes you" },
+                                { icon: Heart, label: "Unlimited discovery likes" },
+                              ].map((b, i) => (
+                                <div key={`elite-benefit-discover-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
+                                   <span className="text-sm font-medium">{b.label}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <h4 className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] px-1">Connect</h4>
+                           <div className="grid grid-cols-1 gap-3">
+                              {[
+                                { icon: MessageSquare, label: "Unlimited new chats" },
+                                { icon: UserCheck, label: "Read receipts enabled" },
+                                { icon: ImageIcon, label: "Unlimited media sharing" },
+                              ].map((b, i) => (
+                                <div key={`elite-benefit-connect-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                   <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary"><b.icon size={18} /></div>
+                                   <span className="text-sm font-medium">{b.label}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <h4 className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] px-1">Trust & Visibility</h4>
+                           <div className="grid grid-cols-1 gap-3">
+                              {[
+                                { icon: ShieldCheck, label: "Identity Verification badge" },
+                                { icon: ImageIcon, label: "Profile images visible" },
+                                { icon: Sparkles, label: "Priority discovery features" },
+                              ].map((b, i) => (
+                                <div key={`elite-benefit-trust-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                   <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent"><b.icon size={18} /></div>
+                                   <span className="text-sm font-medium">{b.label}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+
+                     <ComparisonTable />
+
+                     <div className="pb-12 pt-4">
+                        <p className="text-[10px] text-white/30 text-center leading-relaxed">
+                          Payment is processed securely via Razorpay. Subscriptions recur every 28 days unless cancelled. Cancel anytime in Settings.
+                        </p>
+                     </div>
+                  </div>
+
+                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
+                     <Button 
+                       onClick={buyElite} 
+                       disabled={elite}
+                       className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-between px-8"
+                     >
+                        <span>{elite ? "Elite Plus Active" : "Upgrade to Elite Plus"}</span>
+                        <span className="text-sm opacity-80">₹199 • 28d</span>
+                     </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Sheet open={activeSheet === 'spotlight'} onOpenChange={(o) => setActiveSheet(o ? 'spotlight' : null)}>
+                <SheetTrigger asChild>
+                  <button className={cn(
+                    "p-6 rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-primary/40 transition-all",
+                    spotlight && "bg-primary/10 border-primary/30 aura-glow-purple"
+                  )}>
+                     <div className={cn("w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform", spotlight && "animate-pulse")}>
+                        <Zap size={24} />
+                     </div>
+                     <div className="space-y-1">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
+                        <p className="text-sm font-bold text-white">₹30 / 7 Days</p>
+                     </div>
+                  </button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+                <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
                   <div className="h-full flex flex-col">
-                    <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
-                      <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                      <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Elite Plus</SheetTitle>
-                      <div className="w-10 h-10" />
-                    </header>
-                    
-                    <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
-                       <div className="text-center space-y-3">
-                          <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center neon-glow">
-                             <Star size={32} className="text-white fill-white" />
-                          </div>
-                          <div className="space-y-1">
-                             <h3 className="text-3xl font-bold tracking-tighter">Aura Elite Plus</h3>
-                             <p className="text-sm text-white/60 font-light">More discovery. More connections. More control.</p>
-                          </div>
-                       </div>
+                     <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                        <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                        <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Get Spotlight</SheetTitle>
+                        <div className="w-10 h-10" />
+                     </header>
+                     <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
+                        <div className="text-center space-y-3">
+                           <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
+                              <Zap size={32} className="text-primary" />
+                           </div>
+                           <div className="space-y-1">
+                              <h3 className="text-3xl font-bold tracking-tighter">⚡ SPOTLIGHT</h3>
+                              <p className="text-sm text-white/60 font-light">Be seen by more people nearby.</p>
+                           </div>
+                        </div>
+                        
+                        <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                           <p className="text-sm text-white/80 font-light leading-relaxed">
+                              Spotlight temporarily boosts your profile visibility in discovery. When active, you'll receive priority placement in results for users in your vicinity.
+                           </p>
+                           <div className="space-y-3 pt-2">
+                              {[
+                                "Increased discovery visibility",
+                                "Priority placement in results",
+                                "Active for 7 full days",
+                                "Automatically expires",
+                              ].map((t, i) => (
+                                <div key={`spotlight-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60">
+                                   <Check size={14} className="text-primary" />
+                                   <span>{t}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
 
-                       <div className="grid grid-cols-1 gap-8">
-                          <div className="space-y-4">
-                             <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Discover</h4>
-                             <div className="grid grid-cols-1 gap-3">
-                                {[
-                                  { icon: Compass, label: "100 km search radius" },
-                                  { icon: SlidersHorizontal, label: "Advanced discovery filters" },
-                                  { icon: Eye, label: "See who likes you" },
-                                  { icon: Heart, label: "Unlimited discovery likes" },
-                                ].map((b, i) => (
-                                  <div key={`elite-benefit-discover-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
-                                     <span className="text-sm font-medium">{b.label}</span>
-                                  </div>
-                                ))}
-                             </div>
-                          </div>
+                        <div className="space-y-4">
+                           <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Visual Boost Preview</h4>
+                           <div className="flex items-center justify-center gap-8 py-4">
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center opacity-40"><Star size={24} /></div>
+                                 <span className="text-[9px] font-bold text-white/20 uppercase">Normal</span>
+                              </div>
+                              <div className="text-white/20"><ChevronRight size={24} /></div>
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-20 h-20 rounded-[28px] bg-primary/10 border-2 border-primary/40 flex items-center justify-center aura-glow-purple"><Star size={32} className="text-primary" /></div>
+                                 <span className="text-[9px] font-bold text-primary uppercase">Spotlight</span>
+                              </div>
+                           </div>
+                        </div>
 
-                          <div className="space-y-4">
-                             <h4 className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] px-1">Connect</h4>
-                             <div className="grid grid-cols-1 gap-3">
-                                {[
-                                  { icon: MessageSquare, label: "Unlimited new chats" },
-                                  { icon: UserCheck, label: "Read receipts enabled" },
-                                  { icon: ImageIcon, label: "Unlimited media sharing" },
-                                ].map((b, i) => (
-                                  <div key={`elite-benefit-connect-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                     <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary"><b.icon size={18} /></div>
-                                     <span className="text-sm font-medium">{b.label}</span>
-                                  </div>
-                                ))}
-                             </div>
-                          </div>
-
-                          <div className="space-y-4">
-                             <h4 className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] px-1">Trust & Visibility</h4>
-                             <div className="grid grid-cols-1 gap-3">
-                                {[
-                                  { icon: ShieldCheck, label: "Identity Verification badge" },
-                                  { icon: ImageIcon, label: "Profile images visible" },
-                                  { icon: Sparkles, label: "Priority discovery features" },
-                                ].map((b, i) => (
-                                  <div key={`elite-benefit-trust-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                     <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent"><b.icon size={18} /></div>
-                                     <span className="text-sm font-medium">{b.label}</span>
-                                  </div>
-                                ))}
-                             </div>
-                          </div>
-                       </div>
-
-                       <ComparisonTable />
-
-                       <div className="pb-12 pt-4">
-                          <p className="text-[10px] text-white/30 text-center leading-relaxed">
-                            Payment is processed securely via Razorpay. Subscriptions recur every 28 days unless cancelled. Cancel anytime in Settings.
-                          </p>
-                       </div>
-                    </div>
-
-                    <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                       <Button 
-                         onClick={buyElite} 
-                         disabled={elite}
-                         className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-between px-8"
-                       >
-                          <span>{elite ? "Elite Plus Active" : "Upgrade to Elite Plus"}</span>
-                          <span className="text-sm opacity-80">₹199 • 28d</span>
-                       </Button>
-                    </div>
+                        <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
+                           <div className="flex items-start gap-3 text-white/40">
+                              <Info size={16} className="shrink-0 mt-0.5" />
+                              <p className="text-[11px] leading-relaxed">Spotlight increases visibility only. It does not guarantee likes, matches, or specific interaction rates. Results vary based on profile quality and local activity.</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
+                        <Button 
+                          onClick={buySpotlight}
+                          className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg aura-glow-purple flex items-center justify-between px-8"
+                        >
+                           <span>Activate Spotlight</span>
+                           <span className="text-sm opacity-80">₹30</span>
+                        </Button>
+                     </div>
                   </div>
                 </SheetContent>
               </Sheet>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Sheet open={activeSheet === 'spotlight'} onOpenChange={(o) => setActiveSheet(o ? 'spotlight' : null)}>
-                  <SheetTrigger asChild>
-                    <button className={cn(
-                      "p-6 rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-primary/40 transition-all",
-                      spotlight && "bg-primary/10 border-primary/30 aura-glow-purple"
-                    )}>
-                       <div className={cn("w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform", spotlight && "animate-pulse")}>
-                          <Zap size={24} />
-                       </div>
-                       <div className="space-y-1">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
-                          <p className="text-sm font-bold text-white">₹30 / 7 Days</p>
-                       </div>
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
-                    <div className="h-full flex flex-col">
-                       <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
-                          <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                          <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Get Spotlight</SheetTitle>
-                          <div className="w-10 h-10" />
-                       </header>
-                       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
-                          <div className="text-center space-y-3">
-                             <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
-                                <Zap size={32} className="text-primary" />
-                             </div>
-                             <div className="space-y-1">
-                                <h3 className="text-3xl font-bold tracking-tighter">⚡ SPOTLIGHT</h3>
-                                <p className="text-sm text-white/60 font-light">Be seen by more people nearby.</p>
-                             </div>
-                          </div>
-                          
-                          <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
-                             <p className="text-sm text-white/80 font-light leading-relaxed">
-                                Spotlight temporarily boosts your profile visibility in discovery. When active, you'll receive priority placement in results for users in your vicinity.
-                             </p>
-                             <div className="space-y-3 pt-2">
-                                {[
-                                  "Increased discovery visibility",
-                                  "Priority placement in results",
-                                  "Active for 7 full days",
-                                  "Automatically expires",
-                                ].map((t, i) => (
-                                  <div key={`spotlight-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60">
-                                     <Check size={14} className="text-primary" />
-                                     <span>{t}</span>
-                                  </div>
-                                ))}
-                             </div>
-                          </div>
-
-                          <div className="space-y-4">
-                             <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Visual Boost Preview</h4>
-                             <div className="flex items-center justify-center gap-8 py-4">
-                                <div className="flex flex-col items-center gap-2">
-                                   <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center opacity-40"><Star size={24} /></div>
-                                   <span className="text-[9px] font-bold text-white/20 uppercase">Normal</span>
-                                </div>
-                                <div className="text-white/20"><ChevronRight size={24} /></div>
-                                <div className="flex flex-col items-center gap-2">
-                                   <div className="w-20 h-20 rounded-[28px] bg-primary/10 border-2 border-primary/40 flex items-center justify-center aura-glow-purple"><Star size={32} className="text-primary" /></div>
-                                   <span className="text-[9px] font-bold text-primary uppercase">Spotlight</span>
-                                </div>
-                             </div>
-                          </div>
-
-                          <div className="bg-white/5 p-5 rounded-2xl border border-white/5">
-                             <div className="flex items-start gap-3 text-white/40">
-                                <Info size={16} className="shrink-0 mt-0.5" />
-                                <p className="text-[11px] leading-relaxed">Spotlight increases visibility only. It does not guarantee likes, matches, or specific interaction rates. Results vary based on profile quality and local activity.</p>
-                             </div>
-                          </div>
-                       </div>
-                       <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                          <Button 
-                            onClick={buySpotlight}
-                            className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg aura-glow-purple flex items-center justify-between px-8"
-                          >
-                             <span>Activate Spotlight</span>
-                             <span className="text-sm opacity-80">₹30</span>
-                          </Button>
-                       </div>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-
+              <Suspense fallback={null}>
                 <Sheet open={activeSheet === 'superlike'} onOpenChange={(o) => setActiveSheet(o ? 'superlike' : null)}>
                   <SheetTrigger asChild>
                     <button className="p-6 rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-accent/40 transition-all">
@@ -638,65 +646,75 @@ export default function ProfilePage() {
                     </div>
                   </SheetContent>
                 </Sheet>
-              </div>
+              </Suspense>
             </div>
-          </div>
-
-          {profile && (
-            <div className="glass-card p-8 rounded-[40px] space-y-8 relative overflow-hidden">
-              <div className="flex justify-between items-center">
-                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('about_me')}</h3>
-                  <div className="flex gap-2">
-                    <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                      <DialogTrigger asChild><button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary"><Pencil size={14} /></button></DialogTrigger>
-                      <DialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
-                        <DialogHeader><DialogTitle>Edit Presence</DialogTitle></DialogHeader>
-                        <Textarea value={tempBio} onChange={(e) => setTempBio(e.target.value)} className="bg-muted min-h-[120px] rounded-2xl p-4 focus:ring-primary" placeholder="Describe your aura..." />
-                        <DialogFooter><Button onClick={handleSave} className="w-full h-14 premium-gradient rounded-2xl font-bold">Save Aura</Button></DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-              </div>
-              <p className="text-lg leading-relaxed text-foreground font-light">{profile.bio || "No bio added yet."}</p>
-
-              <div className="grid grid-cols-2 gap-y-6 gap-x-4 border-t border-white/5 pt-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Chat LIMITS</label>
-                  <div className="flex items-center gap-2 text-foreground font-medium">
-                    <MessageSquare size={14} className="text-primary" />
-                    {elite ? "Unlimited" : `${profile.dailyChatCount} / 5 Daily`}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">MEDIA LIMITS</label>
-                  <div className="flex items-center gap-2 text-foreground font-medium">
-                    <ImageIcon size={14} className="text-primary" />
-                    {elite ? "Unlimited" : `${profile.dailyMediaCount} / 2 Daily`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {[ 
-              { label: t('settings'), path: '/settings', icon: Settings }, 
-              { label: t('about'), path: '/about', icon: Info }, 
-              { label: t('feedback'), path: '/feedback', icon: MessageSquare } 
-            ].map((item) => (
-              <button key={item.path} onClick={() => router.push(item.path)} className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-primary/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><item.icon size={18} /></div><span className="font-medium text-foreground">{item.label}</span></div><div className="text-muted-foreground">→</div></button>
-            ))}
-            <AlertDialog>
-              <AlertDialogTrigger asChild><button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-destructive/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><LogOut size={18} /></div><span className="font-medium text-foreground">{t('sign_out')}</span></div><div className="text-muted-foreground">→</div></button></AlertDialogTrigger>
-              <AlertDialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
-                <AlertDialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="text-center"><AlertDialogTitle>{t('sign_out')}</AlertDialogTitle><AlertDialogDescription>Are you sure you want to exit the Aura?</AlertDialogDescription></div></AlertDialogHeader>
-                <AlertDialogFooter className="flex flex-col gap-3 pt-4"><AlertDialogAction onClick={handleSignOut} className="w-full h-14 premium-gradient rounded-2xl">Sign Out</AlertDialogAction><AlertDialogCancel className="w-full h-12 rounded-xl">Cancel</AlertDialogCancel></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
         </div>
-        <BottomNav />
+
+        {profile && (
+          <div className="glass-card p-8 rounded-[40px] space-y-8 relative overflow-hidden">
+            <div className="flex justify-between items-center">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t('about_me')}</h3>
+                <div className="flex gap-2">
+                  <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                    <DialogTrigger asChild><button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary"><Pencil size={14} /></button></DialogTrigger>
+                    <DialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
+                      <DialogHeader><DialogTitle>Edit Presence</DialogTitle></DialogHeader>
+                      <Textarea value={tempBio} onChange={(e) => setTempBio(e.target.value)} className="bg-muted min-h-[120px] rounded-2xl p-4 focus:ring-primary" placeholder="Describe your aura..." />
+                      <DialogFooter><Button onClick={handleSave} className="w-full h-14 premium-gradient rounded-2xl font-bold">Save Aura</Button></DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+            </div>
+            <p className="text-lg leading-relaxed text-foreground font-light">{profile.bio || "No bio added yet."}</p>
+
+            <div className="grid grid-cols-2 gap-y-6 gap-x-4 border-t border-white/5 pt-8">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Chat LIMITS</label>
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <MessageSquare size={14} className="text-primary" />
+                  {elite ? "Unlimited" : `${profile.dailyChatCount} / 5 Daily`}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">MEDIA LIMITS</label>
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <ImageIcon size={14} className="text-primary" />
+                  {elite ? "Unlimited" : `${profile.dailyMediaCount} / 2 Daily`}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {[ 
+            { label: t('settings'), path: '/settings', icon: Settings }, 
+            { label: t('about'), path: '/about', icon: Info }, 
+            { label: t('feedback'), path: '/feedback', icon: MessageSquare } 
+          ].map((item) => (
+            <button key={item.path} onClick={() => router.push(item.path)} className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-primary/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><item.icon size={18} /></div><span className="font-medium text-foreground">{item.label}</span></div><div className="text-muted-foreground">→</div></button>
+          ))}
+          <AlertDialog>
+            <AlertDialogTrigger asChild><button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between group hover:bg-destructive/5 transition-colors"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><LogOut size={18} /></div><span className="font-medium text-foreground">{t('sign_out')}</span></div><div className="text-muted-foreground">→</div></button></AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#070709] border-border rounded-[32px] p-8">
+              <AlertDialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="text-center"><AlertDialogTitle>{t('sign_out')}</AlertDialogTitle><AlertDialogDescription>Are you sure you want to exit the Aura?</AlertDialogDescription></div></AlertDialogHeader>
+              <AlertDialogFooter className="flex flex-col gap-3 pt-4"><AlertDialogAction onClick={handleSignOut} className="w-full h-14 premium-gradient rounded-2xl">Sign Out</AlertDialogAction><AlertDialogCancel className="w-full h-12 rounded-xl">Cancel</AlertDialogCancel></AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
+      <BottomNav />
+    </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <AuthGuard>
+      <Suspense fallback={null}>
+        <ProfileContent />
+      </Suspense>
     </AuthGuard>
   );
 }

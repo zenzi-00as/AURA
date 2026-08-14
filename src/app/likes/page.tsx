@@ -83,10 +83,10 @@ export default function WhoLikesYouPage() {
                 </p>
               </div>
               <Button 
-                onClick={() => router.push('/profile')}
+                onClick={() => router.push('/profile?tab=elite')}
                 className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg shadow-xl"
               >
-                Join Aura Elite
+                Join Aura Elite+
                 <ChevronRight size={20} className="ml-2" />
               </Button>
             </motion.div>
