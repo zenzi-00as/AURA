@@ -95,6 +95,22 @@
   .aura-blob-purple { background-color: #9B4DFF; filter: blur(100px); opacity: 0.15; }
   .aura-blob-cyan { background-color: #00CFFF; filter: blur(100px); opacity: 0.15; }
   .aura-blob-blue { background-color: #0066FF; filter: blur(100px); opacity: 0.2; }
+
+  /* Full Screen & Safe Area Utilities */
+  .h-screen-safe {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 .aura-bg-container {

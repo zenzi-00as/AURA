@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -582,8 +581,8 @@ export default function ChatRoomPage() {
         </div>
 
         {/* Interaction Stage Footer */}
-        <div className="flex-shrink-0 px-4 pt-3 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/5 safe-bottom z-20">
-          <div className="flex items-center gap-3 max-w-2xl mx-auto h-14">
+        <div className="flex-shrink-0 px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
+          <div className="flex items-center gap-3 w-full h-14">
             <input 
               type="file" 
               ref={fileInputRef} 
