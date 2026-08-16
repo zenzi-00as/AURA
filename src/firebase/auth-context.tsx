@@ -13,6 +13,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   onboardingCompleted: boolean;
+  exitDemoMode?: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,7 +28,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const exitDemoMode = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('aura_demo_disabled', 'true');
+      window.location.href = '/auth';
+    }
+  };
+
   useEffect(() => {
+    // 1. Development Demo Mode Logic
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
+    const isDemoDisabled = typeof window !== 'undefined' && sessionStorage.getItem('aura_demo_disabled') === 'true';
+
+    if (isDemoMode && !isDemoDisabled) {
+      console.log("[AUTH] Demo Mode Active: Bypassing Firebase Authentication.");
+      
+      const demoUser = {
+        uid: 'demo-user',
+        email: 'demo@aura.local',
+        displayName: 'Aura Demo',
+        isDemoUser: true,
+      } as any;
+
+      const demoProfile: UserProfile = {
+        uid: 'demo-user',
+        name: 'Artemis (Demo)',
+        age: 27,
+        bio: 'This is a development demo profile bypassing authentication.',
+        gender: 'Non-binary',
+        orientation: 'Queer',
+        interestedIn: ['Anyone'],
+        plan: 'Elite',
+        verificationStatus: 'Verified',
+        photoUrl: 'https://picsum.photos/seed/aura_demo/400/400',
+        onboardingCompleted: process.env.NEXT_PUBLIC_DEMO_ONBOARDING_COMPLETE === 'true',
+        isDemoUser: true,
+        isOnline: true,
+        lastActive: new Date(),
+        phoneNumber: '+91 0000000000',
+        dailyChatCount: 0,
+        dailyMediaCount: 0,
+        dailyLikeCount: 0,
+        superLikeBalance: 10,
+        incognitoMode: false,
+        isSuspended: false,
+        isAdmin: true
+      };
+
+      setUser(demoUser);
+      setProfile(demoProfile);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Real Firebase Authentication Logic
     const { auth, db } = initializeFirebase();
     if (!auth || !db) return;
 
@@ -114,6 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     loading,
     onboardingCompleted: !!profile?.onboardingCompleted,
+    exitDemoMode
   };
 
   return (

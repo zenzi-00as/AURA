@@ -80,6 +80,7 @@ export type UserProfile = {
   welcomeSent?: boolean;
   updatedAt?: any;
   notificationSettings?: UserNotificationSettings;
+  isDemoUser?: boolean;
 };
 
 export type BlockedUser = {

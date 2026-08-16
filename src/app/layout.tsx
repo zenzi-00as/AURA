@@ -1,3 +1,4 @@
+
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { AuthProvider } from "@/firebase/auth-context";
+import { DemoIndicator } from "@/components/aura/DemoIndicator";
 
 export const metadata: Metadata = {
   title: 'Aura | Premium LGBTQ+ Connection',
@@ -42,6 +44,7 @@ export default function RootLayout({
         
         <FirebaseClientProvider>
           <AuthProvider>
+            <DemoIndicator />
             <ThemeProvider>
               <LanguageProvider>
                 <CurrencyProvider>
