@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, ChevronLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Sparkles, Chrome } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
@@ -13,7 +13,9 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { 
   signInWithPhoneNumber, 
   RecaptchaVerifier,
-  ConfirmationResult
+  ConfirmationResult,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -59,16 +61,13 @@ export default function AuthPage() {
     if (!authLoading && user) {
       console.log("[AUTH] Session confirmed, checking redirection...");
       if (onboardingCompleted) {
-        console.log("[AUTH] Redirecting to: /dashboard");
         router.replace("/dashboard");
       } else {
-        console.log("[AUTH] Redirecting to: /onboarding");
         router.replace("/onboarding");
       }
     }
   }, [user, authLoading, onboardingCompleted, router]);
 
-  // Clean up reCAPTCHA on unmount
   useEffect(() => {
     return () => {
       if (recaptchaVerifierRef.current) {
@@ -145,15 +144,12 @@ export default function AuthPage() {
         const authedUser = result.user;
 
         if (!authedUser) throw new Error("Authentication failed to return a valid identity.");
-        console.log("[AUTH] OTP verification successful. Firebase UID:", authedUser.uid);
+        console.log("[AUTH] OTP verification successful. UID:", authedUser.uid);
 
-        // Sync Profile Data
-        console.log("[AUTH] Profile check started");
         const userRef = doc(db, "users", authedUser.uid);
         const snap = await getDoc(userRef);
 
         if (!snap.exists()) {
-          console.log("[AUTH] Creating new member profile document");
           await setDoc(userRef, {
             uid: authedUser.uid,
             email: email,
@@ -163,7 +159,6 @@ export default function AuthPage() {
             updatedAt: serverTimestamp(),
             dailyChatCount: 0,
             dailyMediaCount: 0,
-            dailyLikeCount: 0,
             superLikeBalance: 0,
             plan: 'Free',
             incognitoMode: false,
@@ -172,33 +167,61 @@ export default function AuthPage() {
             isOnline: true,
             lastActive: serverTimestamp()
           });
-        } else {
-          console.log("[AUTH] Updating existing member metadata");
-          await updateDoc(userRef, {
-            updatedAt: serverTimestamp(),
-            isOnline: true,
-            lastActive: serverTimestamp()
-          });
         }
-        
-        // Redirection is handled by the useEffect listener on AuthContext
       }
     } catch (error: any) {
       console.error("[AUTH_ERROR]", error.code, error.message);
       const message = getFriendlyError(error.code) || error.message;
       toast({ variant: "destructive", title: "Authentication Error", description: message });
-      
-      // Reset if verification failed to allow retry
-      if (step === "otp") {
-        setOtp("");
+      if (step === "otp") setOtp("");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (!auth || !db) return;
+    setIsLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const authedUser = result.user;
+
+      if (authedUser) {
+        const userRef = doc(db, "users", authedUser.uid);
+        const snap = await getDoc(userRef);
+
+        if (!snap.exists()) {
+          await setDoc(userRef, {
+            uid: authedUser.uid,
+            name: authedUser.displayName || "",
+            email: authedUser.email || "",
+            photoUrl: authedUser.photoURL || "",
+            loginMethod: "google",
+            onboardingCompleted: false,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            plan: 'Free',
+            incognitoMode: false,
+            isSuspended: false,
+            isAdmin: false,
+            isOnline: true,
+            lastActive: serverTimestamp()
+          });
+        }
       }
+    } catch (error: any) {
+      console.error("[AUTH_ERROR_GOOGLE]", error);
+      toast({ variant: "destructive", title: "Google Access Denied", description: "Unable to synchronize with Google." });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen hero-radial overflow-hidden">
+    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-hidden">
+      <div className="absolute inset-0 z-0 hero-radial" />
+      
       <header className="h-16 mb-8 relative z-10 flex items-center">
         <div className="w-10 h-10 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow">
           <span className="text-white font-bold text-lg">A</span>
@@ -232,13 +255,13 @@ export default function AuthPage() {
             {step === "details" ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#0057FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
+                  <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
                   <Input 
                     type="email" 
                     placeholder="Email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#1264FF] focus:ring-0"
+                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#2563FF] focus:ring-0"
                   />
                 </div>
 
@@ -278,17 +301,41 @@ export default function AuthPage() {
                     id="terms" 
                     checked={agreedToTerms} 
                     onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                    className="mt-1 border-white/20 data-[state=checked]:bg-[#0057FF]"
+                    className="mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
                   />
                   <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed">
-                    I acknowledge the <Link href="/terms" className="text-white hover:text-[#0057FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#0057FF]">Privacy Guard</Link>.
+                    I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
                   </label>
+                </div>
+
+                <div className="pt-8 space-y-6">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                       <div className="h-[1px] flex-1 bg-white/10" />
+                       <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Quick Access</span>
+                       <div className="h-[1px] flex-1 bg-white/10" />
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                      onClick={handleGoogleLogin}
+                      disabled={isLoading}
+                      className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group shadow-[0_0_30px_rgba(37,99,255,0.25)]"
+                    >
+                      <Chrome size={22} className="text-[#2563FF]" />
+                      <span className="text-base font-semibold">Continue with Google</span>
+                      <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-8">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#0057FF] uppercase tracking-[0.2em] px-1">Verification Code</label>
+                  <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Verification Code</label>
                   <Input 
                     type="text"
                     inputMode="numeric"
@@ -330,7 +377,6 @@ export default function AuthPage() {
         <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Premium • Private • Real</p>
       </div>
 
-      {/* Invisible reCAPTCHA anchor */}
       <div id="recaptcha-container"></div>
     </div>
   );

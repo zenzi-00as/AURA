@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useCurrency } from "@/context/CurrencyContext";
-import { doc, serverTimestamp, writeBatch, collection } from "firebase/firestore";
+import { doc, serverTimestamp, writeBatch, collection, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
@@ -23,6 +23,7 @@ const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
 const ROOM_OPTIONS = ["Yes", "No"];
 
 const ONBOARDING_WALLPAPERS = [
+  "bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.15),transparent_60%)]",
   "bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.15),transparent_60%)]", 
   "bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]", 
   "bg-[radial-gradient(circle_at_bottom,rgba(236,72,153,0.15),transparent_60%)]", 
@@ -45,6 +46,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -54,6 +56,7 @@ export default function Onboarding() {
     position: "" as any,
     room: "" as any,
     age: "",
+    location: null as { lat: number, lng: number } | null,
     verificationImage: null as File | null,
     verificationPreview: null as string | null,
     verificationStatus: 'not_submitted' as 'not_submitted' | 'pending' | 'approved' | 'rejected'
@@ -70,7 +73,45 @@ export default function Onboarding() {
     } else if (profile?.onboardingCompleted) {
       router.replace('/dashboard');
     }
-  }, [user, profile, authLoading, router]);
+
+    if (profile?.location && step === 1) {
+      setStep(2);
+    }
+  }, [user, profile, authLoading, router, step]);
+
+  const handleLocationEnable = () => {
+    if (!navigator.geolocation) {
+      toast({ variant: "destructive", title: "Location Unavailable", description: "Your browser does not support geolocation." });
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+        setFormData(prev => ({ ...prev, location: loc }));
+        
+        if (db && user) {
+          try {
+            await updateDoc(doc(db, "users", user.uid), {
+              location: loc,
+              updatedAt: serverTimestamp()
+            });
+            toast({ title: "Location Synchronized", description: "Proximity parameters calibrated." });
+            setStep(2);
+          } catch (e) {
+            console.error("Location save error", e);
+          }
+        }
+        setIsDetectingLocation(false);
+      },
+      (error) => {
+        setIsDetectingLocation(false);
+        toast({ variant: "destructive", title: "Location Denied", description: "Enable location to discover people nearby." });
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,7 +139,7 @@ export default function Onboarding() {
   };
 
   const handleBack = () => {
-    if (step === 1) {
+    if (step === 1 || step === 2) {
       if (auth) auth.signOut().then(() => router.replace('/auth'));
     } else {
       setStep(s => s - 1);
@@ -135,7 +176,6 @@ export default function Onboarding() {
       const profileData = {
         uid: currentUser.uid,
         name: formData.name.trim(),
-        phoneNumber: profile?.phoneNumber || "", 
         bio: formData.bio.trim(),
         gender: formData.gender,
         orientation: formData.orientation,
@@ -154,7 +194,7 @@ export default function Onboarding() {
         subscriptionStatus: 'Active',
         subscriptionPrice: 1,
         subscriptionEndDate: endDate,
-        photoUrl: `https://picsum.photos/seed/${currentUser.uid}/400/400`,
+        photoUrl: profile?.photoUrl || `https://picsum.photos/seed/${currentUser.uid}/400/400`,
         lastActive: serverTimestamp(),
         isOnline: true,
         onboardingCompleted: true,
@@ -190,26 +230,11 @@ export default function Onboarding() {
         seen: false
       });
 
-      if (formData.verificationImage) {
-        batch.set(doc(collection(db, "notifications")), {
-          userId: currentUser.uid,
-          title: "Verification Submitted",
-          body: `Hi ${formData.name}, your identity verification is now under review.`,
-          type: "verification",
-          timestamp: serverTimestamp(),
-          read: false
-        });
-      }
-
       await batch.commit();
       router.replace("/dashboard");
     } catch (error: any) {
       console.error('Finalization Error:', error);
-      toast({ 
-        variant: "destructive", 
-        title: "Synchronization Error", 
-        description: error.message || "Failed to finalize your Aura profile. Please try again." 
-      });
+      toast({ variant: "destructive", title: "Synchronization Error", description: error.message || "Failed to finalize your Aura profile." });
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -217,29 +242,11 @@ export default function Onboarding() {
   };
 
   const nextStep = async () => {
-    if (step === 8) {
+    if (step === 9) {
       await finalizeProfile();
     } else {
       setStep(s => s + 1);
     }
-  };
-
-  const handleDemoMode = () => {
-    setFormData({
-      name: "Demo User",
-      age: "25",
-      bio: "This is a demo profile to test the Aura luxury experience. I enjoy art, technology, and meaningful connections.",
-      gender: "Non-binary",
-      orientation: "Queer",
-      interestedIn: ["Man", "Woman"],
-      position: "Versatile",
-      room: "Yes",
-      verificationImage: null,
-      verificationPreview: null,
-      verificationStatus: 'not_submitted'
-    });
-    setStep(8);
-    toast({ title: "Demo Mode Active", description: "Identity parameters filled. Proceed to finalize." });
   };
 
   const ageVal = parseInt(formData.age);
@@ -247,16 +254,17 @@ export default function Onboarding() {
   const isNameValid = formData.name.trim().length > 0;
 
   const isNextDisabled = authLoading || isSubmitting || isUploading ||
-    (step === 1 && (!isNameValid || !isAgeValid)) || 
-    (step === 2 && !formData.bio.trim()) || 
-    (step === 3 && !formData.gender) || 
-    (step === 4 && !formData.orientation) || 
-    (step === 5 && formData.interestedIn.length === 0) || 
-    (step === 6 && (!formData.position || !formData.room));
+    (step === 1 && !formData.location) ||
+    (step === 2 && (!isNameValid || !isAgeValid)) || 
+    (step === 3 && !formData.bio.trim()) || 
+    (step === 4 && !formData.gender) || 
+    (step === 5 && !formData.orientation) || 
+    (step === 6 && formData.interestedIn.length === 0) || 
+    (step === 7 && (!formData.position || !formData.room));
 
   if (authLoading || !user || profile?.onboardingCompleted) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-screen-safe relative overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen relative overflow-hidden bg-background">
         <motion.div 
           animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
           transition={{ duration: 3, repeat: Infinity }}
@@ -272,16 +280,16 @@ export default function Onboarding() {
     );
   }
 
-  const progressPercentage = Math.round((step / 8) * 100);
+  const progressPercentage = Math.round((step / 9) * 100);
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen-safe relative overflow-hidden safe-top safe-bottom">
+    <div className="flex-1 flex flex-col min-h-screen relative overflow-hidden safe-top safe-bottom">
       <div className={cn("absolute inset-0 z-0 transition-all duration-1000", ONBOARDING_WALLPAPERS[step - 1])} />
 
       <header className="h-14 relative z-10 flex items-center px-8">
         <div className="flex justify-between items-center w-full">
           <div className="flex gap-1.5 flex-1 max-w-[160px]">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(s => (
               <div key={`onboard-step-${s}`} className={cn("h-1 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-white/10")} />
             ))}
           </div>
@@ -304,20 +312,21 @@ export default function Onboarding() {
             <div className="flex justify-between items-start mb-8">
               <div className="space-y-1">
                 <h2 className="text-3xl font-bold text-white tracking-tight">
-                  {step === 1 ? "Identity" : 
-                   step === 2 ? "Aura Bio" : 
-                   step === 3 ? "Gender" : 
-                   step === 4 ? "Orientation" : 
-                   step === 5 ? "Preferences" :
-                   step === 6 ? "Dynamics" : 
-                   step === 7 ? "Identity Guard" : 
+                  {step === 1 ? "Enable Location" : 
+                   step === 2 ? "Identity" : 
+                   step === 3 ? "Aura Bio" : 
+                   step === 4 ? "Gender" : 
+                   step === 5 ? "Orientation" : 
+                   step === 6 ? "Preferences" :
+                   step === 7 ? "Dynamics" : 
+                   step === 8 ? "Identity Guard" : 
                    "Aura Elite"}
                 </h2>
                 <p className="text-[10px] text-white/40 font-light uppercase tracking-widest">
-                  {step === 1 ? "Start your journey..." : "Step " + step + " of 8"}
+                  Step {step} of 9
                 </p>
               </div>
-              {step < 8 && (
+              {step > 1 && (
                 <motion.button 
                   whileTap={{ scale: 0.9 }}
                   onClick={handleBack} 
@@ -329,6 +338,22 @@ export default function Onboarding() {
             </div>
 
             {step === 1 && (
+              <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
+                <div className="w-24 h-24 rounded-[32px] bg-primary/20 flex items-center justify-center text-primary mb-6 animate-pulse">
+                  <MapPin size={48} />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Enable your location</h3>
+                <p className="text-sm text-white/40 max-w-[260px]">Find people nearby and discover connections around you.</p>
+                <div className="w-full pt-8 space-y-3">
+                   <Button onClick={handleLocationEnable} disabled={isDetectingLocation} className="w-full h-16 rounded-[24px] blue-gradient text-white font-bold shadow-xl">
+                     {isDetectingLocation ? <Loader2 className="animate-spin" /> : "Enable Location →"}
+                   </Button>
+                   <button onClick={() => setStep(2)} className="text-[10px] font-bold text-white/20 uppercase tracking-widest py-2">Skip for now</button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Display Name</label>
@@ -361,7 +386,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <div className="space-y-4 flex-1 flex flex-col">
                 <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Describe your presence</label>
                 <div className="flex-1 glass rounded-2xl p-0.5 focus-within:neon-glow transition-all">
@@ -375,7 +400,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div className="space-y-4">
                 <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Select Identity</label>
                 <GenderSelector 
@@ -385,7 +410,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="space-y-4">
                 <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Define Orientation</label>
                 <OrientationSelector 
@@ -396,7 +421,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 5 && (
+            {step === 6 && (
               <div className="space-y-4">
                 <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Attraction</label>
                 <InterestedInSelector 
@@ -413,7 +438,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 6 && (
+            {step === 7 && (
               <div className="space-y-8">
                 <div className="space-y-3">
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Dynamic Position</label>
@@ -460,7 +485,7 @@ export default function Onboarding() {
               </div>
             )}
             
-            {step === 7 && (
+            {step === 8 && (
               <div className="space-y-6 flex-1 flex flex-col">
                 <div className="glass-card p-6 rounded-[32px] border border-white/10 space-y-6">
                   <div className="space-y-2 text-center">
@@ -534,23 +559,10 @@ export default function Onboarding() {
                     </Button>
                   </div>
                 </div>
-                
-                {formData.verificationPreview && (
-                  <div className="flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-                    <div className="flex items-center gap-2 text-emerald-500">
-                      <ShieldCheck size={16} />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Verification image ready</span>
-                    </div>
-                  </div>
-                )}
-                
-                <p className="text-[9px] text-white/20 text-center font-medium uppercase tracking-[0.1em] mt-auto">
-                  Your verification image is private and encrypted.
-                </p>
               </div>
             )}
 
-            {step === 8 && (
+            {step === 9 && (
               <div className="space-y-8 flex-1 flex flex-col items-center justify-center text-center">
                 <motion.div 
                   initial={{ scale: 0, rotate: -45 }}
@@ -588,41 +600,35 @@ export default function Onboarding() {
       </div>
 
       <div className="px-8 pb-8 pt-2 relative z-10 flex flex-col gap-4">
-        <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={nextStep}
-          disabled={isNextDisabled}
-          className={cn(
-            "w-full h-14 rounded-2xl premium-gradient text-white text-lg font-bold neon-glow transition-all flex items-center justify-center gap-3",
-            isNextDisabled && "opacity-40 grayscale"
-          )}
-        >
-          {authLoading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span className="text-sm">Checking account...</span>
-            </div>
-          ) : isSubmitting || isUploading ? (
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-              <span className="text-sm">{isUploading ? "Uploading identity..." : "Finalizing..."}</span>
-            </div>
-          ) : (
-            <>
-              <span>{step === 8 ? "Join Elite" : (step === 7 && formData.verificationPreview) ? "Submit for Verification" : "Proceed"}</span>
-              <ChevronRight size={20} />
-            </>
-          )}
-        </motion.button>
-
-        <button
-          onClick={handleDemoMode}
-          className="w-full h-12 rounded-xl glass border-white/10 text-[10px] font-bold text-white/40 uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2 group"
-        >
-          <Play size={12} className="group-hover:text-primary transition-colors" />
-          Jump into Aura (Demo Mode)
-        </button>
+        {step > 1 && (
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={nextStep}
+            disabled={isNextDisabled}
+            className={cn(
+              "w-full h-14 rounded-2xl premium-gradient text-white text-lg font-bold neon-glow transition-all flex items-center justify-center gap-3",
+              isNextDisabled && "opacity-40 grayscale"
+            )}
+          >
+            {authLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Checking account...</span>
+              </div>
+            ) : isSubmitting || isUploading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                <span className="text-sm">{isUploading ? "Uploading identity..." : "Finalizing..."}</span>
+              </div>
+            ) : (
+              <>
+                <span>{step === 9 ? "Join Elite" : (step === 8 && formData.verificationPreview) ? "Submit for Verification" : "Proceed"}</span>
+                <ChevronRight size={20} />
+              </>
+            )}
+          </motion.button>
+        )}
       </div>
     </div>
   );
