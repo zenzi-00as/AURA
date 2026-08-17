@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, ChevronLeft, Loader2, Sparkles, Chrome } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Sparkles, Chrome, Play } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
@@ -41,13 +42,14 @@ export default function AuthPage() {
   const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
-  const { user, loading: authLoading, onboardingCompleted } = useAuthContext();
+  const { user, loading: authLoading, onboardingCompleted, loginAsDemo } = useAuthContext();
   const { toast } = useToast();
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
@@ -59,6 +61,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
+      console.log("[AUTH] Active session detected, directing to destination node.");
       setIsRedirecting(true);
       if (onboardingCompleted) {
         router.replace("/dashboard");
@@ -120,6 +123,7 @@ export default function AuthPage() {
         }
         if (!agreedToTerms) throw new Error("Terms required to synchronize");
 
+        console.log("[AUTH] Initiating phone synchronization stage.");
         initRecaptcha();
         const fullPhone = countryCode + phone;
         
@@ -131,10 +135,12 @@ export default function AuthPage() {
         if (otpNormalized.length !== 6) throw new Error("Enter the 6-digit verification code");
         if (!confirmationResultRef.current) throw new Error("Verification session expired. Please go back.");
 
+        console.log("[AUTH] Verifying credential packet.");
         const result = await confirmationResultRef.current.confirm(otpNormalized);
         const authedUser = result.user;
 
         if (authedUser) {
+          console.log("[AUTH] Firebase Auth Success. Syncing Firestore profile.");
           const userRef = doc(db, "users", authedUser.uid);
           const snap = await getDoc(userRef);
 
@@ -160,6 +166,7 @@ export default function AuthPage() {
         }
       }
     } catch (error: any) {
+      console.error("[AUTH_ERROR]", error.code, error.message);
       const message = getFriendlyError(error.code) || error.message;
       toast({ variant: "destructive", title: "Authentication Error", description: message });
       if (step === "otp") setOtp("");
@@ -173,11 +180,13 @@ export default function AuthPage() {
     if (isLoading || isRedirecting) return;
     setIsLoading(true);
     try {
+      console.log("[AUTH] Materializing Google Login Stage.");
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const authedUser = result.user;
 
       if (authedUser) {
+        console.log("[AUTH] Google Sync Success. Orchestrating profile.");
         const userRef = doc(db, "users", authedUser.uid);
         const snap = await getDoc(userRef);
 
@@ -201,17 +210,29 @@ export default function AuthPage() {
         }
       }
     } catch (error: any) {
+      console.error("[AUTH_ERROR]", error);
       toast({ variant: "destructive", title: "Google Access Denied", description: "Unable to synchronize with Google." });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleDemoAccess = () => {
+    if (isDemoLoading) return;
+    setIsDemoLoading(true);
+    console.log("[AUTH] Entering Development Demo Stage.");
+    setTimeout(() => {
+      loginAsDemo();
+    }, 1200);
+  };
+
+  const isDemoModeEnabled = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
+
   return (
     <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-y-auto">
       <div className="absolute inset-0 z-0 hero-radial" />
       
-      {/* 1. Logo & 2. Heading Section */}
+      {/* Header Section */}
       <header className="mb-10 relative z-10 flex flex-col items-center text-center">
         <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-8">
           <span className="text-white font-bold text-xl">A</span>
@@ -242,7 +263,7 @@ export default function AuthPage() {
             {step === "details" ? (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  {/* 4. Email address field */}
+                  {/* Email address field */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
                     <Input 
@@ -254,7 +275,7 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  {/* 5. Country code + Phone number field */}
+                  {/* Country code + Phone number field */}
                   <div className="flex gap-4">
                     <div className="w-24">
                       <Select 
@@ -286,7 +307,7 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  {/* 6. Terms & Privacy checkbox */}
+                  {/* Terms & Privacy checkbox */}
                   <div className="flex items-start space-x-3 px-1 pt-2">
                     <Checkbox 
                       id="terms" 
@@ -301,25 +322,25 @@ export default function AuthPage() {
                 </div>
 
                 <div className="pt-4 space-y-6">
-                  {/* 7. Generate Access button */}
+                  {/* Generate Access button */}
                   <Button 
                     onClick={handleNext}
                     disabled={isLoading || isRedirecting}
                     className="w-full h-[58px] rounded-full blue-gradient text-white font-bold text-base shadow-2xl neon-glow transition-all active:scale-95 flex items-center justify-between px-8 border-none"
                   >
-                    <Sparkles size={22} className="text-white" />
-                    <span>Generate Access</span>
+                    {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={22} className="text-white" />}
+                    <span>{isLoading ? "Synchronizing..." : "Generate Access"}</span>
                     <ArrowRight size={20} className="text-white" />
                   </Button>
 
-                  {/* 8. Quick Access Divider */}
+                  {/* Quick Access Section */}
                   <div className="flex items-center gap-4">
                      <div className="h-[1px] flex-1 bg-white/10" />
                      <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Quick Access</span>
                      <div className="h-[1px] flex-1 bg-white/10" />
                   </div>
 
-                  {/* 9. Continue with Google button */}
+                  {/* Continue with Google button */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
@@ -327,12 +348,29 @@ export default function AuthPage() {
                     transition={{ duration: 4, repeat: Infinity }}
                     onClick={handleGoogleLogin}
                     disabled={isLoading || isRedirecting}
-                    className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group"
+                    className="w-full h-[58px] rounded-full border border-white/10 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group"
                   >
                     <Chrome size={22} className="text-[#2563FF]" />
                     <span className="text-base font-semibold">Continue with Google</span>
                     <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
                   </motion.button>
+
+                  {/* Development Demo Button */}
+                  {isDemoModeEnabled && (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleDemoAccess}
+                      disabled={isDemoLoading || isLoading || isRedirecting}
+                      className="w-full h-[58px] rounded-full border border-emerald-500/20 bg-emerald-500/5 flex items-center justify-between px-8 text-emerald-500 group"
+                    >
+                      {isDemoLoading ? <Loader2 className="animate-spin" /> : <Play size={22} className="fill-emerald-500" />}
+                      <span className="text-base font-semibold">{isDemoLoading ? "Entering Demo..." : "Continue Demo"}</span>
+                      <ArrowRight size={20} className="text-emerald-500/20 group-hover:text-emerald-500 transition-colors" />
+                    </motion.button>
+                  )}
                 </div>
               </div>
             ) : (

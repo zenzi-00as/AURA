@@ -13,7 +13,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   onboardingCompleted: boolean;
-  exitDemoMode?: () => void;
+  exitDemoMode: () => void;
+  loginAsDemo: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,6 +22,8 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   onboardingCompleted: false,
+  exitDemoMode: () => {},
+  loginAsDemo: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,20 +31,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isDemoActive = () => {
+    if (typeof window === 'undefined') return false;
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
+    const hasActiveSession = sessionStorage.getItem('aura_demo_active') === 'true';
+    return isDemoMode && hasActiveSession;
+  };
+
+  const loginAsDemo = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('aura_demo_active', 'true');
+      window.location.reload(); // Force context re-initialization
+    }
+  };
+
   const exitDemoMode = () => {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('aura_demo_disabled', 'true');
+      sessionStorage.removeItem('aura_demo_active');
       window.location.href = '/auth';
     }
   };
 
   useEffect(() => {
     // 1. Development Demo Mode Logic
-    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
-    const isDemoDisabled = typeof window !== 'undefined' && sessionStorage.getItem('aura_demo_disabled') === 'true';
-
-    if (isDemoMode && !isDemoDisabled) {
-      console.log("[AUTH] Demo Mode Active: Bypassing Firebase Authentication.");
+    if (isDemoActive()) {
+      console.log("[AUTH] Demo Mode Active: Initializing Local Session.");
       
       const demoUser = {
         uid: 'demo-user',
@@ -178,7 +192,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     loading,
     onboardingCompleted: !!profile?.onboardingCompleted,
-    exitDemoMode
+    exitDemoMode,
+    loginAsDemo
   };
 
   return (
