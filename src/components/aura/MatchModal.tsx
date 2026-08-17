@@ -57,7 +57,7 @@ export function MatchModal({ isOpen, onClose, user, currentUser, matchType = 'li
                   isSuperMatch ? "premium-gradient neon-glow" : "bg-rose-500/20 text-rose-500"
                 )}
               >
-                {isSuperMatch ? <Sparkles size={32} className="text-white fill-white" /> : <Heart size={32} className="text-rose-500 fill-current" />}
+                {isSuperMatch ? <Sparkles size={32} className="text-white fill-white" /> : <Heart size={32} className="text-rose-500" />}
               </motion.div>
               <h2 className="text-3xl font-bold tracking-tighter text-white">
                 {isSuperMatch ? "Super Synchronized! ✦" : "It's a Match ✦"}
@@ -80,7 +80,7 @@ export function MatchModal({ isOpen, onClose, user, currentUser, matchType = 'li
                 transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                 className="absolute z-10 w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-lg"
               >
-                {isSuperMatch ? <Sparkles size={20} /> : <Heart size={20} className="fill-current" />}
+                {isSuperMatch ? <Sparkles size={20} /> : <Heart size={20} />}
               </motion.div>
               <div className="relative">
                 <div className="w-24 h-24 rounded-full border-4 border-secondary/40 overflow-hidden shadow-xl">

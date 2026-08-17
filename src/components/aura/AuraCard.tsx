@@ -205,7 +205,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         </AnimatePresence>
 
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : (
-          <Heart size={20} className={cn((isLiked || isSuperLiked) && "fill-white text-white")} />
+          <Heart size={20} className={cn((isLiked || isSuperLiked) && "text-white")} />
         )}
         
         {isHolding && (

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo } from "react";
@@ -59,7 +58,7 @@ export default function WhoLikesYouPage() {
           <div className="flex justify-between items-center">
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-[#C93CFF]/20">
-                <Heart size={20} className="text-white fill-white" />
+                <Heart size={20} className="text-white" />
               </div>
               <h1 className="text-xl font-semibold tracking-tight text-white">Interested</h1>
             </motion.div>
