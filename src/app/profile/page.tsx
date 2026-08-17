@@ -511,7 +511,7 @@ function ProfileContent() {
                     <SheetTrigger asChild>
                       <button className="p-6 w-full rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-accent/40 transition-all">
                         <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
-                            <Star size={24} />
+                            <Heart size={24} />
                         </div>
                         <div className="space-y-1">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
@@ -529,7 +529,7 @@ function ProfileContent() {
                         <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
                             <div className="text-center space-y-3">
                               <div className="w-20 h-20 rounded-[32px] bg-accent/20 mx-auto flex items-center justify-center border border-accent/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                                  <Star size={32} className="text-accent" />
+                                  <Heart size={32} className="text-accent" />
                               </div>
                               <h3 className="text-3xl font-bold tracking-tighter">💜 SUPER LIKE</h3>
                               <p className="text-sm text-white/60 font-light">Stand out from the crowd.</p>
@@ -543,11 +543,11 @@ function ProfileContent() {
 
                             <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
                               <div className="flex items-center gap-3 text-accent">
-                                <Star size={20} />
+                                <Heart size={20} />
                                 <h4 className="text-xs font-bold uppercase tracking-widest">Interaction Power</h4>
                               </div>
                               <p className="text-sm text-white/80 font-light leading-relaxed">
-                                Super like is a special feature that tells someone you are very interested in them. When you tap the blue star icon or swipe up on a profile, your profile jumps to the top of their queue and shows up with a bright blue border and star.
+                                Super like is a special feature that tells someone you are very interested in them. When you tap the blue heart icon on a profile, your profile jumps to the top of their queue and shows up with notification.
                               </p>
                             </div>
 
@@ -557,7 +557,7 @@ function ProfileContent() {
                                 {[
                                   { icon: Heart, title: "3x More Matches", desc: "Super Liked profiles are 3x more likely to result in a synchronization event." },
                                   { icon: Bell, title: "Immediate Notification", desc: "Your interest is pushed to the top of their alerts instantly, cutting through the noise." },
-                                  { icon: Star, title: "Cinematic Reveal", desc: "When they discover your aura, it materializes with a unique premium highlight." }
+                                  { icon: Sparkles, title: "Cinematic Reveal", desc: "When they discover your aura, it materializes with a unique premium highlight." }
                                 ].map((item, i) => (
                                   <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex gap-4 items-start">
                                     <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
