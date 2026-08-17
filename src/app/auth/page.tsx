@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -17,7 +18,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -43,6 +44,7 @@ export default function AuthPage() {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   
   const router = useRouter();
   const auth = useAuth();
@@ -58,15 +60,15 @@ export default function AuthPage() {
   }, [countryCode]);
 
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log("[AUTH] Session confirmed, checking redirection...");
+    if (!authLoading && user && !isRedirecting) {
+      setIsRedirecting(true);
       if (onboardingCompleted) {
         router.replace("/dashboard");
       } else {
         router.replace("/onboarding");
       }
     }
-  }, [user, authLoading, onboardingCompleted, router]);
+  }, [user, authLoading, onboardingCompleted, router, isRedirecting]);
 
   useEffect(() => {
     return () => {
@@ -112,13 +114,11 @@ export default function AuthPage() {
 
   const handleNext = async () => {
     if (!auth || !db) return;
-    if (isLoading) return;
+    if (isLoading || isRedirecting) return;
     
     setIsLoading(true);
     try {
       if (step === "details") {
-        console.log("[AUTH] OTP request started");
-        
         if (!email.includes("@")) throw new Error("Invalid Email Identity");
         if (phone.length !== currentCountry.maxLength) {
           throw new Error(`Invalid Phone. Expected ${currentCountry.maxLength} digits for ${currentCountry.name}.`);
@@ -130,12 +130,8 @@ export default function AuthPage() {
         
         const result = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifierRef.current!);
         confirmationResultRef.current = result;
-        
-        console.log("[AUTH] OTP request successful");
         setStep("otp");
       } else {
-        console.log("[AUTH] OTP verification started");
-        
         const otpNormalized = otp.replace(/\D/g, "").slice(0, 6);
         if (otpNormalized.length !== 6) throw new Error("Enter the 6-digit verification code");
         if (!confirmationResultRef.current) throw new Error("Verification session expired. Please go back.");
@@ -143,34 +139,32 @@ export default function AuthPage() {
         const result = await confirmationResultRef.current.confirm(otpNormalized);
         const authedUser = result.user;
 
-        if (!authedUser) throw new Error("Authentication failed to return a valid identity.");
-        console.log("[AUTH] OTP verification successful. UID:", authedUser.uid);
+        if (authedUser) {
+          const userRef = doc(db, "users", authedUser.uid);
+          const snap = await getDoc(userRef);
 
-        const userRef = doc(db, "users", authedUser.uid);
-        const snap = await getDoc(userRef);
-
-        if (!snap.exists()) {
-          await setDoc(userRef, {
-            uid: authedUser.uid,
-            email: email,
-            phoneNumber: countryCode + phone,
-            onboardingCompleted: false,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            dailyChatCount: 0,
-            dailyMediaCount: 0,
-            superLikeBalance: 0,
-            plan: 'Free',
-            incognitoMode: false,
-            isSuspended: false,
-            isAdmin: false,
-            isOnline: true,
-            lastActive: serverTimestamp()
-          });
+          if (!snap.exists()) {
+            await setDoc(userRef, {
+              uid: authedUser.uid,
+              email: email,
+              phoneNumber: countryCode + phone,
+              onboardingCompleted: false,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              dailyChatCount: 0,
+              dailyMediaCount: 0,
+              superLikeBalance: 0,
+              plan: 'Free',
+              incognitoMode: false,
+              isSuspended: false,
+              isAdmin: false,
+              isOnline: true,
+              lastActive: serverTimestamp()
+            });
+          }
         }
       }
     } catch (error: any) {
-      console.error("[AUTH_ERROR]", error.code, error.message);
       const message = getFriendlyError(error.code) || error.message;
       toast({ variant: "destructive", title: "Authentication Error", description: message });
       if (step === "otp") setOtp("");
@@ -181,6 +175,7 @@ export default function AuthPage() {
 
   const handleGoogleLogin = async () => {
     if (!auth || !db) return;
+    if (isLoading || isRedirecting) return;
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -211,7 +206,6 @@ export default function AuthPage() {
         }
       }
     } catch (error: any) {
-      console.error("[AUTH_ERROR_GOOGLE]", error);
       toast({ variant: "destructive", title: "Google Access Denied", description: "Unable to synchronize with Google." });
     } finally {
       setIsLoading(false);
@@ -322,7 +316,7 @@ export default function AuthPage() {
                       animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
                       transition={{ duration: 4, repeat: Infinity }}
                       onClick={handleGoogleLogin}
-                      disabled={isLoading}
+                      disabled={isLoading || isRedirecting}
                       className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group shadow-[0_0_30px_rgba(37,99,255,0.25)]"
                     >
                       <Chrome size={22} className="text-[#2563FF]" />
@@ -359,10 +353,10 @@ export default function AuthPage() {
 
             <Button 
               onClick={handleNext}
-              disabled={isLoading}
+              disabled={isLoading || isRedirecting}
               className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg shadow-2xl neon-glow transition-all active:scale-95"
             >
-              {isLoading ? <Loader2 className="animate-spin" /> : (
+              {isLoading || isRedirecting ? <Loader2 className="animate-spin" /> : (
                 <>
                   {step === "details" ? "Generate Access" : "Verify & Synchronize"}
                   <ArrowRight size={20} className="ml-2" />

@@ -86,8 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth || !db) return;
 
     const timeoutId = setTimeout(() => {
-      if (loading) setLoading(false);
-    }, 5000);
+      setLoading(false);
+    }, 8000);
 
     const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
       setUser(authUser);
@@ -99,26 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           userRef,
           (docSnap) => {
             if (docSnap.exists()) {
-              const data = docSnap.data() as UserProfile;
-              setProfile(data);
-
-              const today = format(new Date(), 'yyyy-MM-dd');
-              const updates: any = {};
-              
-              if (data.lastResetDate !== today) {
-                updates.dailyChatCount = 0;
-                updates.dailyMediaCount = 0;
-                updates.lastResetDate = today;
-              }
-              
-              if (data.lastLikeResetDate !== today) {
-                updates.dailyLikeCount = 0;
-                updates.lastLikeResetDate = today;
-              }
-
-              if (Object.keys(updates).length > 0) {
-                updateDoc(userRef, updates).catch(() => {});
-              }
+              setProfile(docSnap.data() as UserProfile);
             } else {
               setProfile(null);
             }
@@ -132,23 +113,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
+        // Initial online presence update
         updateDoc(userRef, {
           isOnline: true,
           lastActive: serverTimestamp()
         }).catch(() => {});
 
         const handleVisibilityChange = () => {
-          updateDoc(userRef, { 
-            isOnline: document.visibilityState !== 'hidden', 
-            lastActive: serverTimestamp() 
-          }).catch(() => {});
+          if (document.visibilityState === 'visible') {
+            updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
+          } else {
+            updateDoc(userRef, { isOnline: false }).catch(() => {});
+          }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
           unsubscribeProfile();
           document.removeEventListener('visibilitychange', handleVisibilityChange);
-          updateDoc(userRef, { isOnline: false, lastActive: serverTimestamp() }).catch(() => {});
+          updateDoc(userRef, { isOnline: false }).catch(() => {});
         };
       } else {
         setProfile(null);
@@ -162,6 +145,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(timeoutId);
     };
   }, []);
+
+  // Separate effect for daily reset logic to avoid snapshot loops
+  useEffect(() => {
+    if (!profile || profile.isDemoUser) return;
+    const { db } = initializeFirebase();
+    if (!db) return;
+
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const updates: any = {};
+    
+    if (profile.lastResetDate !== today) {
+      updates.dailyChatCount = 0;
+      updates.dailyMediaCount = 0;
+      updates.lastResetDate = today;
+    }
+    
+    if (profile.lastLikeResetDate !== today) {
+      updates.dailyLikeCount = 0;
+      updates.lastLikeResetDate = today;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      const userRef = doc(db, 'users', profile.uid);
+      updateDoc(userRef, updates).catch(() => {});
+    }
+  }, [profile?.uid, profile?.lastResetDate, profile?.lastLikeResetDate]);
 
   const value = {
     user,
