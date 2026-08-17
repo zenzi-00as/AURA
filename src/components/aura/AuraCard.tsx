@@ -247,9 +247,8 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             </div>
 
             {hasSpotlight && (
-              <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <span className="text-[10px]">🌟</span>
-                <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
+              <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center animate-pulse aura-glow-blue">
+                <span className="text-sm">🌟</span>
               </div>
             )}
 
@@ -269,10 +268,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
             {hasSpotlight && (
-              <div className="flex items-center gap-0.5 bg-primary/20 px-1.5 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <span className="text-[10px]">🌟</span>
-                <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
-              </div>
+              <span className="text-sm animate-pulse">🌟</span>
             )}
           </div>
           
@@ -309,10 +305,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                     <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
                     {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
                     {hasSpotlight && (
-                      <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                        <span className="text-[10px]">🌟</span>
-                        <span className="text-[9px] font-bold text-white uppercase">Spotlight</span>
-                      </div>
+                      <span className="text-sm animate-pulse">🌟</span>
                     )}
                   </div>
                   <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">{user.distance}</span>

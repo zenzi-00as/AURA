@@ -165,7 +165,7 @@ export default function ChatRoomPage() {
           updateDoc(doc(db, "users", authUser.uid), { dailyChatCount: increment(1) });
         }
       } else {
-        updateDoc(doc(db, "chatRooms", roomId), {
+        updateDoc(doc(chatRoomsRef(db), roomId), {
           [`unreadCount.${authUser.uid}`]: 0
         }).catch(() => {});
       }
@@ -411,7 +411,7 @@ export default function ChatRoomPage() {
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-sm text-white">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
-                {isOtherSpotlight && <span className="text-[12px] animate-pulse">🌟</span>}
+                {isOtherSpotlight && <Star size={16} className="text-primary animate-pulse" />}
               </div>
               <AnimatePresence mode="wait">
                 {isOtherTyping ? (

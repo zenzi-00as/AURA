@@ -137,7 +137,7 @@ export default function ChatList() {
                             {chat.name}{chat.age ? `, ${chat.age}` : ""}
                           </h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                          {chat.isSpotlight && <span className="text-[12px] animate-pulse">🌟</span>}
+                          {chat.isSpotlight && <Star size={14} className="text-primary animate-pulse" />}
                           {chat.privacyEnabled && <Shield size={12} className="text-primary/60" />}
                         </div>
                         <span className={cn("text-[10px] shrink-0 ml-2 font-bold uppercase tracking-tighter opacity-30")}>
