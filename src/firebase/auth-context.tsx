@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginAsDemo = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('aura_demo_active', 'true');
-      window.location.reload(); // Force context re-initialization
+      window.location.reload(); 
     }
   };
 
@@ -53,10 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // 1. Development Demo Mode Logic
     if (isDemoActive()) {
-      console.log("[AUTH] Demo Mode Active: Initializing Local Session.");
-      
       const demoUser = {
         uid: 'demo-user',
         email: 'demo@aura.local',
@@ -96,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 2. Real Firebase Authentication Logic
     const { auth, db } = initializeFirebase();
     if (!auth || !db) return;
 
@@ -128,7 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
-        // Initial online presence update
         updateDoc(userRef, {
           isOnline: true,
           lastActive: serverTimestamp()
@@ -161,7 +156,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Separate effect for daily reset logic to avoid snapshot loops
   useEffect(() => {
     if (!profile || profile.isDemoUser) return;
     const { db } = initializeFirebase();

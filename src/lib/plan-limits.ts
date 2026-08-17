@@ -1,8 +1,9 @@
 
 import { PlanType, UserProfile } from "./types";
 
-export const PLAN_LIMITS = {
+export const PLAN_CONFIG = {
   Free: {
+    displayName: "Aura Free",
     maxRadiusKm: 50,
     dailyLikes: 25,
     dailyNewChats: 5,
@@ -11,8 +12,12 @@ export const PLAN_LIMITS = {
     advancedFilters: false,
     blurredPhotos: true,
     adsEnabled: true,
+    seeWhoLikesYou: false,
+    prioritySupport: false,
+    earlyAccess: false,
   },
   Elite: {
+    displayName: "Aura Elite Plus",
     maxRadiusKm: 100,
     dailyLikes: Infinity,
     dailyNewChats: Infinity,
@@ -21,13 +26,16 @@ export const PLAN_LIMITS = {
     advancedFilters: true,
     blurredPhotos: false,
     adsEnabled: false,
+    seeWhoLikesYou: true,
+    prioritySupport: true,
+    earlyAccess: true,
   }
 };
 
-export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_LIMITS.Free) {
-  if (!profile) return PLAN_LIMITS.Free[type];
-  const plan = profile.plan || 'Free';
-  return PLAN_LIMITS[plan][type];
+export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_CONFIG.Free) {
+  if (!profile) return PLAN_CONFIG.Free[type];
+  const plan = profile.plan === 'Elite' ? 'Elite' : 'Free';
+  return PLAN_CONFIG[plan][type];
 }
 
 export function isElite(profile: UserProfile | null) {

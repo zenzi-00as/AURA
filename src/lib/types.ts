@@ -1,6 +1,6 @@
 
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
-export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired';
+export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired' | 'Pending';
 export type PlanType = 'Free' | 'Elite';
 
 export type UserNotificationSettings = {
