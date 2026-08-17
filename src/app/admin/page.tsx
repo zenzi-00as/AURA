@@ -138,7 +138,7 @@ export default function AdminPage() {
                     <div className="flex gap-2">
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'verify')} title="Verify"><UserCheck size={16} /></Button>
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantElite')} title="Grant Elite"><Star size={16} /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantSpotlight')} title="Grant Spotlight"><Star size={16} /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantSpotlight')} title="Grant Spotlight"><span className="text-xs">🌟</span></Button>
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, u.isSuspended ? 'unsuspend' : 'suspend')} className={u.isSuspended ? "text-emerald-500" : "text-destructive"}>
                         <UserX size={16} />
                       </Button>

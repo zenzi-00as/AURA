@@ -248,7 +248,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
             {hasSpotlight && (
               <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <Star size={10} className="text-primary" />
+                <span className="text-[10px]">🌟</span>
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
               </div>
             )}
@@ -270,7 +270,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
             {hasSpotlight && (
               <div className="flex items-center gap-0.5 bg-primary/20 px-1.5 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <Star size={10} className="text-primary" />
+                <span className="text-[10px]">🌟</span>
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
               </div>
             )}
@@ -310,7 +310,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                     {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
                     {hasSpotlight && (
                       <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                        <Star size={10} className="text-primary" />
+                        <span className="text-[10px]">🌟</span>
                         <span className="text-[9px] font-bold text-white uppercase">Spotlight</span>
                       </div>
                     )}

@@ -411,7 +411,7 @@ export default function ChatRoomPage() {
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-sm text-white">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
-                {isOtherSpotlight && <Star size={14} className="text-primary animate-pulse" />}
+                {isOtherSpotlight && <span className="text-[12px] animate-pulse">🌟</span>}
               </div>
               <AnimatePresence mode="wait">
                 {isOtherTyping ? (
