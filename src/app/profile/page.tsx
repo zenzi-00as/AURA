@@ -535,6 +535,12 @@ function ProfileContent() {
                               <p className="text-sm text-white/60 font-light">Stand out from the crowd.</p>
                             </div>
 
+                            <div className="flex items-center justify-center gap-10 py-4">
+                              <button onClick={() => setSuperLikeQty(Math.max(1, superLikeQty - 1))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Minus size={24} /></button>
+                              <div className="text-4xl font-bold tracking-tighter w-12 text-center">{superLikeQty}</div>
+                              <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Plus size={24} /></button>
+                            </div>
+
                             <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
                               <div className="flex items-center gap-3 text-accent">
                                 <Star size={20} />
@@ -543,12 +549,6 @@ function ProfileContent() {
                               <p className="text-sm text-white/80 font-light leading-relaxed">
                                 Super like is a special feature that tells someone you are very interested in them. When you tap the blue star icon or swipe up on a profile, your profile jumps to the top of their queue and shows up with a bright blue border and star.
                               </p>
-                            </div>
-
-                            <div className="flex items-center justify-center gap-10 py-4">
-                              <button onClick={() => setSuperLikeQty(Math.max(1, superLikeQty - 1))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Minus size={24} /></button>
-                              <div className="text-4xl font-bold tracking-tighter w-12 text-center">{superLikeQty}</div>
-                              <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Plus size={24} /></button>
                             </div>
 
                             <div className="space-y-6">
