@@ -421,7 +421,7 @@ function ProfileContent() {
                       spotlight && "bg-primary/10 border-primary/30 aura-glow-purple"
                     )}>
                       <div className={cn("w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform", spotlight && "animate-pulse")}>
-                        <span className="text-2xl">🌟</span>
+                        <Star size={24} className="text-primary" />
                       </div>
                       <div className="space-y-1">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
@@ -439,7 +439,7 @@ function ProfileContent() {
                       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                           <div className="text-center space-y-3">
                             <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
-                                <span className="text-3xl">🌟</span>
+                                <Star size={32} className="text-primary" />
                             </div>
                             <h3 className="text-3xl font-bold tracking-tighter">⚡ SPOTLIGHT</h3>
                             <p className="text-sm text-white/60 font-light">Be the first aura people see nearby.</p>
