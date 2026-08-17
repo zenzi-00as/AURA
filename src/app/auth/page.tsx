@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import useEmblaCarousel from 'embla-carousel-react';
 import { 
   signInWithPhoneNumber, 
   RecaptchaVerifier,
@@ -27,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 const COUNTRIES = [
   { code: "+91", flag: "🇮🇳", name: "India", maxLength: 10 },
@@ -54,21 +52,6 @@ export default function AuthPage() {
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
-  // Carousel State
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on('select', onSelect);
-    onSelect();
-  }, [emblaApi, onSelect]);
 
   const currentCountry = useMemo(() => {
     return COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
@@ -99,10 +82,7 @@ export default function AuthPage() {
 
     try {
       recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {
-          console.log("[AUTH] reCAPTCHA verified");
-        }
+        size: 'invisible'
       });
     } catch (error) {
       console.error("[AUTH_ERROR] reCAPTCHA init failed", error);
@@ -228,11 +208,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-hidden">
+    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-y-auto">
       <div className="absolute inset-0 z-0 hero-radial" />
       
+      {/* 1. Logo & 2. Heading Section */}
       <header className="mb-10 relative z-10 flex flex-col items-center text-center">
-        <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-6">
+        <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-8">
           <span className="text-white font-bold text-xl">A</span>
         </div>
         <div className="flex flex-col gap-3">
@@ -249,7 +230,7 @@ export default function AuthPage() {
         </div>
       </header>
       
-      <div className="flex-1 relative z-10 space-y-8">
+      <div className="flex-1 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -259,115 +240,99 @@ export default function AuthPage() {
             className="space-y-6"
           >
             {step === "details" ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
-                  <Input 
-                    type="email" 
-                    placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#2563FF] focus:ring-0"
-                  />
-                </div>
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  {/* 4. Email address field */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
+                    <Input 
+                      type="email" 
+                      placeholder="Email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#2563FF] focus:ring-0"
+                    />
+                  </div>
 
-                <div className="flex gap-4">
-                  <div className="w-24">
-                    <Select 
-                      value={countryCode} 
-                      onValueChange={(val) => {
-                        setCountryCode(val);
-                        setPhone(""); 
+                  {/* 5. Country code + Phone number field */}
+                  <div className="flex gap-4">
+                    <div className="w-24">
+                      <Select 
+                        value={countryCode} 
+                        onValueChange={(val) => {
+                          setCountryCode(val);
+                          setPhone(""); 
+                        }}
+                      >
+                        <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-2xl">
+                          {COUNTRIES.map(c => <SelectItem key={c.code} value={c.code}>{c.flag} {c.code}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Input 
+                      type="tel" 
+                      placeholder="Phone number"
+                      value={phone}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        if (val.length <= currentCountry.maxLength) {
+                          setPhone(val);
+                        }
                       }}
-                    >
-                      <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-2xl">
-                        {COUNTRIES.map(c => <SelectItem key={c.code} value={c.code}>{c.flag} {c.code}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1"
+                    />
                   </div>
-                  <Input 
-                    type="tel" 
-                    placeholder="Phone number"
-                    value={phone}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      if (val.length <= currentCountry.maxLength) {
-                        setPhone(val);
-                      }
-                    }}
-                    className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1"
-                  />
+
+                  {/* 6. Terms & Privacy checkbox */}
+                  <div className="flex items-start space-x-3 px-1 pt-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={agreedToTerms} 
+                      onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                      className="mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
+                    />
+                    <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed">
+                      I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
+                    </label>
+                  </div>
                 </div>
 
-                <div className="flex items-start space-x-3 px-1 pt-2">
-                  <Checkbox 
-                    id="terms" 
-                    checked={agreedToTerms} 
-                    onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                    className="mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
-                  />
-                  <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed">
-                    I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
-                  </label>
-                </div>
+                <div className="pt-4 space-y-6">
+                  {/* 7. Generate Access button */}
+                  <Button 
+                    onClick={handleNext}
+                    disabled={isLoading || isRedirecting}
+                    className="w-full h-[58px] rounded-full blue-gradient text-white font-bold text-base shadow-2xl neon-glow transition-all active:scale-95 flex items-center justify-between px-8 border-none"
+                  >
+                    <Sparkles size={22} className="text-white" />
+                    <span>Generate Access</span>
+                    <ArrowRight size={20} className="text-white" />
+                  </Button>
 
-                <div className="pt-8 space-y-6">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4">
-                       <div className="h-[1px] flex-1 bg-white/10" />
-                       <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Quick Access</span>
-                       <div className="h-[1px] flex-1 bg-white/10" />
-                    </div>
-
-                    <div className="relative overflow-hidden" ref={emblaRef}>
-                      <div className="flex">
-                        {/* Slide 1: Google */}
-                        <div className="flex-[0_0_100%] min-w-0 px-1">
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
-                            animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
-                            transition={{ duration: 4, repeat: Infinity }}
-                            onClick={handleGoogleLogin}
-                            disabled={isLoading || isRedirecting}
-                            className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group shadow-[0_0_30px_rgba(37,99,255,0.25)]"
-                          >
-                            <Chrome size={22} className="text-[#2563FF]" />
-                            <span className="text-base font-semibold">Continue with Google</span>
-                            <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
-                          </motion.button>
-                        </div>
-                        {/* Slide 2: Direct Access */}
-                        <div className="flex-[0_0_100%] min-w-0 px-1">
-                          <Button 
-                            onClick={handleNext}
-                            disabled={isLoading || isRedirecting}
-                            className="w-full h-[58px] rounded-full blue-gradient text-white font-bold text-base shadow-2xl neon-glow transition-all active:scale-95 flex items-center justify-between px-8 border-none"
-                          >
-                            <Sparkles size={22} className="text-white" />
-                            <span>Generate Access</span>
-                            <ArrowRight size={20} className="text-white" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Dot Indicators */}
-                    <div className="flex justify-center gap-2 pt-2">
-                      {[0, 1].map((index) => (
-                        <div 
-                          key={`dot-${index}`}
-                          className={cn(
-                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                            selectedIndex === index ? "bg-[#2563FF] w-4" : "bg-white/20"
-                          )}
-                        />
-                      ))}
-                    </div>
+                  {/* 8. Quick Access Divider */}
+                  <div className="flex items-center gap-4">
+                     <div className="h-[1px] flex-1 bg-white/10" />
+                     <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Quick Access</span>
+                     <div className="h-[1px] flex-1 bg-white/10" />
                   </div>
+
+                  {/* 9. Continue with Google button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading || isRedirecting}
+                    className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group"
+                  >
+                    <Chrome size={22} className="text-[#2563FF]" />
+                    <span className="text-base font-semibold">Continue with Google</span>
+                    <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
+                  </motion.button>
                 </div>
               </div>
             ) : (
