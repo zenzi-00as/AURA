@@ -29,7 +29,8 @@ import {
   ShieldCheck,
   UserCheck,
   Compass,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -274,7 +275,7 @@ function ProfileContent() {
             <div className="space-y-1">
               <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
                 {profile.name}, {profile.age}
-                {elite && <Star size={20} className="text-accent fill-accent" />}
+                {elite && <Star size={20} className="text-accent" />}
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />
@@ -537,6 +538,34 @@ function ProfileContent() {
                               <button onClick={() => setSuperLikeQty(Math.max(1, superLikeQty - 1))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Minus size={24} /></button>
                               <div className="text-4xl font-bold tracking-tighter w-12 text-center">{superLikeQty}</div>
                               <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Plus size={24} /></button>
+                            </div>
+
+                            <div className="space-y-6">
+                              <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] px-1">How it works</h4>
+                              <div className="grid grid-cols-1 gap-3">
+                                {[
+                                  { icon: Heart, title: "3x More Matches", desc: "Super Liked profiles are 3x more likely to result in a synchronization event." },
+                                  { icon: Bell, title: "Immediate Notification", desc: "Your interest is pushed to the top of their alerts instantly, cutting through the noise." },
+                                  { icon: Star, title: "Cinematic Reveal", desc: "When they discover your aura, it materializes with a unique premium highlight." }
+                                ].map((item, i) => (
+                                  <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex gap-4 items-start">
+                                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                                      <item.icon size={18} />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <p className="text-xs font-bold text-white">{item.title}</p>
+                                      <p className="text-[10px] text-white/40 font-light leading-relaxed">{item.desc}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="pt-8 pb-4 flex flex-col items-center gap-4 opacity-10">
+                              <div className="w-12 h-12 rounded-[18px] border-2 border-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                                <span className="text-2xl font-bold text-white tracking-tighter">A</span>
+                              </div>
+                              <p className="text-[10px] font-bold text-white uppercase tracking-[0.5em]">Aura Identity</p>
                             </div>
                         </div>
                         <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
