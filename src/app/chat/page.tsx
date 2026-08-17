@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Sparkles, Shield, Clock } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Sparkles, Shield, Clock, Zap } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -13,6 +13,7 @@ import { ChatRoom, UserProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
+import { isSpotlightActive } from "@/lib/plan-limits";
 
 export default function ChatList() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function ChatList() {
 
       const unreadCount = room.unreadCount?.[authUser.uid] || 0;
       const isTyping = room.typing && otherParticipantId && room.typing[otherParticipantId];
+      const isSpotlight = isSpotlightActive(otherUser);
 
       return {
         id: room.id,
@@ -64,7 +66,8 @@ export default function ChatList() {
         otherUid: otherParticipantId,
         isOnline: otherUser?.isOnline,
         isTyping,
-        privacyEnabled: room.privacyEnabled
+        privacyEnabled: room.privacyEnabled,
+        isSpotlight
       };
     });
   }, [rooms, profiles, authUser]);
@@ -134,6 +137,7 @@ export default function ChatList() {
                             {chat.name}{chat.age ? `, ${chat.age}` : ""}
                           </h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
+                          {chat.isSpotlight && <Zap size={14} className="text-primary fill-primary animate-pulse" />}
                           {chat.privacyEnabled && <Shield size={12} className="text-primary/60" />}
                         </div>
                         <span className={cn("text-[10px] shrink-0 ml-2 font-bold uppercase tracking-tighter opacity-30")}>

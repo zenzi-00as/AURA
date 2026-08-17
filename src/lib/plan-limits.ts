@@ -1,4 +1,3 @@
-
 import { useAuthContext } from "@/firebase/auth-context";
 import { PlanType, UserProfile } from "./types";
 
@@ -43,10 +42,16 @@ export function isElite(profile: UserProfile | null) {
   return profile?.plan === 'Elite';
 }
 
-export function isSpotlightActive(profile: UserProfile | null) {
+export function isSpotlightActive(profile: UserProfile | null | undefined) {
   if (!profile?.spotlightExpiry) return false;
-  const expiry = profile.spotlightExpiry.toDate ? profile.spotlightExpiry.toDate() : new Date(profile.spotlightExpiry);
-  return expiry > new Date();
+  try {
+    const expiry = profile.spotlightExpiry.toDate 
+      ? profile.spotlightExpiry.toDate() 
+      : (profile.spotlightExpiry instanceof Date ? profile.spotlightExpiry : new Date(profile.spotlightExpiry));
+    return expiry > new Date();
+  } catch (e) {
+    return false;
+  }
 }
 
 export function usePlan() {

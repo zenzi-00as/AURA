@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -247,6 +246,13 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 {user.isOnline && !user.incognitoMode ? "Online" : "Offline"}
               </span>
             </div>
+
+            {hasSpotlight && (
+              <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
+                <Zap size={10} className="text-primary fill-primary" />
+                <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
+              </div>
+            )}
 
             {user.photoUrl && !blurPhotos ? (
               <img src={user.photoUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
