@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
-import { isElite, isSpotlightActive, checkPlanLimit } from "@/lib/plan-limits";
+import { isElite, isElitePlus, isSpotlightActive, checkPlanLimit } from "@/lib/plan-limits";
 import { cn } from "@/lib/utils";
 import { 
   Sheet, 
@@ -73,18 +74,18 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
     if ((user as any).interactionType === 'super_like') setIsSuperLiked(true);
   }, [user]);
 
-  const blurPhotos = !isElite(currentUser);
+  const blurPhotos = !isElitePlus(currentUser);
   const hasSpotlight = isSpotlightActive(user);
 
   const handleInteraction = async (type: InteractionType) => {
     if (!db || !currentUser || isLoading) return;
 
-    if (type === 'like' && !isElite(currentUser)) {
+    if (type === 'like' && !isElitePlus(currentUser)) {
       const limit = checkPlanLimit(currentUser, 'dailyLikes') as number;
       if (currentUser.dailyLikeCount >= (limit || 0)) {
         toast({
           title: "Like Limit Reached",
-          description: `Aura Free allows ${limit} likes per day. Upgrade to Elite Plus for unlimited interest.`,
+          description: `Aura Free/Elite allows ${limit} likes per day. Upgrade to Elite Plus for unlimited interest.`,
           variant: "destructive"
         });
         return;
@@ -247,7 +248,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             </div>
 
             {hasSpotlight && (
-              <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center animate-pulse aura-glow-blue">
+              <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center aura-glow-blue">
                 <span className="text-sm">🌟</span>
               </div>
             )}
@@ -267,9 +268,6 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
-            {hasSpotlight && (
-              <span className="text-sm animate-pulse">🌟</span>
-            )}
           </div>
           
           <div className="flex flex-col gap-1">
@@ -322,7 +320,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                   <div className="w-full h-full flex flex-col items-center justify-center bg-[#0B0F18] p-8 text-center gap-6">
                     <Lock size={48} className="text-primary/20" />
                     <p className="text-sm text-white/60 font-light">Upgrade to Aura Elite Plus to unlock full-resolution identity photos.</p>
-                    <Button onClick={() => router.push('/profile?tab=elite')} className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
+                    <Button onClick={() => router.push('/profile?tab=eliteplus')} className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
                   </div>
                 )}
               </div>

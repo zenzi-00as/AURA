@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         gender: 'Non-binary',
         orientation: 'Queer',
         interestedIn: ['Anyone'],
-        plan: 'Elite',
+        plan: 'elite_plus',
         verificationStatus: 'Verified',
         photoUrl: 'https://picsum.photos/seed/aura_demo/400/400',
         onboardingCompleted: process.env.NEXT_PUBLIC_DEMO_ONBOARDING_COMPLETE === 'true',

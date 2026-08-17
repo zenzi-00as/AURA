@@ -45,7 +45,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, addDoc, collection, increment } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { PLAN_CONFIG, isElite, isElitePlus, isSpotlightActive, usePlan } from "@/lib/plan-limits";
+import { PLAN_CONFIG, isElite, isElitePlus, isSpotlightActive, usePlan, checkPlanLimit } from "@/lib/plan-limits";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
@@ -104,7 +104,7 @@ function ProfileContent() {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 28);
           await updateDoc(userRef, { 
-            plan: itemType, 
+            plan: itemType === 'Elite' ? 'elite' : 'elite_plus', 
             subscriptionEndDate: expiry,
             subscriptionStatus: 'Active'
           });
@@ -214,7 +214,7 @@ function ProfileContent() {
                 </div>
               )}
               {spotlight && (
-                <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl animate-bounce">
+                <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl">
                   <Star size={20} className="text-white" />
                 </div>
               )}
@@ -227,7 +227,7 @@ function ProfileContent() {
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />
-                {profile.plan || 'Free'} Member
+                {profile.plan === 'elite' ? 'Elite' : profile.plan === 'elite_plus' ? 'Elite Plus' : 'Free'} Member
               </div>
             </div>
           </div>
@@ -266,13 +266,13 @@ function ProfileContent() {
                     whileTap={{ scale: 0.98 }}
                     className={cn(
                       "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 border border-white/10 text-left relative overflow-hidden group transition-all",
-                      profile?.plan === 'Elite' && "bg-primary/10 border-primary/30"
+                      profile?.plan === 'elite' && "bg-primary/10 border-primary/30"
                     )}
                   >
                     <div className="relative z-10 space-y-4">
                       <div className="flex items-center justify-between">
                          <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/20 text-primary px-2 py-0.5 rounded-md">Elite</span>
-                         {profile?.plan === 'Elite' && <Check size={14} className="text-primary" />}
+                         {profile?.plan === 'elite' && <Check size={14} className="text-primary" />}
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-xl font-bold tracking-tight">{formatPrice(99)} / 28 Days</h3>
@@ -292,8 +292,8 @@ function ProfileContent() {
                        <ComparisonTable />
                     </div>
                     <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                       <Button onClick={() => handlePurchase('Elite', 99)} disabled={profile?.plan === 'Elite'} className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg">
-                          {profile?.plan === 'Elite' ? "Active Membership" : `Upgrade to Elite — ${formatPrice(99)}`}
+                       <Button onClick={() => handlePurchase('Elite', 99)} disabled={profile?.plan === 'elite'} className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg">
+                          {profile?.plan === 'elite' ? "Active Membership" : `Upgrade to Elite — ${formatPrice(99)}`}
                        </Button>
                     </div>
                   </div>
@@ -307,13 +307,13 @@ function ProfileContent() {
                     whileTap={{ scale: 0.98 }}
                     className={cn(
                       "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white relative overflow-hidden group border border-white/10 transition-all",
-                      profile?.plan === 'ElitePlus' && "opacity-90 shadow-[0_0_25px_rgba(37,99,255,0.3)]"
+                      profile?.plan === 'elite_plus' && "opacity-90 shadow-[0_0_25px_rgba(37,99,255,0.3)]"
                     )}
                   >
                     <div className="relative z-10 space-y-4">
                       <div className="flex items-center justify-between">
                          <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
-                         {profile?.plan === 'ElitePlus' && <Check size={14} className="text-white" />}
+                         {profile?.plan === 'elite_plus' && <Check size={14} className="text-white" />}
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-xl font-bold tracking-tight">{formatPrice(199)} / 28 Days</h3>
@@ -333,8 +333,8 @@ function ProfileContent() {
                        <ComparisonTable />
                     </div>
                     <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                       <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={profile?.plan === 'ElitePlus'} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow">
-                          {profile?.plan === 'ElitePlus' ? "Active Membership" : `Upgrade to Elite Plus — ${formatPrice(199)}`}
+                       <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={profile?.plan === 'elite_plus'} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow">
+                          {profile?.plan === 'elite_plus' ? "Active Membership" : `Upgrade to Elite Plus — ${formatPrice(199)}`}
                        </Button>
                     </div>
                   </div>

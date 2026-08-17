@@ -3,7 +3,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { PlanType, UserProfile } from "./types";
 
 export const PLAN_CONFIG = {
-  Free: {
+  free: {
     displayName: "Aura Free",
     maxRadiusKm: 25,
     dailyLikes: 5,
@@ -18,7 +18,7 @@ export const PLAN_CONFIG = {
     earlyAccess: false,
     incognito: false,
   },
-  Elite: {
+  elite: {
     displayName: "Aura Elite",
     maxRadiusKm: 50,
     dailyLikes: 10,
@@ -33,7 +33,7 @@ export const PLAN_CONFIG = {
     earlyAccess: false,
     incognito: false,
   },
-  ElitePlus: {
+  elite_plus: {
     displayName: "Aura Elite Plus",
     maxRadiusKm: 100,
     dailyLikes: 999999,
@@ -50,19 +50,19 @@ export const PLAN_CONFIG = {
   }
 };
 
-export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_CONFIG.Free) {
-  if (!profile) return PLAN_CONFIG.Free[type];
-  const plan = (profile.plan as keyof typeof PLAN_CONFIG) || 'Free';
-  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.Free;
+export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_CONFIG.free) {
+  if (!profile) return PLAN_CONFIG.free[type];
+  const plan = (profile.plan as keyof typeof PLAN_CONFIG) || 'free';
+  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.free;
   return config[type];
 }
 
 export function isElite(profile: UserProfile | null) {
-  return profile?.plan === 'Elite' || profile?.plan === 'ElitePlus';
+  return profile?.plan === 'elite' || profile?.plan === 'elite_plus';
 }
 
 export function isElitePlus(profile: UserProfile | null) {
-  return profile?.plan === 'ElitePlus';
+  return profile?.plan === 'elite_plus';
 }
 
 export function isSpotlightActive(profile: UserProfile | null | undefined) {
@@ -79,8 +79,8 @@ export function isSpotlightActive(profile: UserProfile | null | undefined) {
 
 export function usePlan() {
   const { profile } = useAuthContext();
-  const plan = (profile?.plan as keyof typeof PLAN_CONFIG) || 'Free';
-  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.Free;
+  const plan = (profile?.plan as keyof typeof PLAN_CONFIG) || 'free';
+  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.free;
 
   const getRemaining = (used: number, limit: number) => {
     if (limit >= 999999) return "Unlimited";
@@ -89,8 +89,8 @@ export function usePlan() {
 
   return {
     plan,
-    isElite: plan === 'Elite' || plan === 'ElitePlus',
-    isElitePlus: plan === 'ElitePlus',
+    isElite: plan === 'elite' || plan === 'elite_plus',
+    isElitePlus: plan === 'elite_plus',
     config,
     maxRadius: config.maxRadiusKm,
     remainingDailyChats: getRemaining(profile?.dailyChatCount || 0, config.dailyNewChats),

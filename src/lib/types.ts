@@ -1,7 +1,7 @@
 
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired' | 'Pending';
-export type PlanType = 'Free' | 'Elite' | 'ElitePlus';
+export type PlanType = 'free' | 'elite' | 'elite_plus';
 
 export type UserNotificationSettings = {
   newMessages: boolean;
