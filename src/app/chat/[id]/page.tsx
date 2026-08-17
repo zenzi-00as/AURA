@@ -26,7 +26,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Plus,
-  Zap
+  Zap,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,6 +140,18 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (db && authUser && roomId && otherUid && !roomLoading) {
       if (!room) {
+        // Enforce daily new chat limit for Free users
+        const maxNewChats = checkPlanLimit(profile, 'dailyNewChats') as number;
+        if (!isElite(profile) && (profile?.dailyChatCount || 0) >= maxNewChats) {
+           toast({ 
+             variant: "destructive", 
+             title: "Connection Limit Reached", 
+             description: `Aura Free allows 5 new chats per day. Upgrade to Elite Plus for unlimited connections.` 
+           });
+           router.push('/chat');
+           return;
+        }
+
         setDoc(doc(db, "chatRooms", roomId), {
           id: roomId,
           participants: [authUser.uid, otherUid],
@@ -215,7 +228,7 @@ export default function ChatRoomPage() {
     if (profile.dailyMediaCount >= (checkPlanLimit(profile, 'dailyMediaUploads') as number)) {
       toast({ 
         variant: "destructive", 
-        title: "Limit Reached", 
+        title: "Media Limit Reached", 
         description: "Aura Free allows 2 media shares per day. Upgrade to Elite Plus for unlimited sharing." 
       });
       return;
@@ -279,7 +292,7 @@ export default function ChatRoomPage() {
       toast({ 
         variant: "destructive", 
         title: "Daily Quota Reached", 
-        description: "Aura Free allows 10 messages per chat. Upgrade to Elite Plus for unlimited messaging." 
+        description: `Aura Free allows ${maxMsgs} messages per chat. Upgrade to Elite Plus for unlimited messaging.` 
       });
       return;
     }
@@ -370,10 +383,6 @@ export default function ChatRoomPage() {
     } catch (e) {
       toast({ variant: "destructive", title: "Action Failed" });
     }
-  };
-
-  const handleClearHistory = async () => {
-    toast({ title: "Local Cache Cleared" });
   };
 
   const displayName = room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");

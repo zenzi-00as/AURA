@@ -79,7 +79,7 @@ export default function WhoLikesYouPage() {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-white tracking-tight">Reveal Your Admirers</h2>
                 <p className="text-sm text-white/60 font-light leading-relaxed">
-                  {admirers.length} people have connected with your Aura. Upgrade to Elite to see who they are and like them back.
+                  {admirers.length} people have connected with your Aura. Upgrade to Aura Elite Plus to see who they are and like them back.
                 </p>
               </div>
               <Button 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -84,8 +85,8 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
       const limit = checkPlanLimit(currentUser, 'dailyLikes') as number;
       if (currentUser.dailyLikeCount >= (limit || 0)) {
         toast({
-          title: "Out of Likes",
-          description: "Upgrade to Elite for unlimited interactions.",
+          title: "Like Limit Reached",
+          description: `Aura Free allows ${limit} likes per day. Upgrade to Elite Plus for unlimited interest.`,
           variant: "destructive"
         });
         return;
@@ -322,8 +323,8 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-[#0B0F18] p-8 text-center gap-6">
                     <Lock size={48} className="text-[#0057FF]/20" />
-                    <p className="text-sm text-white/60 font-light">Upgrade to Elite Plus to unlock full-resolution identity photos.</p>
-                    <Button className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
+                    <p className="text-sm text-white/60 font-light">Upgrade to Aura Elite Plus to unlock full-resolution identity photos.</p>
+                    <Button onClick={() => router.push('/profile?tab=elite')} className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
                   </div>
                 )}
               </div>

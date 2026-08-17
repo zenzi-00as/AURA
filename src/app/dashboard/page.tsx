@@ -261,7 +261,7 @@ export default function Dashboard() {
                <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <h4 className="text-lg font-bold text-white tracking-tight">Expand your discovery</h4>
-                    <p className="text-xs text-white/60 font-light">Elite Plus unlocks discovery up to 100 km.</p>
+                    <p className="text-xs text-white/60 font-light">Aura Elite Plus unlocks discovery up to 100 km.</p>
                   </div>
                   <button onClick={() => setShowUpgradePrompt(false)} className="text-white/20"><RefreshCcw size={16} /></button>
                </div>

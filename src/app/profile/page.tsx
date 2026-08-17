@@ -89,13 +89,6 @@ function ProfileContent() {
     }
   };
 
-  const toggleIncognito = async (val: boolean) => {
-    if (!db || !authUser) return;
-    setIsIncognito(val);
-    await updateDoc(doc(db, "users", authUser.uid), { incognitoMode: val });
-    toast({ title: val ? "Incognito Enabled" : "Incognito Disabled" });
-  };
-
   const buyElite = () => {
     initializeRazorpayPayment({
       amount: 199,
@@ -212,7 +205,7 @@ function ProfileContent() {
 
   const ComparisonTable = () => (
     <div className="space-y-4">
-      <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">FREE vs ELITE PLUS</h3>
+      <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Aura FREE vs Aura ELITE PLUS</h3>
       <div className="rounded-3xl border border-white/5 overflow-hidden bg-white/5">
         <div className="grid grid-cols-3 bg-white/10 p-4 text-[9px] font-bold uppercase tracking-widest text-white/60">
           <div>Feature</div>
@@ -226,6 +219,7 @@ function ProfileContent() {
           { label: "Advanced Filters", free: "No", elite: "Yes" },
           { label: "Media Sharing", free: "2/day", elite: "Unlimited" },
           { label: "No Ads", free: "—", elite: "✓" },
+          { label: "Who Likes You", free: "—", elite: "✓" },
         ].map((row, i) => (
           <div key={`compare-row-${i}`} className="grid grid-cols-3 p-4 text-[11px] border-t border-white/5 items-center">
             <div className="text-white/80">{row.label}</div>
@@ -285,7 +279,7 @@ function ProfileContent() {
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />
-                {elite ? "Aura Elite Plus" : "Aura Free Member"}
+                {elite ? "Aura Elite Plus Member" : "Aura Free Member"}
               </div>
             </div>
           </div>
@@ -411,7 +405,7 @@ function ProfileContent() {
                        disabled={elite}
                        className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-between px-8"
                      >
-                        <span>{elite ? "Active Membership" : "Upgrade to Elite Plus"}</span>
+                        <span>{elite ? "Active Membership" : "Upgrade to Aura Elite Plus"}</span>
                         <span className="text-sm opacity-80">{formatPrice(199)}</span>
                      </Button>
                   </div>

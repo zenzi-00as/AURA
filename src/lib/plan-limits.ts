@@ -1,4 +1,5 @@
 
+import { useAuthContext } from "@/firebase/auth-context";
 import { PlanType, UserProfile } from "./types";
 
 export const PLAN_CONFIG = {
@@ -46,4 +47,26 @@ export function isSpotlightActive(profile: UserProfile | null) {
   if (!profile?.spotlightExpiry) return false;
   const expiry = profile.spotlightExpiry.toDate ? profile.spotlightExpiry.toDate() : new Date(profile.spotlightExpiry);
   return expiry > new Date();
+}
+
+export function usePlan() {
+  const { profile } = useAuthContext();
+  const plan = profile?.plan === 'Elite' ? 'Elite' : 'Free';
+  const config = PLAN_CONFIG[plan];
+
+  return {
+    plan,
+    isElitePlus: plan === 'Elite',
+    config,
+    remainingDailyChats: config.dailyNewChats === Infinity ? Infinity : Math.max(0, config.dailyNewChats - (profile?.dailyChatCount || 0)),
+    remainingDailyLikes: config.dailyLikes === Infinity ? Infinity : Math.max(0, config.dailyLikes - (profile?.dailyLikeCount || 0)),
+    remainingDailyMedia: config.dailyMediaUploads === Infinity ? Infinity : Math.max(0, config.dailyMediaUploads - (profile?.dailyMediaCount || 0)),
+    canChat: config.dailyNewChats === Infinity || (profile?.dailyChatCount || 0) < config.dailyNewChats,
+    canLike: config.dailyLikes === Infinity || (profile?.dailyLikeCount || 0) < config.dailyLikes,
+    canSendMedia: config.dailyMediaUploads === Infinity || (profile?.dailyMediaCount || 0) < config.dailyMediaUploads,
+    maxRadiusKm: config.maxRadiusKm,
+    canUseAdvancedFilters: config.advancedFilters,
+    canSeeWhoLikesYou: config.seeWhoLikesYou,
+    canViewProfileImages: !config.blurredPhotos,
+  };
 }
