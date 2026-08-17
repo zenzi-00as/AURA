@@ -429,14 +429,14 @@ function ProfileContent() {
                       </div>
                     </button>
                   </SheetTrigger>
-                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
                     <div className="h-full flex flex-col">
                       <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
                           <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
                           <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Spotlight Boost</SheetTitle>
                           <div className="w-10 h-10" />
                       </header>
-                      <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
+                      <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                           <div className="text-center space-y-3">
                             <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
                                 <Zap size={32} className="text-primary" />
@@ -444,13 +444,53 @@ function ProfileContent() {
                             <h3 className="text-3xl font-bold tracking-tighter">⚡ SPOTLIGHT</h3>
                             <p className="text-sm text-white/60 font-light">Be the first aura people see nearby.</p>
                           </div>
-                          <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
-                            <p className="text-sm text-white/80 font-light">Increases your visibility in discovery for 7 days.</p>
-                            <div className="space-y-2">
-                                {["Priority placement", "7 full days active", "Lightning badge"].map((f, i) => (
-                                  <div key={i} className="flex items-center gap-2 text-xs text-white/60"><Check size={14} className="text-primary" />{f}</div>
-                                ))}
+
+                          <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-6">
+                            <div className="space-y-4">
+                              <p className="text-sm text-white/80 font-light">Increases your visibility in discovery for 7 days.</p>
+                              <div className="space-y-3">
+                                  {[
+                                    { label: "Priority placement", icon: Zap },
+                                    { label: "7 full days active", icon: Clock },
+                                    { label: "Lightning badge", icon: BadgeCheck }
+                                  ].map((item, i) => (
+                                    <div key={i} className="flex items-center gap-3 text-xs text-white/60">
+                                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                        <item.icon size={12} />
+                                      </div>
+                                      {item.label}
+                                    </div>
+                                  ))}
+                              </div>
                             </div>
+                          </div>
+
+                          <div className="space-y-6">
+                            <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] px-1">How it works</h4>
+                            <div className="grid grid-cols-1 gap-3">
+                              {[
+                                { icon: Zap, title: "Algorithmic Priority", desc: "Your profile is prioritized in the discovery stack for everyone in your radius." },
+                                { icon: ShieldCheck, title: "Visual Authority", desc: "The lightning badge signals your active and verified status to other members instantly." },
+                                { icon: Sparkles, title: "10x reach", desc: "Profiles using Spotlight typically receive up to 10x more interaction events." }
+                              ].map((item, i) => (
+                                <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex gap-4 items-start">
+                                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <item.icon size={18} />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-bold text-white">{item.title}</p>
+                                    <p className="text-[10px] text-white/40 font-light leading-relaxed">{item.desc}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="pt-8 pb-4 flex flex-col items-center gap-4 opacity-10">
+                            <div className="w-12 h-12 rounded-[18px] border-2 border-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                              <span className="text-2xl font-bold text-white tracking-tighter">A</span>
+                            </div>
+                            <p className="text-[10px] font-bold text-white uppercase tracking-[0.5em]">Aura Identity</p>
                           </div>
                       </div>
                       <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
@@ -461,7 +501,7 @@ function ProfileContent() {
                     </div>
                   </SheetContent>
                 </Sheet>
-                <p className="text-[9px] text-white/30 text-center px-1 font-light leading-snug">Increase your visibility for 7 days.</p>
+                <p className="text-[9px] text-white/30 text-center px-1 font-light leading-snug">Boost your profile visibility for 7 full days.</p>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -508,7 +548,7 @@ function ProfileContent() {
                     </SheetContent>
                   </Sheet>
                 </Suspense>
-                <p className="text-[9px] text-white/30 text-center px-1 font-light leading-snug">Express 3x more interest with a ✦.</p>
+                <p className="text-[9px] text-white/30 text-center px-1 font-light leading-snug">Express 3x more interest with a ✦ highlight.</p>
               </div>
             </div>
           </div>
