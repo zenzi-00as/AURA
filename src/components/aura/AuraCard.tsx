@@ -14,8 +14,7 @@ import {
   Loader2,
   Info,
   Clock,
-  Star,
-  Zap
+  Star
 } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -249,7 +248,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
             {hasSpotlight && (
               <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <Zap size={10} className="text-primary fill-primary" />
+                <Star size={10} className="text-primary" />
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
               </div>
             )}
@@ -268,10 +267,10 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         <div className="p-3 flex-1 flex flex-col space-y-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
-            {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-[#0057FF]" />}
+            {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
             {hasSpotlight && (
               <div className="flex items-center gap-0.5 bg-primary/20 px-1.5 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                <Zap size={10} className="text-primary fill-primary" />
+                <Star size={10} className="text-primary" />
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
               </div>
             )}
@@ -279,11 +278,11 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
           
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1 text-[9px] text-white/50 font-bold uppercase">
-              <MapPin size={10} className="text-[#0057FF]" />
+              <MapPin size={10} className="text-primary" />
               {user.distance || "Nearby"}
             </div>
             <div className="flex flex-wrap gap-1">
-               <span className="bg-[#0057FF]/10 text-[#0057FF] text-[8px] font-black px-1.5 py-0.5 rounded border border-[#0057FF]/20 uppercase tracking-widest">
+               <span className="bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded border border-primary/20 uppercase tracking-widest">
                  {user.gender || "Citizen"}
                </span>
             </div>
@@ -308,10 +307,10 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
-                    {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-[#0057FF]" />}
+                    {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
                     {hasSpotlight && (
                       <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
-                        <Zap size={10} className="text-primary fill-primary" />
+                        <Star size={10} className="text-primary" />
                         <span className="text-[9px] font-bold text-white uppercase">Spotlight</span>
                       </div>
                     )}
@@ -328,7 +327,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                   <img src={user.photoUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-[#0B0F18] p-8 text-center gap-6">
-                    <Lock size={48} className="text-[#0057FF]/20" />
+                    <Lock size={48} className="text-primary/20" />
                     <p className="text-sm text-white/60 font-light">Upgrade to Aura Elite Plus to unlock full-resolution identity photos.</p>
                     <Button onClick={() => router.push('/profile?tab=elite')} className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
                   </div>
@@ -337,7 +336,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
               <div className="space-y-8">
                 <div className="space-y-4">
-                   <h4 className="text-[10px] font-black text-[#0057FF] uppercase tracking-[0.3em]">Full Bio</h4>
+                   <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Full Bio</h4>
                    <p className="text-lg text-white font-light leading-relaxed">{user.bio}</p>
                 </div>
 
@@ -366,7 +365,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
       <DialogContent className="bg-[#05070D] border-white/10 rounded-[32px] p-8 max-w-[320px]">
         <div className="text-center space-y-6">
           <div className="w-16 h-16 rounded-[24px] premium-gradient mx-auto flex items-center justify-center shadow-lg neon-glow">
-            <Sparkles size={32} className="text-white fill-white" />
+            <Sparkles size={32} className="text-white" />
           </div>
           <div className="space-y-2">
             <h3 className="text-2xl font-bold text-white tracking-tight">Super Like?</h3>

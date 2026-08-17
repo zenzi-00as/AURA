@@ -17,7 +17,6 @@ import {
   Lock, 
   Info, 
   Star, 
-  Zap, 
   Image as ImageIcon, 
   ChevronRight, 
   AlertCircle, 
@@ -249,7 +248,7 @@ function ProfileContent() {
             <div className="relative">
               <div className={cn(
                 "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
-                elite ? "border-accent shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-primary/20"
+                elite ? "border-primary shadow-[0_0_20px_rgba(0,87,255,0.3)]" : "border-primary/20"
               )}>
                 {profile.photoUrl ? (
                   <img src={profile.photoUrl} alt={profile.name} className="w-full h-full object-cover" />
@@ -257,7 +256,7 @@ function ProfileContent() {
                   <span className="text-5xl font-bold text-foreground/20">{profile.name?.[0] || 'U'}</span>
                 )}
                 {elite && (
-                  <div className="absolute inset-0 border-4 border-accent/20 rounded-[48px] animate-pulse pointer-events-none" />
+                  <div className="absolute inset-0 border-4 border-primary/20 rounded-[48px] animate-pulse pointer-events-none" />
                 )}
               </div>
               {profile.verificationStatus === 'Verified' && (
@@ -267,7 +266,7 @@ function ProfileContent() {
               )}
               {spotlight && (
                 <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl animate-bounce">
-                  <Zap size={22} className="text-white" />
+                  <Star size={22} className="text-white" />
                 </div>
               )}
             </div>
@@ -275,7 +274,7 @@ function ProfileContent() {
             <div className="space-y-1">
               <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
                 {profile.name}, {profile.age}
-                {elite && <Star size={20} className="text-accent" />}
+                {elite && <Star size={20} className="text-primary" />}
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />
@@ -298,7 +297,7 @@ function ProfileContent() {
            </div>
            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
               <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Elite Plus</span>
-              <span className={cn("text-[9px] font-bold", elite ? "text-accent" : "text-white/40")}>
+              <span className={cn("text-[9px] font-bold", elite ? "text-primary" : "text-white/40")}>
                 {elite ? `${eliteDaysRemaining}d left` : "Upgrade"}
               </span>
            </div>
@@ -422,7 +421,7 @@ function ProfileContent() {
                       spotlight && "bg-primary/10 border-primary/30 aura-glow-purple"
                     )}>
                       <div className={cn("w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform", spotlight && "animate-pulse")}>
-                        <Zap size={24} />
+                        <Star size={24} />
                       </div>
                       <div className="space-y-1">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
@@ -440,7 +439,7 @@ function ProfileContent() {
                       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                           <div className="text-center space-y-3">
                             <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
-                                <Zap size={32} className="text-primary" />
+                                <Star size={32} className="text-primary" />
                             </div>
                             <h3 className="text-3xl font-bold tracking-tighter">⚡ SPOTLIGHT</h3>
                             <p className="text-sm text-white/60 font-light">Be the first aura people see nearby.</p>
@@ -451,7 +450,7 @@ function ProfileContent() {
                               <p className="text-sm text-white/80 font-light">Increases your visibility in discovery for 7 days.</p>
                               <div className="space-y-3">
                                   {[
-                                    { label: "Priority placement", icon: Zap },
+                                    { label: "Priority placement", icon: Star },
                                     { label: "7 full days active", icon: Clock },
                                     { label: "Lightning badge", icon: BadgeCheck }
                                   ].map((item, i) => (
@@ -470,7 +469,7 @@ function ProfileContent() {
                             <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] px-1">How it works</h4>
                             <div className="grid grid-cols-1 gap-3">
                               {[
-                                { icon: Zap, title: "Algorithmic Priority", desc: "Your profile is prioritized in the discovery stack for everyone in your radius." },
+                                { icon: Star, title: "Algorithmic Priority", desc: "Your profile is prioritized in the discovery stack for everyone in your radius." },
                                 { icon: ShieldCheck, title: "Visual Authority", desc: "The lightning badge signals your active and verified status to other members instantly." },
                                 { icon: Sparkles, title: "10x reach", desc: "Profiles using Spotlight typically receive up to 10x more interaction events." }
                               ].map((item, i) => (

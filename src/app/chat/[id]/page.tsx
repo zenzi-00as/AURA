@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -26,7 +25,7 @@ import {
   AlertCircle,
   ShieldCheck,
   Plus,
-  Zap,
+  Star,
   MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -412,7 +411,7 @@ export default function ChatRoomPage() {
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-sm text-white">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
-                {isOtherSpotlight && <Zap size={14} className="text-primary fill-primary animate-pulse" />}
+                {isOtherSpotlight && <Star size={14} className="text-primary animate-pulse" />}
               </div>
               <AnimatePresence mode="wait">
                 {isOtherTyping ? (

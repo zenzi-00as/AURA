@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Sparkles, Shield, Clock, Zap } from "lucide-react";
+import { BadgeCheck, Search, X, MessageSquare, Sparkles, Shield, Clock, Star } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -137,7 +137,7 @@ export default function ChatList() {
                             {chat.name}{chat.age ? `, ${chat.age}` : ""}
                           </h3>
                           {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                          {chat.isSpotlight && <Zap size={14} className="text-primary fill-primary animate-pulse" />}
+                          {chat.isSpotlight && <Star size={14} className="text-primary animate-pulse" />}
                           {chat.privacyEnabled && <Shield size={12} className="text-primary/60" />}
                         </div>
                         <span className={cn("text-[10px] shrink-0 ml-2 font-bold uppercase tracking-tighter opacity-30")}>

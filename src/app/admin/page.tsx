@@ -8,7 +8,7 @@ import { useCollection, useFirestore, initializeFirebase } from "@/firebase";
 import { collection, query, updateDoc, doc, serverTimestamp, limit, where } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import { UserProfile, Report } from "@/lib/types";
-import { Shield, UserCheck, UserX, Star, Zap, ArrowLeft, ShieldCheck, Clock, ExternalLink } from "lucide-react";
+import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -131,14 +131,14 @@ export default function AdminPage() {
                       <h3 className="font-bold flex items-center gap-2">
                         {u.name}, {u.age}
                         {u.verificationStatus === 'Verified' && <ShieldCheck size={14} className="text-primary" />}
-                        {u.plan === 'Elite' && <Star size={14} className="text-accent" />}
+                        {u.plan === 'Elite' && <Star size={14} className="text-primary" />}
                       </h3>
                       <p className="text-[10px] text-muted-foreground uppercase">{u.uid}</p>
                     </div>
                     <div className="flex gap-2">
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'verify')} title="Verify"><UserCheck size={16} /></Button>
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantElite')} title="Grant Elite"><Star size={16} /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantSpotlight')} title="Grant Spotlight"><Zap size={16} /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, 'grantSpotlight')} title="Grant Spotlight"><Star size={16} /></Button>
                       <Button size="icon" variant="ghost" onClick={() => handleAction(u.uid, u.isSuspended ? 'unsuspend' : 'suspend')} className={u.isSuspended ? "text-emerald-500" : "text-destructive"}>
                         <UserX size={16} />
                       </Button>
