@@ -24,7 +24,8 @@ import {
   UserX,
   AlertCircle,
   ShieldCheck,
-  Plus
+  Plus,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +56,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { checkPlanLimit } from "@/lib/plan-limits";
+import { checkPlanLimit, isSpotlightActive } from "@/lib/plan-limits";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -380,6 +381,7 @@ export default function ChatRoomPage() {
 
   const displayName = room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User");
   const isVerified = room?.isSystem || otherUser?.verificationStatus === 'Verified';
+  const isOtherSpotlight = isSpotlightActive(otherUser);
   const isOtherOnline = !room?.isSystem && otherUser?.isOnline && !otherUser?.incognitoMode;
   const isOtherTyping = otherUid && room?.typing?.[otherUid] && !otherUser?.incognitoMode;
 
@@ -405,6 +407,7 @@ export default function ChatRoomPage() {
               <div className="flex items-center gap-1.5 cursor-pointer">
                 <span className="font-semibold text-sm text-white tracking-tight">{displayName}</span>
                 {isVerified && <BadgeCheck size={16} className="text-primary" />}
+                {isOtherSpotlight && <Zap size={14} className="text-primary fill-primary animate-pulse" />}
               </div>
               <AnimatePresence mode="wait">
                 {isOtherTyping ? (

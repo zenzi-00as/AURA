@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -15,7 +14,8 @@ import {
   Loader2,
   Info,
   Clock,
-  Star
+  Star,
+  Zap
 } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -259,9 +259,15 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         </SheetTrigger>
 
         <div className="p-3 flex-1 flex flex-col space-y-2">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-bold text-white truncate">{user.name}, {user.age}</h3>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-[#0057FF]" />}
+            {hasSpotlight && (
+              <div className="flex items-center gap-0.5 bg-primary/20 px-1.5 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
+                <Zap size={10} className="text-primary fill-primary" />
+                <span className="text-[8px] font-black text-white uppercase tracking-tighter">Spotlight</span>
+              </div>
+            )}
           </div>
           
           <div className="flex flex-col gap-1">
@@ -293,7 +299,16 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                    <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} />
                 </div>
                 <div className="flex flex-col">
-                  <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
+                  <div className="flex items-center gap-2">
+                    <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
+                    {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-[#0057FF]" />}
+                    {hasSpotlight && (
+                      <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full border border-primary/30 aura-glow-blue animate-pulse">
+                        <Zap size={10} className="text-primary fill-primary" />
+                        <span className="text-[9px] font-bold text-white uppercase">Spotlight</span>
+                      </div>
+                    )}
+                  </div>
                   <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">{user.distance}</span>
                 </div>
               </div>

@@ -131,10 +131,15 @@ function ProfileContent() {
       currency: currency.code,
       itemType: 'Spotlight',
       onSuccess: async (res) => {
-        if (!db || !authUser) return;
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + 7);
-        await updateDoc(doc(db, "users", authUser.uid), { spotlightExpiry: expiry });
+        if (!db || !authUser || !profile) return;
+        
+        // Cumulative Expiry Logic
+        const currentExp = profile.spotlightExpiry?.toDate ? profile.spotlightExpiry.toDate() : (profile.spotlightExpiry ? new Date(profile.spotlightExpiry) : new Date());
+        const baseDate = currentExp > new Date() ? currentExp : new Date();
+        const newExpiry = new Date(baseDate);
+        newExpiry.setDate(newExpiry.getDate() + 7);
+        
+        await updateDoc(doc(db, "users", authUser.uid), { spotlightExpiry: newExpiry });
         await addDoc(collection(db, "purchases"), {
           uid: authUser.uid,
           itemType: 'Spotlight',
@@ -144,8 +149,18 @@ function ProfileContent() {
           razorpayOrderId: res.razorpay_order_id,
           status: 'Success'
         });
+        
+        await addDoc(collection(db, "notifications"), {
+          userId: authUser.uid,
+          title: "Spotlight Materialized",
+          body: "Your profile is now boosted in discovery for 7 days.",
+          type: "spotlight",
+          timestamp: serverTimestamp(),
+          read: false
+        });
+
         setActiveSheet(null);
-        toast({ title: "Spotlight Active!", description: "You are now more visible to users nearby." });
+        toast({ title: "Spotlight Active!", description: "Your aura is now radiating further." });
       }
     });
   };
