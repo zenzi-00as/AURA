@@ -9,7 +9,7 @@ import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 
 interface AuthContextType {
-  user: User | null;
+  user: (User & { isDemoUser?: boolean }) | null;
   profile: UserProfile | null;
   loading: boolean;
   onboardingCompleted: boolean;
@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<(User & { isDemoUser?: boolean }) | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: 'demo-user',
         email: 'demo@aura.local',
         displayName: 'Aura Demo',
+        phoneNumber: null,
         isDemoUser: true,
       } as any;
 
@@ -170,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userRef = doc(db, 'users', profile.uid);
       updateDoc(userRef, updates).catch(() => {});
     }
-  }, [profile?.uid, profile?.lastResetDate, profile?.lastLikeResetDate]);
+  }, [profile?.uid, profile?.lastResetDate, profile?.lastLikeResetDate, profile?.isDemoUser]);
 
   const value = {
     user,
