@@ -25,10 +25,10 @@ export const PLAN_CONFIG = {
     dailyNewChats: 15,
     dailyMessagesPerProfile: 50,
     dailyMediaUploads: 5,
-    advancedFilters: false, // Only basic
+    advancedFilters: false, 
     blurredPhotos: true,
-    adsEnabled: true, // Reduced
-    seeWhoLikesYou: true, // Limited preview
+    adsEnabled: true, 
+    seeWhoLikesYou: true,
     prioritySupport: true,
     earlyAccess: false,
     incognito: false,
@@ -43,7 +43,7 @@ export const PLAN_CONFIG = {
     advancedFilters: true,
     blurredPhotos: false,
     adsEnabled: false,
-    seeWhoLikesYou: true, // Full
+    seeWhoLikesYou: true,
     prioritySupport: true,
     earlyAccess: true,
     incognito: true,
@@ -52,8 +52,9 @@ export const PLAN_CONFIG = {
 
 export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_CONFIG.Free) {
   if (!profile) return PLAN_CONFIG.Free[type];
-  const plan = profile.plan as keyof typeof PLAN_CONFIG || 'Free';
-  return PLAN_CONFIG[plan][type];
+  const plan = (profile.plan as keyof typeof PLAN_CONFIG) || 'Free';
+  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.Free;
+  return config[type];
 }
 
 export function isElite(profile: UserProfile | null) {
@@ -79,22 +80,24 @@ export function isSpotlightActive(profile: UserProfile | null | undefined) {
 export function usePlan() {
   const { profile } = useAuthContext();
   const plan = (profile?.plan as keyof typeof PLAN_CONFIG) || 'Free';
-  const config = PLAN_CONFIG[plan];
+  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.Free;
+
+  const getRemaining = (used: number, limit: number) => {
+    if (limit >= 999999) return "Unlimited";
+    return Math.max(0, limit - used).toString();
+  };
 
   return {
     plan,
     isElite: plan === 'Elite' || plan === 'ElitePlus',
     isElitePlus: plan === 'ElitePlus',
     config,
-    remainingDailyChats: config.dailyNewChats >= 999999 ? 999999 : Math.max(0, config.dailyNewChats - (profile?.dailyChatCount || 0)),
-    remainingDailyLikes: config.dailyLikes >= 999999 ? 999999 : Math.max(0, config.dailyLikeCount - (profile?.dailyLikeCount || 0)),
-    remainingDailyMedia: config.dailyMediaUploads >= 999999 ? 999999 : Math.max(0, config.dailyMediaUploads - (profile?.dailyMediaCount || 0)),
+    maxRadius: config.maxRadiusKm,
+    remainingDailyChats: getRemaining(profile?.dailyChatCount || 0, config.dailyNewChats),
+    remainingDailyLikes: getRemaining(profile?.dailyLikeCount || 0, config.dailyLikes),
+    remainingDailyMedia: getRemaining(profile?.dailyMediaCount || 0, config.dailyMediaUploads),
     canChat: config.dailyNewChats >= 999999 || (profile?.dailyChatCount || 0) < config.dailyNewChats,
     canLike: config.dailyLikes >= 999999 || (profile?.dailyLikeCount || 0) < config.dailyLikes,
     canSendMedia: config.dailyMediaUploads >= 999999 || (profile?.dailyMediaCount || 0) < config.dailyMediaUploads,
-    maxRadiusKm: config.maxRadiusKm,
-    canUseAdvancedFilters: config.advancedFilters,
-    canSeeWhoLikesYou: config.seeWhoLikesYou,
-    canViewProfileImages: !config.blurredPhotos,
   };
 }

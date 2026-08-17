@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -57,7 +58,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { checkPlanLimit, isSpotlightActive, isElite } from "@/lib/plan-limits";
+import { checkPlanLimit, isSpotlightActive, isElite, isElitePlus } from "@/lib/plan-limits";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -139,13 +140,18 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (db && authUser && roomId && otherUid && !roomLoading) {
       if (!room) {
-        // Enforce daily new chat limit for Free users
-        const maxNewChats = checkPlanLimit(profile, 'dailyNewChats') as number;
-        if (!isElite(profile) && (profile?.dailyChatCount || 0) >= maxNewChats) {
+        // Enforce specific daily new chat limit
+        const limitCount = checkPlanLimit(profile, 'dailyNewChats') as number;
+        const currentCount = profile?.dailyChatCount || 0;
+        
+        if (limitCount < 999999 && currentCount >= limitCount) {
+           const tierName = profile?.plan === 'Elite' ? 'Aura Elite' : 'Aura Free';
+           const upgradeTarget = profile?.plan === 'Elite' ? 'Elite Plus' : 'Elite';
+           
            toast({ 
              variant: "destructive", 
              title: "Connection Limit Reached", 
-             description: `Aura Free allows 5 new chats per day. Upgrade to Elite Plus for unlimited connections.` 
+             description: `${tierName} allows ${limitCount} new chats per day. Upgrade to ${upgradeTarget} for more connections.` 
            });
            router.push('/chat');
            return;
@@ -161,16 +167,16 @@ export default function ChatRoomPage() {
           privacyEnabled: false
         }, { merge: true });
         
-        if (!isElite(profile)) {
+        if (!isElitePlus(profile)) {
           updateDoc(doc(db, "users", authUser.uid), { dailyChatCount: increment(1) });
         }
       } else {
-        updateDoc(doc(chatRoomsRef(db), roomId), {
+        updateDoc(doc(db, "chatRooms", roomId), {
           [`unreadCount.${authUser.uid}`]: 0
         }).catch(() => {});
       }
     }
-  }, [db, authUser, roomId, otherUid, room, roomLoading, profile]);
+  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -224,11 +230,13 @@ export default function ChatRoomPage() {
   const handleSendMedia = async () => {
     if (!authUser || !profile || !db || !storage) return;
     
-    if (profile.dailyMediaCount >= (checkPlanLimit(profile, 'dailyMediaUploads') as number)) {
+    const limit = checkPlanLimit(profile, 'dailyMediaUploads') as number;
+    if (limit < 999999 && profile.dailyMediaCount >= limit) {
+      const upgradeTarget = profile.plan === 'Elite' ? 'Elite Plus' : 'Elite';
       toast({ 
         variant: "destructive", 
         title: "Media Limit Reached", 
-        description: "Aura Free allows 2 media shares per day. Upgrade to Elite Plus for unlimited sharing." 
+        description: `Aura ${profile.plan || 'Free'} allows ${limit} media shares per day. Upgrade to ${upgradeTarget} for more sharing.` 
       });
       return;
     }
@@ -287,11 +295,11 @@ export default function ChatRoomPage() {
     
     const myMessagesToday = messages.filter(m => m.senderId === authUser.uid && (m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp)) > today).length;
     
-    if (myMessagesToday >= maxMsgs) {
+    if (maxMsgs < 999999 && myMessagesToday >= maxMsgs) {
       toast({ 
         variant: "destructive", 
         title: "Daily Quota Reached", 
-        description: `Aura Free allows ${maxMsgs} messages per chat. Upgrade to Elite Plus for unlimited messaging.` 
+        description: `Aura ${profile.plan || 'Free'} allows ${maxMsgs} messages per chat. Upgrade to Elite Plus for unlimited messaging.` 
       });
       return;
     }

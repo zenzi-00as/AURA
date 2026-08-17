@@ -18,7 +18,7 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { PLAN_CONFIG, isElite, isSpotlightActive } from "@/lib/plan-limits";
+import { PLAN_CONFIG, isElite, isElitePlus, isSpotlightActive, usePlan } from "@/lib/plan-limits";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -54,18 +54,16 @@ export default function Dashboard() {
   const db = useFirestore();
   const { toast } = useToast();
   const { profile: currentUserProfile } = useAuthContext();
+  const { config: planConfig, isElite: eliteTier, isElitePlus: plusTier } = usePlan();
   
-  const eliteUser = isElite(currentUserProfile);
-  const maxSearchRadius = eliteUser ? PLAN_CONFIG.Elite.maxRadiusKm : PLAN_CONFIG.Free.maxRadiusKm;
-
-  const [distance, setDistance] = useState([eliteUser ? 25 : 15]);
+  const [distance, setDistance] = useState([planConfig.maxRadiusKm]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   
   const [activeFilters, setActiveFilters] = useState({
-    distance: eliteUser ? 25 : 15,
+    distance: planConfig.maxRadiusKm,
     ageRange: [18, 35]
   });
 
@@ -77,6 +75,12 @@ export default function Dashboard() {
       );
     }
   }, []);
+
+  // Update distance state if plan changes
+  useEffect(() => {
+    setDistance([planConfig.maxRadiusKm]);
+    setActiveFilters(prev => ({ ...prev, distance: planConfig.maxRadiusKm }));
+  }, [planConfig.maxRadiusKm]);
 
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -113,12 +117,22 @@ export default function Dashboard() {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
     filteredUsers.forEach((user, index) => {
       items.push({ type: 'user', data: user });
-      if (!eliteUser && (index + 1) % 5 === 0) {
+      if (!plusTier && (index + 1) % 5 === 0) {
         items.push({ type: 'ad' });
       }
     });
     return items;
-  }, [filteredUsers, eliteUser]);
+  }, [filteredUsers, plusTier]);
+
+  const handleDistanceChange = (val: number[]) => {
+    const limit = planConfig.maxRadiusKm;
+    if (val[0] > limit) {
+      setDistance([limit]);
+      setShowUpgradePrompt(true);
+    } else {
+      setDistance(val);
+    }
+  };
 
   return (
     <AuthGuard>
@@ -146,32 +160,25 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
                     <div className="flex items-center gap-2">
-                       <span className="text-[#0057FF] font-bold text-sm">{distance[0]} km</span>
-                       {!eliteUser && distance[0] >= 50 && <Lock size={12} className="text-white/20" />}
+                       <span className="text-primary font-bold text-sm">{distance[0]} km</span>
+                       {distance[0] >= planConfig.maxRadiusKm && distance[0] < 100 && <Lock size={12} className="text-white/20" />}
                     </div>
                   </div>
                   <Slider 
                     value={distance} 
-                    onValueChange={(val) => {
-                      if (!eliteUser && val[0] > 50) {
-                        setDistance([50]);
-                        setShowUpgradePrompt(true);
-                      } else {
-                        setDistance(val);
-                      }
-                    }} 
+                    onValueChange={handleDistanceChange} 
                     max={100} 
                     step={1} 
                   />
-                  {!eliteUser && (
-                    <p className="text-[9px] text-white/20 uppercase font-bold tracking-tighter">Aura Free limit: 50 km</p>
-                  )}
+                  <p className="text-[9px] text-white/20 uppercase font-bold tracking-tighter">
+                    {planConfig.displayName} limit: {planConfig.maxRadiusKm} km
+                  </p>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">{t('age_range')}</Label>
-                    <span className="text-[#0057FF] font-bold text-sm">{ageRange[0]} - {ageRange[1]}</span>
+                    <span className="text-primary font-bold text-sm">{ageRange[0]} - {ageRange[1]}</span>
                   </div>
                   <Slider value={ageRange} onValueChange={setAgeRange} min={18} max={80} step={1} />
                 </div>
@@ -179,11 +186,13 @@ export default function Dashboard() {
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-4">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Advanced Filters</Label>
-                    <span className="bg-white/5 text-[8px] font-bold px-2 py-1 rounded-md text-white/40 uppercase tracking-widest flex items-center gap-1">
-                       <Lock size={10} /> Elite Plus
-                    </span>
+                    {!plusTier && (
+                      <span className="bg-white/5 text-[8px] font-bold px-2 py-1 rounded-md text-white/40 uppercase tracking-widest flex items-center gap-1">
+                         <Lock size={10} /> Elite Plus
+                      </span>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 opacity-40 grayscale pointer-events-none">
+                  <div className={cn("grid grid-cols-2 gap-2 transition-opacity", !plusTier && "opacity-40 grayscale pointer-events-none")}>
                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Gender Identity</div>
                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Interests</div>
                   </div>
@@ -226,9 +235,9 @@ export default function Dashboard() {
                   <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your search to discover more auras, or check out this demo profile.</p>
                 </div>
                 <Button 
-                  onClick={() => setActiveFilters({ distance: maxSearchRadius, ageRange: [18, 80] })} 
+                  onClick={() => setActiveFilters({ distance: planConfig.maxRadiusKm, ageRange: [18, 80] })} 
                   variant="ghost" 
-                  className="text-[#0057FF] font-bold text-xs uppercase tracking-widest"
+                  className="text-primary font-bold text-xs uppercase tracking-widest"
                 >
                   Expand Search
                 </Button>
@@ -236,7 +245,7 @@ export default function Dashboard() {
 
               <div className="w-full max-w-2xl mx-auto grid grid-cols-2 gap-2">
                 <div className="col-span-2 mb-2 flex items-center gap-2 px-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-[#0057FF] aura-glow-blue" />
+                   <div className="w-1.5 h-1.5 rounded-full bg-primary aura-glow-blue" />
                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
                 </div>
                 <div className="col-span-1 h-full">
@@ -261,12 +270,14 @@ export default function Dashboard() {
                <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <h4 className="text-lg font-bold text-white tracking-tight">Expand your discovery</h4>
-                    <p className="text-xs text-white/60 font-light">Aura Elite Plus unlocks discovery up to 100 km.</p>
+                    <p className="text-xs text-white/60 font-light">
+                      {planConfig.displayName} is capped at {planConfig.maxRadiusKm} km. Upgrade to Aura {eliteTier ? 'Elite Plus' : 'Elite'} for more range.
+                    </p>
                   </div>
                   <button onClick={() => setShowUpgradePrompt(false)} className="text-white/20"><RefreshCcw size={16} /></button>
                </div>
                <Button onClick={() => router.push('/profile?tab=elite')} className="w-full h-12 mt-4 premium-gradient rounded-xl font-bold flex items-center justify-between px-6">
-                 <span>Upgrade to Elite Plus</span>
+                 <span>Upgrade My Aura</span>
                  <ChevronRight size={18} />
                </Button>
             </motion.div>
