@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
+import useEmblaCarousel from 'embla-carousel-react';
 import { 
   signInWithPhoneNumber, 
   RecaptchaVerifier,
@@ -54,6 +54,21 @@ export default function AuthPage() {
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+
+  // Carousel State
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on('select', onSelect);
+    onSelect();
+  }, [emblaApi, onSelect]);
 
   const currentCountry = useMemo(() => {
     return COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
@@ -216,17 +231,14 @@ export default function AuthPage() {
     <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-hidden">
       <div className="absolute inset-0 z-0 hero-radial" />
       
-      <header className="h-16 mb-8 relative z-10 flex items-center">
-        <div className="w-10 h-10 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow">
-          <span className="text-white font-bold text-lg">A</span>
+      <header className="mb-10 relative z-10 flex flex-col items-center text-center">
+        <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-6">
+          <span className="text-white font-bold text-xl">A</span>
         </div>
-      </header>
-      
-      <div className="mb-10 relative z-10">
         <div className="flex flex-col gap-3">
           <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-bold text-white tracking-tighter leading-tight"
           >
             {step === "details" ? "Welcome back" : "Verify Identity"}
@@ -235,8 +247,8 @@ export default function AuthPage() {
             {step === "details" ? "Synchronize your presence." : `Sent code to ${countryCode}${phone}`}
           </p>
         </div>
-      </div>
-
+      </header>
+      
       <div className="flex-1 relative z-10 space-y-8">
         <AnimatePresence mode="wait">
           <motion.div
@@ -310,19 +322,51 @@ export default function AuthPage() {
                        <div className="h-[1px] flex-1 bg-white/10" />
                     </div>
 
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                      onClick={handleGoogleLogin}
-                      disabled={isLoading || isRedirecting}
-                      className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group shadow-[0_0_30px_rgba(37,99,255,0.25)]"
-                    >
-                      <Chrome size={22} className="text-[#2563FF]" />
-                      <span className="text-base font-semibold">Continue with Google</span>
-                      <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
-                    </motion.button>
+                    <div className="relative overflow-hidden" ref={emblaRef}>
+                      <div className="flex">
+                        {/* Slide 1: Google */}
+                        <div className="flex-[0_0_100%] min-w-0 px-1">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            animate={{ boxShadow: ["0 0 0px rgba(37,99,255,0)", "0 0 30px rgba(37,99,255,0.25)", "0 0 0px rgba(37,99,255,0)"] }}
+                            transition={{ duration: 4, repeat: Infinity }}
+                            onClick={handleGoogleLogin}
+                            disabled={isLoading || isRedirecting}
+                            className="w-full h-[58px] rounded-full border border-[#2563FF]/30 bg-gradient-to-r from-[#111827] to-[#1E293B] flex items-center justify-between px-8 text-white group shadow-[0_0_30px_rgba(37,99,255,0.25)]"
+                          >
+                            <Chrome size={22} className="text-[#2563FF]" />
+                            <span className="text-base font-semibold">Continue with Google</span>
+                            <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
+                          </motion.button>
+                        </div>
+                        {/* Slide 2: Direct Access */}
+                        <div className="flex-[0_0_100%] min-w-0 px-1">
+                          <Button 
+                            onClick={handleNext}
+                            disabled={isLoading || isRedirecting}
+                            className="w-full h-[58px] rounded-full blue-gradient text-white font-bold text-base shadow-2xl neon-glow transition-all active:scale-95 flex items-center justify-between px-8 border-none"
+                          >
+                            <Sparkles size={22} className="text-white" />
+                            <span>Generate Access</span>
+                            <ArrowRight size={20} className="text-white" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Dot Indicators */}
+                    <div className="flex justify-center gap-2 pt-2">
+                      {[0, 1].map((index) => (
+                        <div 
+                          key={`dot-${index}`}
+                          className={cn(
+                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                            selectedIndex === index ? "bg-[#2563FF] w-4" : "bg-white/20"
+                          )}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -348,21 +392,21 @@ export default function AuthPage() {
                 >
                   <ChevronLeft size={16} /> Recalibrate details
                 </button>
+
+                <Button 
+                  onClick={handleNext}
+                  disabled={isLoading || isRedirecting}
+                  className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg shadow-2xl neon-glow transition-all active:scale-95"
+                >
+                  {isLoading || isRedirecting ? <Loader2 className="animate-spin" /> : (
+                    <>
+                      Verify & Synchronize
+                      <ArrowRight size={20} className="ml-2" />
+                    </>
+                  )}
+                </Button>
               </div>
             )}
-
-            <Button 
-              onClick={handleNext}
-              disabled={isLoading || isRedirecting}
-              className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg shadow-2xl neon-glow transition-all active:scale-95"
-            >
-              {isLoading || isRedirecting ? <Loader2 className="animate-spin" /> : (
-                <>
-                  {step === "details" ? "Generate Access" : "Verify & Synchronize"}
-                  <ArrowRight size={20} className="ml-2" />
-                </>
-              )}
-            </Button>
           </motion.div>
         </AnimatePresence>
       </div>
