@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -44,7 +45,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, addDoc, collection, increment } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { PLAN_CONFIG, isElite, isSpotlightActive } from "@/lib/plan-limits";
+import { PLAN_CONFIG, isElite, isElitePlus, isSpotlightActive } from "@/lib/plan-limits";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
@@ -63,7 +64,7 @@ function ProfileContent() {
   const [isIncognito, setIsIncognito] = useState(false);
   
   const [superLikeQty, setSuperLikeQty] = useState(1);
-  const [activeSheet, setActiveSheet] = useState<'elite' | 'spotlight' | 'superlike' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'elite' | 'eliteplus' | 'spotlight' | 'superlike' | null>(null);
 
   useEffect(() => {
     if (profile?.bio) setTempBio(profile.bio);
@@ -73,6 +74,7 @@ function ProfileContent() {
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'elite') setActiveSheet('elite');
+    else if (tab === 'eliteplus') setActiveSheet('eliteplus');
     else if (tab === 'spotlight') setActiveSheet('spotlight');
     else if (tab === 'superlike') setActiveSheet('superlike');
   }, [searchParams]);
@@ -90,7 +92,7 @@ function ProfileContent() {
 
   const buyElite = () => {
     initializeRazorpayPayment({
-      amount: 199,
+      amount: 99,
       currency: currency.code,
       itemType: 'Elite',
       onSuccess: async (res) => {
@@ -105,6 +107,35 @@ function ProfileContent() {
         await addDoc(collection(db, "purchases"), {
           uid: authUser.uid,
           itemType: 'Elite',
+          amount: 99,
+          currency: currency.code,
+          timestamp: serverTimestamp(),
+          razorpayOrderId: res.razorpay_order_id,
+          status: 'Success'
+        });
+        setActiveSheet(null);
+        toast({ title: "Elite Activated!", description: "Welcome to Aura Elite." });
+      }
+    });
+  };
+
+  const buyElitePlus = () => {
+    initializeRazorpayPayment({
+      amount: 199,
+      currency: currency.code,
+      itemType: 'ElitePlus',
+      onSuccess: async (res) => {
+        if (!db || !authUser) return;
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + 28);
+        await updateDoc(doc(db, "users", authUser.uid), { 
+          plan: 'ElitePlus', 
+          subscriptionEndDate: expiry,
+          subscriptionStatus: 'Active'
+        });
+        await addDoc(collection(db, "purchases"), {
+          uid: authUser.uid,
+          itemType: 'ElitePlus',
           amount: 199,
           currency: currency.code,
           timestamp: serverTimestamp(),
@@ -187,10 +218,11 @@ function ProfileContent() {
   };
 
   const elite = isElite(profile);
+  const elitePlus = isElitePlus(profile);
   const spotlight = isSpotlightActive(profile);
   const vStatus = profile?.verification?.status || 'not_submitted';
 
-  const eliteDaysRemaining = useMemo(() => {
+  const subDaysRemaining = useMemo(() => {
     if (!profile?.subscriptionEndDate) return 0;
     const end = profile.subscriptionEndDate.toDate ? profile.subscriptionEndDate.toDate() : new Date(profile.subscriptionEndDate);
     return Math.max(0, differenceInDays(end, new Date()));
@@ -204,26 +236,28 @@ function ProfileContent() {
 
   const ComparisonTable = () => (
     <div className="space-y-4">
-      <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Aura FREE vs Aura ELITE PLUS</h3>
+      <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Plan Comparison</h3>
       <div className="rounded-3xl border border-white/5 overflow-hidden bg-white/5">
-        <div className="grid grid-cols-3 bg-white/10 p-4 text-[9px] font-bold uppercase tracking-widest text-white/60">
+        <div className="grid grid-cols-4 bg-white/10 p-4 text-[8px] font-bold uppercase tracking-widest text-white/60">
           <div>Feature</div>
           <div className="text-center">Free</div>
-          <div className="text-center text-primary">Elite+</div>
+          <div className="text-center text-primary">Elite</div>
+          <div className="text-center text-[#2563FF]">Elite+</div>
         </div>
         {[
-          { label: "Daily Chats", free: "5", elite: "Unlimited" },
-          { label: "Search Radius", free: "50km", elite: "100km" },
-          { label: "Profile Photos", free: "Blurred", elite: "Visible" },
-          { label: "Advanced Filters", free: "No", elite: "Yes" },
-          { label: "Media Sharing", free: "2/day", elite: "Unlimited" },
-          { label: "No Ads", free: "—", elite: "✓" },
-          { label: "Who Likes You", free: "—", elite: "✓" },
+          { label: "Daily Chats", free: "5", elite: "15", plus: "Unlimited" },
+          { label: "Search Radius", free: "25km", elite: "50km", plus: "100km" },
+          { label: "Profile Photos", free: "Blurred", elite: "Blurred", plus: "Visible" },
+          { label: "Media Sharing", free: "2/day", elite: "5/day", plus: "Unlimited" },
+          { label: "No Ads", free: "—", elite: "—", plus: "✓" },
+          { label: "Who Likes You", free: "—", elite: "Limited", plus: "Full" },
+          { label: "Incognito", free: "—", elite: "—", plus: "✓" },
         ].map((row, i) => (
-          <div key={`compare-row-${i}`} className="grid grid-cols-3 p-4 text-[11px] border-t border-white/5 items-center">
+          <div key={`compare-row-${i}`} className="grid grid-cols-4 p-4 text-[10px] border-t border-white/5 items-center">
             <div className="text-white/80">{row.label}</div>
             <div className="text-center text-white/30">{row.free}</div>
             <div className="text-center text-primary font-bold">{row.elite}</div>
+            <div className="text-center text-[#2563FF] font-bold">{row.plus}</div>
           </div>
         ))}
       </div>
@@ -266,7 +300,7 @@ function ProfileContent() {
               )}
               {spotlight && (
                 <div className="absolute -top-2 -left-2 w-11 h-11 rounded-2xl bg-primary flex items-center justify-center border-4 border-background shadow-xl animate-bounce">
-                  <span className="text-xl">🌟</span>
+                  <Star size={20} className="text-white" />
                 </div>
               )}
             </div>
@@ -278,7 +312,7 @@ function ProfileContent() {
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />
-                {elite ? "Aura Elite Plus Member" : "Aura Free Member"}
+                {elitePlus ? "Aura Elite Plus Member" : elite ? "Aura Elite Member" : "Aura Free Member"}
               </div>
             </div>
           </div>
@@ -296,9 +330,9 @@ function ProfileContent() {
               </span>
            </div>
            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
-              <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Elite Plus</span>
+              <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Premium</span>
               <span className={cn("text-[9px] font-bold", elite ? "text-primary" : "text-white/40")}>
-                {elite ? `${eliteDaysRemaining}d left` : "Upgrade"}
+                {elite ? `${subDaysRemaining}d left` : "Upgrade"}
               </span>
            </div>
         </div>
@@ -309,108 +343,147 @@ function ProfileContent() {
           </div>
           
           <div className="space-y-3">
-            <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
-              <SheetTrigger asChild>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={cn(
-                    "w-full p-7 rounded-[32px] premium-gradient text-white relative overflow-hidden group shadow-2xl text-left border border-white/10",
-                    elite && "grayscale-[0.5] opacity-80"
-                  )}
-                >
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                         <span className="text-xs font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
-                         {elite && <Check size={14} className="text-white" />}
+            {/* Plan Swipe Carousel */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
+              {/* Elite Card */}
+              <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
+                <SheetTrigger asChild>
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    className={cn(
+                      "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 border border-white/10 text-left relative overflow-hidden group transition-all",
+                      profile?.plan === 'Elite' && "bg-primary/10 border-primary/30"
+                    )}
+                  >
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/20 text-primary px-2 py-0.5 rounded-md">Elite</span>
+                         {profile?.plan === 'Elite' && <Check size={14} className="text-primary" />}
                       </div>
-                      <h3 className="text-xl font-bold tracking-tight">{formatPrice(199)} / 28 Days</h3>
-                      <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold tracking-tight">{formatPrice(99)} / 28 Days</h3>
+                        <p className="text-[10px] text-white/40">Unlock essential premium benefits and search reach.</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-primary">
+                         {profile?.plan === 'Elite' ? "Manage" : "View Benefits"} <ChevronRight size={12} />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
-                       {elite ? "Manage" : "View Benefits"} <ChevronRight size={14} />
+                  </motion.button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+                  <div className="h-full flex flex-col">
+                    <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                      <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                      <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Aura Elite</SheetTitle>
+                      <div className="w-10 h-10" />
+                    </header>
+                    <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
+                       <div className="text-center space-y-3">
+                          <div className="w-20 h-20 rounded-[32px] bg-primary/20 mx-auto flex items-center justify-center border border-primary/30">
+                             <Star size={32} className="text-primary" />
+                          </div>
+                          <h3 className="text-3xl font-bold tracking-tighter text-white">Aura Elite</h3>
+                          <p className="text-sm text-white/60 font-light">Essential premium for the serious discoverer.</p>
+                       </div>
+                       <div className="space-y-4">
+                          <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Benefits</h4>
+                          <div className="grid grid-cols-1 gap-3">
+                             {[
+                               { icon: Compass, label: "50 km search radius" },
+                               { icon: MessageSquare, label: "15 new chats daily" },
+                               { icon: Heart, label: "10 daily likes" },
+                               { icon: ImageIcon, label: "5 daily media uploads" },
+                             ].map((b, i) => (
+                               <div key={`elite-benefit-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
+                                  <span className="text-sm font-medium">{b.label}</span>
+                               </div>
+                             ))}
+                          </div>
+                       </div>
+                       <ComparisonTable />
+                       <div className="pb-12 pt-4 text-center">
+                          <p className="text-[10px] text-white/30">Secure payment via Razorpay. Subscription renews every 28 days.</p>
+                       </div>
+                    </div>
+                    <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
+                       <Button onClick={buyElite} disabled={elite} className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg">
+                          {profile?.plan === 'Elite' ? "Active Membership" : `Upgrade to Elite — ${formatPrice(99)}`}
+                       </Button>
                     </div>
                   </div>
-                </motion.button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
-                <div className="h-full flex flex-col">
-                  <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
-                    <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                    <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Aura Elite Plus</SheetTitle>
-                    <div className="w-10 h-10" />
-                  </header>
-                  
-                  <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
-                     <div className="text-center space-y-3">
-                        <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center neon-glow">
-                           <Star size={32} className="text-white" />
-                        </div>
-                        <div className="space-y-1">
-                           <h3 className="text-3xl font-bold tracking-tighter">Aura Elite Plus</h3>
-                           <p className="text-sm text-white/60 font-light">Unlimited everything. Zero restrictions.</p>
-                        </div>
-                     </div>
+                </SheetContent>
+              </Sheet>
 
-                     <div className="grid grid-cols-1 gap-8">
-                        <div className="space-y-4">
-                           <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Discover</h4>
-                           <div className="grid grid-cols-1 gap-3">
-                              {[
-                                { icon: Compass, label: "100 km search radius" },
-                                { icon: SlidersHorizontal, label: "Advanced discovery filters" },
-                                { icon: Eye, label: "See who likes you" },
-                                { icon: Heart, label: "Unlimited discovery likes" },
-                              ].map((b, i) => (
-                                <div key={`elite-benefit-discover-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
-                                   <span className="text-sm font-medium">{b.label}</span>
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-
-                        <div className="space-y-4">
-                           <h4 className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] px-1">Connect</h4>
-                           <div className="grid grid-cols-1 gap-3">
-                              {[
-                                { icon: MessageSquare, label: "Unlimited new chats" },
-                                { icon: UserCheck, label: "Read receipts enabled" },
-                                { icon: ImageIcon, label: "Unlimited media sharing" },
-                              ].map((b, i) => (
-                                <div key={`elite-benefit-connect-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                   <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary"><b.icon size={18} /></div>
-                                   <span className="text-sm font-medium">{b.label}</span>
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-                     </div>
-
-                     <ComparisonTable />
-
-                     <div className="pb-12 pt-4 text-center">
-                        <p className="text-[10px] text-white/30 leading-relaxed">
-                          Secure payment via Razorpay. Subscription renews every 28 days. Cancel anytime.
-                        </p>
-                     </div>
+              {/* Elite Plus Card */}
+              <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
+                <SheetTrigger asChild>
+                  <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    className={cn(
+                      "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white relative overflow-hidden group border border-white/10 transition-all",
+                      profile?.plan === 'ElitePlus' && "opacity-90 shadow-[0_0_25px_rgba(37,99,255,0.3)]"
+                    )}
+                  >
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
+                         {profile?.plan === 'ElitePlus' && <Check size={14} className="text-white" />}
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold tracking-tight">{formatPrice(199)} / 28 Days</h3>
+                        <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience with zero limits.</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest opacity-80">
+                         {profile?.plan === 'ElitePlus' ? "Manage" : "View Benefits"} <ChevronRight size={12} />
+                      </div>
+                    </div>
+                  </motion.button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+                  <div className="h-full flex flex-col">
+                    <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                      <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                      <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Aura Elite Plus</SheetTitle>
+                      <div className="w-10 h-10" />
+                    </header>
+                    <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
+                       <div className="text-center space-y-3">
+                          <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center neon-glow">
+                             <Star size={32} className="text-white" />
+                          </div>
+                          <h3 className="text-3xl font-bold tracking-tighter">Aura Elite Plus</h3>
+                          <p className="text-sm text-white/60 font-light">Unlimited everything. Zero restrictions.</p>
+                       </div>
+                       <div className="grid grid-cols-1 gap-8">
+                          <div className="space-y-4">
+                             <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Premium Core</h4>
+                             <div className="grid grid-cols-1 gap-3">
+                                {[
+                                  { icon: Compass, label: "100 km search radius" },
+                                  { icon: SlidersHorizontal, label: "Advanced discovery filters" },
+                                  { icon: Eye, label: "Visible identity photos" },
+                                  { icon: Shield, label: "Incognito mode available" },
+                                ].map((b, i) => (
+                                  <div key={`plus-benefit-${i}`} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><b.icon size={18} /></div>
+                                     <span className="text-sm font-medium">{b.label}</span>
+                                  </div>
+                                ))}
+                             </div>
+                          </div>
+                       </div>
+                       <ComparisonTable />
+                    </div>
+                    <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
+                       <Button onClick={buyElitePlus} disabled={elitePlus} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow">
+                          {profile?.plan === 'ElitePlus' ? "Active Membership" : `Upgrade to Elite Plus — ${formatPrice(199)}`}
+                       </Button>
+                    </div>
                   </div>
-
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                     <Button 
-                       onClick={buyElite} 
-                       disabled={elite}
-                       className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-between px-8"
-                     >
-                        <span>{elite ? "Active Membership" : "Upgrade to Aura Elite Plus"}</span>
-                        <span className="text-sm opacity-80">{formatPrice(199)}</span>
-                     </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-2">
@@ -505,88 +578,86 @@ function ProfileContent() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Suspense fallback={null}>
-                  <Sheet open={activeSheet === 'superlike'} onOpenChange={(o) => setActiveSheet(o ? 'superlike' : null)}>
-                    <SheetTrigger asChild>
-                      <button className="p-6 w-full rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-accent/40 transition-all">
-                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
-                            <Heart size={24} />
-                        </div>
-                        <div className="space-y-1">
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
-                            <p className="text-sm font-bold text-white">{formatPrice(3)}</p>
-                        </div>
-                      </button>
-                    </SheetTrigger>
-                    <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
-                      <div className="h-full flex flex-col">
-                        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
-                            <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
-                            <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Super Likes</SheetTitle>
-                            <div className="w-10 h-10" />
-                        </header>
-                        <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
-                            <div className="text-center space-y-3">
-                              <div className="w-20 h-20 rounded-[32px] bg-accent/20 mx-auto flex items-center justify-center border border-accent/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                                  <Heart size={32} className="text-accent" />
-                              </div>
-                              <h3 className="text-3xl font-bold tracking-tighter">💜 SUPER LIKE</h3>
-                              <p className="text-sm text-white/60 font-light">Stand out from the crowd.</p>
-                            </div>
-
-                            <div className="flex items-center justify-center gap-10 py-4">
-                              <button onClick={() => setSuperLikeQty(Math.max(1, superLikeQty - 1))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Minus size={24} /></button>
-                              <div className="text-4xl font-bold tracking-tighter w-12 text-center">{superLikeQty}</div>
-                              <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Plus size={24} /></button>
-                            </div>
-
-                            <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
-                              <div className="flex items-center gap-3 text-accent">
-                                <Heart size={20} />
-                                <h4 className="text-xs font-bold uppercase tracking-widest">Interaction Power</h4>
-                              </div>
-                              <p className="text-sm text-white/80 font-light leading-relaxed">
-                                Super like is a special feature that tells someone you are very interested in them. When you tap the blue heart icon on a profile, your profile jumps to the top of their queue and shows up with notification.
-                              </p>
-                            </div>
-
-                            <div className="space-y-6">
-                              <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] px-1">How it works</h4>
-                              <div className="grid grid-cols-1 gap-3">
-                                {[
-                                  { icon: Heart, title: "3x More Matches", desc: "Super Liked profiles are 3x more likely to result in a synchronization event." },
-                                  { icon: Bell, title: "Immediate Notification", desc: "Your interest is pushed to the top of their alerts instantly, cutting through the noise." },
-                                  { icon: Sparkles, title: "Cinematic Reveal", desc: "When they discover your aura, it materializes with a unique premium highlight." }
-                                ].map((item, i) => (
-                                  <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex gap-4 items-start">
-                                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
-                                      <item.icon size={18} />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <p className="text-xs font-bold text-white">{item.title}</p>
-                                      <p className="text-[10px] text-white/40 font-light leading-relaxed">{item.desc}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="pt-8 pb-4 flex flex-col items-center gap-4 opacity-10">
-                              <div className="w-12 h-12 rounded-[18px] border-2 border-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                                <span className="text-2xl font-bold text-white tracking-tighter">A</span>
-                              </div>
-                              <p className="text-[10px] font-bold text-white uppercase tracking-[0.5em]">Aura Identity</p>
-                            </div>
-                        </div>
-                        <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                            <Button onClick={buySuperLikes} className="w-full h-16 rounded-[24px] bg-accent text-white font-bold text-lg">
-                              Buy {superLikeQty} Super Likes — {formatPrice(superLikeQty * 3)}
-                            </Button>
-                        </div>
+                <Sheet open={activeSheet === 'superlike'} onOpenChange={(o) => setActiveSheet(o ? 'superlike' : null)}>
+                  <SheetTrigger asChild>
+                    <button className="p-6 w-full rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-accent/40 transition-all">
+                      <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
+                          <Heart size={24} />
                       </div>
-                    </SheetContent>
-                  </Sheet>
-                </Suspense>
+                      <div className="space-y-1">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
+                          <p className="text-sm font-bold text-white">{formatPrice(3)}</p>
+                      </div>
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+                    <div className="h-full flex flex-col">
+                      <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                          <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                          <SheetTitle className="text-sm font-bold uppercase tracking-[0.3em]">Super Likes</SheetTitle>
+                          <div className="w-10 h-10" />
+                      </header>
+                      <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
+                          <div className="text-center space-y-3">
+                            <div className="w-20 h-20 rounded-[32px] bg-accent/20 mx-auto flex items-center justify-center border border-accent/30 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                                <Heart size={32} className="text-accent" />
+                            </div>
+                            <h3 className="text-3xl font-bold tracking-tighter">💜 SUPER LIKE</h3>
+                            <p className="text-sm text-white/60 font-light">Stand out from the crowd.</p>
+                          </div>
+
+                          <div className="flex items-center justify-center gap-10 py-4">
+                            <button onClick={() => setSuperLikeQty(Math.max(1, superLikeQty - 1))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Minus size={24} /></button>
+                            <div className="text-4xl font-bold tracking-tighter w-12 text-center">{superLikeQty}</div>
+                            <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white transition-colors"><Plus size={24} /></button>
+                          </div>
+
+                          <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                            <div className="flex items-center gap-3 text-accent">
+                              <Heart size={20} />
+                              <h4 className="text-xs font-bold uppercase tracking-widest">Interaction Power</h4>
+                            </div>
+                            <p className="text-sm text-white/80 font-light leading-relaxed">
+                              Super like is a special feature that tells someone you are very interested in them. When you tap the blue heart icon on a profile, your profile jumps to the top of their queue and shows up with notification.
+                            </p>
+                          </div>
+
+                          <div className="space-y-6">
+                            <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] px-1">How it works</h4>
+                            <div className="grid grid-cols-1 gap-3">
+                              {[
+                                { icon: Heart, title: "3x More Matches", desc: "Super Liked profiles are 3x more likely to result in a synchronization event." },
+                                { icon: Bell, title: "Immediate Notification", desc: "Your interest is pushed to the top of their alerts instantly, cutting through the noise." },
+                                { icon: Sparkles, title: "Cinematic Reveal", desc: "When they discover your aura, it materializes with a unique premium highlight." }
+                              ].map((item, i) => (
+                                <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex gap-4 items-start">
+                                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                                    <item.icon size={18} />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-bold text-white">{item.title}</p>
+                                    <p className="text-[10px] text-white/40 font-light leading-relaxed">{item.desc}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="pt-8 pb-4 flex flex-col items-center gap-4 opacity-10">
+                            <div className="w-12 h-12 rounded-[18px] border-2 border-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                              <span className="text-2xl font-bold text-white tracking-tighter">A</span>
+                            </div>
+                            <p className="text-[10px] font-bold text-white uppercase tracking-[0.5em]">Aura Identity</p>
+                          </div>
+                      </div>
+                      <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
+                          <Button onClick={buySuperLikes} className="w-full h-16 rounded-[24px] bg-accent text-white font-bold text-lg">
+                            Buy {superLikeQty} Super Likes — {formatPrice(superLikeQty * 3)}
+                          </Button>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
                 <p className="text-[9px] text-white/30 text-center px-1 font-light leading-snug">Express 3x more interest with a ✦ highlight.</p>
               </div>
             </div>
@@ -615,14 +686,14 @@ function ProfileContent() {
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Chat LIMITS</label>
                 <div className="flex items-center gap-2 text-foreground font-medium">
                   <MessageSquare size={14} className="text-primary" />
-                  {elite ? "Unlimited" : `${profile.dailyChatCount} / 5 Daily`}
+                  {elitePlus ? "Unlimited" : `${profile.dailyChatCount} / ${checkPlanLimit(profile, 'dailyNewChats')} Daily`}
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">MEDIA LIMITS</label>
                 <div className="flex items-center gap-2 text-foreground font-medium">
                   <ImageIcon size={14} className="text-primary" />
-                  {elite ? "Unlimited" : `${profile.dailyMediaCount} / 2 Daily`}
+                  {elitePlus ? "Unlimited" : `${profile.dailyMediaCount} / ${checkPlanLimit(profile, 'dailyMediaUploads')} Daily`}
                 </div>
               </div>
             </div>

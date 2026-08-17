@@ -1,7 +1,7 @@
 
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
 export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired' | 'Pending';
-export type PlanType = 'Free' | 'Elite';
+export type PlanType = 'Free' | 'Elite' | 'ElitePlus';
 
 export type UserNotificationSettings = {
   newMessages: boolean;
@@ -155,7 +155,7 @@ export type MatchRecord = {
 export type Purchase = {
   id: string;
   uid: string;
-  itemType: 'Elite' | 'SuperLike' | 'Spotlight';
+  itemType: 'Elite' | 'ElitePlus' | 'SuperLike' | 'Spotlight';
   amount: number;
   timestamp: any;
   razorpayOrderId: string;
