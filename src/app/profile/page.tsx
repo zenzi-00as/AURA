@@ -141,25 +141,44 @@ function ProfileContent() {
 
   const ComparisonTable = ({ mode }: { mode: 'elite' | 'eliteplus' }) => {
     const isPlus = mode === 'eliteplus';
+    const { formatPrice } = useCurrency();
     const leftPlanLabel = isPlus ? "Elite" : "Free";
-    const rightPlanLabel = isPlus ? "Elite+" : "Elite";
+    const rightPlanLabel = isPlus ? `Elite Plus ${formatPrice(199)}` : `Elite ${formatPrice(99)}`;
 
     const data = isPlus ? [
-      { label: "New Chats", left: "15", right: "Unlimited" },
-      { label: "Radius", left: "50km", right: "100km" },
-      { label: "Photos", left: "Blurred", right: "Visible" },
-      { label: "Media", left: "5/day", right: "Unlimited" },
+      { label: "Chats/day", left: "15", right: "Unlimited" },
+      { label: "Radius", left: "50 km", right: "100 km" },
+      { label: "Likes/day", left: "10", right: "Unlimited" },
+      { label: "Profile photos", left: "Blurred", right: "Visible" },
+      { label: "Media/day", left: "5", right: "Unlimited" },
+      { label: "Incognito", left: "❌", right: "✅" },
+      { label: "Verified badge*", left: "❌", right: "✅" },
+      { label: "Read receipts", left: "✅", right: "✅" },
+      { label: "Filters", left: "Basic", right: "Advanced" },
+      { label: "Who Likes You", left: "Limited", right: "Full" },
       { label: "Ads", left: "Reduced", right: "None" },
-      { label: "Incognito", left: "—", right: "✓" },
-      { label: "Receipts", left: "✓", right: "✓" },
+      { label: "Priority discovery", left: "✅", right: "⭐ Highest" },
+      { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
+      { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
+      { label: "Priority support", left: "Standard", right: "Priority" },
+      { label: "Early access", left: "❌", right: "✅" },
     ] : [
-      { label: "New Chats", left: "5", right: "15" },
-      { label: "Radius", left: "25km", right: "50km" },
-      { label: "Photos", left: "Blurred", right: "Blurred" },
-      { label: "Media", left: "2/day", right: "5/day" },
+      { label: "Chats/day", left: "5", right: "15" },
+      { label: "Radius", left: "25 km", right: "50 km" },
+      { label: "Likes/day", left: "5", right: "10" },
+      { label: "Profile photos", left: "Blurred", right: "Blurred" },
+      { label: "Media/day", left: "2", right: "5" },
+      { label: "Incognito", left: "❌", right: "❌" },
+      { label: "Verified badge*", left: "❌", right: "❌" },
+      { label: "Read receipts", left: "❌", right: "✅" },
+      { label: "Filters", left: "❌", right: "Basic" },
+      { label: "Who Likes You", left: "❌", right: "Limited" },
       { label: "Ads", left: "Full", right: "Reduced" },
-      { label: "Incognito", left: "—", right: "—" },
-      { label: "Receipts", left: "—", right: "✓" },
+      { label: "Priority discovery", left: "❌", right: "✅" },
+      { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
+      { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
+      { label: "Priority support", left: "❌", right: "Standard" },
+      { label: "Early access", left: "❌", right: "❌" },
     ];
 
     return (
