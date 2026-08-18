@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -145,40 +144,43 @@ function ProfileContent() {
     const leftPlanLabel = isPlus ? "Elite" : "Free";
     const rightPlanLabel = isPlus ? `Elite Plus ${formatPrice(199)}` : `Elite ${formatPrice(99)}`;
 
+    const Cross = <X size={14} className="mx-auto text-white/20" />;
+    const Tick = <Check size={14} className="mx-auto text-primary" />;
+
     const data = isPlus ? [
       { label: "Chats/day", left: "15", right: "Unlimited" },
       { label: "Radius", left: "50 km", right: "100 km" },
       { label: "Likes/day", left: "10", right: "Unlimited" },
       { label: "Profile photos", left: "Blurred", right: "Visible" },
       { label: "Media/day", left: "5", right: "Unlimited" },
-      { label: "Incognito", left: "❌", right: "✅" },
-      { label: "Verified badge*", left: "❌", right: "✅" },
-      { label: "Read receipts", left: "✅", right: "✅" },
+      { label: "Incognito", left: Cross, right: Tick },
+      { label: "Verified badge*", left: Cross, right: Tick },
+      { label: "Read receipts", left: Tick, right: Tick },
       { label: "Filters", left: "Basic", right: "Advanced" },
       { label: "Who Likes You", left: "Limited", right: "Full" },
       { label: "Ads", left: "Reduced", right: "None" },
-      { label: "Priority discovery", left: "✅", right: "⭐ Highest" },
+      { label: "Priority discovery", left: Tick, right: "⭐ Highest" },
       { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
       { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
       { label: "Priority support", left: "Standard", right: "Priority" },
-      { label: "Early access", left: "❌", right: "✅" },
+      { label: "Early access", left: Cross, right: Tick },
     ] : [
       { label: "Chats/day", left: "5", right: "15" },
       { label: "Radius", left: "25 km", right: "50 km" },
       { label: "Likes/day", left: "5", right: "10" },
       { label: "Profile photos", left: "Blurred", right: "Blurred" },
       { label: "Media/day", left: "2", right: "5" },
-      { label: "Incognito", left: "❌", right: "❌" },
-      { label: "Verified badge*", left: "❌", right: "❌" },
-      { label: "Read receipts", left: "❌", right: "✅" },
-      { label: "Filters", left: "❌", right: "Basic" },
-      { label: "Who Likes You", left: "❌", right: "Limited" },
+      { label: "Incognito", left: Cross, right: Cross },
+      { label: "Verified badge*", left: Cross, right: Cross },
+      { label: "Read receipts", left: Cross, right: Tick },
+      { label: "Filters", left: Cross, right: "Basic" },
+      { label: "Who Likes You", left: Cross, right: "Limited" },
       { label: "Ads", left: "Full", right: "Reduced" },
-      { label: "Priority discovery", left: "❌", right: "✅" },
+      { label: "Priority discovery", left: Cross, right: Tick },
       { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
       { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
-      { label: "Priority support", left: "❌", right: "Standard" },
-      { label: "Early access", left: "❌", right: "❌" },
+      { label: "Priority support", left: Cross, right: "Standard" },
+      { label: "Early access", left: Cross, right: Cross },
     ];
 
     return (
