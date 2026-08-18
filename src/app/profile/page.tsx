@@ -393,10 +393,10 @@ function ProfileContent() {
               <div className="flex flex-col gap-2">
                 <Sheet open={activeSheet === 'superlike'} onOpenChange={(o) => setActiveSheet(o ? 'superlike' : null)}>
                   <SheetTrigger asChild>
-                    <button className="p-6 w-full rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-accent/40 transition-all relative overflow-hidden">
-                      <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-accent/20 to-transparent pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity" />
-                      <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform relative z-10">
-                          <Heart size={24} className="text-accent" />
+                    <button className="p-6 w-full rounded-[28px] bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center group hover:border-primary/40 transition-all relative overflow-hidden">
+                      <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-primary/30 to-transparent pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity" />
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform relative z-10">
+                          <Heart size={24} className="text-primary" />
                       </div>
                       <div className="space-y-1 relative z-10">
                           <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
@@ -413,8 +413,8 @@ function ProfileContent() {
                       </header>
                       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
                         <div className="text-center space-y-4">
-                          <div className="w-20 h-20 rounded-[32px] bg-accent/10 mx-auto flex items-center justify-center text-accent">
-                            <Heart size={40} className="fill-accent" />
+                          <div className="w-20 h-20 rounded-[32px] bg-primary/10 mx-auto flex items-center justify-center text-primary">
+                            <Heart size={40} />
                           </div>
                           <div className="space-y-2">
                             <h3 className="text-2xl font-bold">Stand out from the crowd</h3>
@@ -430,7 +430,7 @@ function ProfileContent() {
 
                         <div className="space-y-6">
                           <div className="p-6 rounded-[32px] bg-white/5 border border-white/10 space-y-4">
-                             <div className="flex items-center gap-3 text-accent">
+                             <div className="flex items-center gap-3 text-primary">
                                 <Sparkles size={20} />
                                 <h4 className="text-[10px] font-bold uppercase tracking-widest">Interaction Power</h4>
                              </div>
@@ -446,7 +446,7 @@ function ProfileContent() {
                               { title: "Cinematic Reveal", desc: "Your profile is highlighted with a premium blue aura in their discovery stage." }
                             ].map((feat, i) => (
                               <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-4">
-                                 <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                     <Check size={16} />
                                  </div>
                                  <div className="space-y-0.5">
@@ -466,7 +466,7 @@ function ProfileContent() {
                         </div>
                       </div>
                       <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                         <Button onClick={() => handlePurchase('SuperLike', superLikeQty * 3, superLikeQty)} className="w-full h-16 rounded-[24px] bg-accent text-white font-bold text-lg shadow-lg shadow-accent/20">
+                         <Button onClick={() => handlePurchase('SuperLike', superLikeQty * 3, superLikeQty)} className="w-full h-16 rounded-[24px] bg-primary text-white font-bold text-lg shadow-lg shadow-primary/20">
                             Get {superLikeQty} Super Like{superLikeQty > 1 ? 's' : ''} — {formatPrice(superLikeQty * 3)}
                          </Button>
                       </div>
