@@ -265,18 +265,18 @@ function ProfileContent() {
                   <motion.button 
                     whileTap={{ scale: 0.98 }}
                     className={cn(
-                      "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 border border-white/10 text-left relative overflow-hidden group transition-all",
-                      profile?.plan === 'elite' && "bg-primary/10 border-primary/30"
+                      "flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group transition-all",
+                      profile?.plan === 'elite' && "opacity-90 shadow-[0_0_25px_rgba(37,99,255,0.3)]"
                     )}
                   >
                     <div className="relative z-10 space-y-4">
                       <div className="flex items-center justify-between">
-                         <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/20 text-primary px-2 py-0.5 rounded-md">Elite</span>
-                         {profile?.plan === 'elite' && <Check size={14} className="text-primary" />}
+                         <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 text-white px-2 py-0.5 rounded-md">Elite</span>
+                         {profile?.plan === 'elite' && <Check size={14} className="text-white" />}
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-xl font-bold tracking-tight">{formatPrice(99)} / 28 Days</h3>
-                        <p className="text-[10px] text-white/40">Unlock essential premium benefits and search reach.</p>
+                        <p className="text-[10px] opacity-70">Unlock essential premium benefits and search reach.</p>
                       </div>
                     </div>
                   </motion.button>
