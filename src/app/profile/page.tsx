@@ -143,26 +143,24 @@ function ProfileContent() {
     <div className="space-y-4">
       <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Plan Comparison</h3>
       <div className="rounded-3xl border border-white/5 overflow-hidden bg-white/5">
-        <div className="grid grid-cols-4 bg-white/10 p-4 text-[8px] font-bold uppercase tracking-widest text-white/60">
+        <div className="grid grid-cols-3 bg-white/10 p-4 text-[8px] font-bold uppercase tracking-widest text-white/60">
           <div>Feature</div>
           <div className="text-center">Free</div>
           <div className="text-center text-primary">Elite</div>
-          <div className="text-center text-[#2563FF]">Elite+</div>
         </div>
         {[
-          { label: "New Chats", free: "5", elite: "15", plus: "Unlimited" },
-          { label: "Radius", free: "25km", elite: "50km", plus: "100km" },
-          { label: "Photos", free: "Blurred", elite: "Blurred", plus: "Visible" },
-          { label: "Media", free: "2/day", elite: "5/day", plus: "Unlimited" },
-          { label: "Ads", free: "Full", elite: "Reduced", plus: "None" },
-          { label: "Incognito", free: "—", elite: "—", plus: "✓" },
-          { label: "Receipts", free: "—", elite: "✓", plus: "✓" },
+          { label: "New Chats", free: "5", elite: "15" },
+          { label: "Radius", free: "25km", elite: "50km" },
+          { label: "Photos", free: "Blurred", elite: "Blurred" },
+          { label: "Media", free: "2/day", elite: "5/day" },
+          { label: "Ads", free: "Full", elite: "Reduced" },
+          { label: "Incognito", free: "—", elite: "—" },
+          { label: "Receipts", free: "—", elite: "✓" },
         ].map((row, i) => (
-          <div key={`row-${i}`} className="grid grid-cols-4 p-4 text-[10px] border-t border-white/5 items-center">
+          <div key={`row-${i}`} className="grid grid-cols-3 p-4 text-[10px] border-t border-white/5 items-center">
             <div className="text-white/80">{row.label}</div>
             <div className="text-center text-white/30">{row.free}</div>
             <div className="text-center text-primary font-bold">{row.elite}</div>
-            <div className="text-center text-[#2563FF] font-bold">{row.plus}</div>
           </div>
         ))}
       </div>
@@ -240,15 +238,15 @@ function ProfileContent() {
             {/* Elite Card */}
             <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group shadow-[0_0_20px_rgba(0,87,255,0.2)]">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group shadow-[0_0_25px_rgba(0,87,255,0.3)]">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 text-white px-2 py-0.5 rounded-md">Elite</span>
-                       {effectivePlan === 'elite' && <Check size={14} />}
+                       {effectivePlan === 'elite' && <Check size={14} className="text-white" />}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold">{formatPrice(99)} / 28 Days</h3>
-                      <p className="text-[10px] opacity-70">15 daily chats and 50km search reach.</p>
+                      <p className="text-[10px] opacity-70">Unlock essential premium benefits and search reach.</p>
                     </div>
                   </div>
                 </motion.button>
@@ -279,11 +277,11 @@ function ProfileContent() {
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
-                       {effectivePlan === 'elite_plus' && <Check size={14} />}
+                       {effectivePlan === 'elite_plus' && <Check size={14} className="text-white" />}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold">{formatPrice(199)} / 28 Days</h3>
-                      <p className="text-[10px] opacity-70">Unlimited chats, 100km radius & Visible Photos.</p>
+                      <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
                     </div>
                   </div>
                   <div className="absolute inset-0 border-2 border-white/10 rounded-[32px] animate-pulse pointer-events-none" />
