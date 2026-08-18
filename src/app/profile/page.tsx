@@ -139,33 +139,49 @@ function ProfileContent() {
     return Math.max(0, differenceInDays(end, new Date()));
   }, [profile]);
 
-  const ComparisonTable = () => (
-    <div className="space-y-4">
-      <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Plan Comparison</h3>
-      <div className="rounded-3xl border border-white/5 overflow-hidden bg-white/5">
-        <div className="grid grid-cols-3 bg-white/10 p-4 text-[8px] font-bold uppercase tracking-widest text-white/60">
-          <div>Feature</div>
-          <div className="text-center">Free</div>
-          <div className="text-center text-primary">Elite</div>
-        </div>
-        {[
-          { label: "New Chats", free: "5", elite: "15" },
-          { label: "Radius", free: "25km", elite: "50km" },
-          { label: "Photos", free: "Blurred", elite: "Blurred" },
-          { label: "Media", free: "2/day", elite: "5/day" },
-          { label: "Ads", free: "Full", elite: "Reduced" },
-          { label: "Incognito", free: "—", elite: "—" },
-          { label: "Receipts", free: "—", elite: "✓" },
-        ].map((row, i) => (
-          <div key={`row-${i}`} className="grid grid-cols-3 p-4 text-[10px] border-t border-white/5 items-center">
-            <div className="text-white/80">{row.label}</div>
-            <div className="text-center text-white/30">{row.free}</div>
-            <div className="text-center text-primary font-bold">{row.elite}</div>
+  const ComparisonTable = ({ mode }: { mode: 'elite' | 'eliteplus' }) => {
+    const isPlus = mode === 'eliteplus';
+    const leftPlanLabel = isPlus ? "Elite" : "Free";
+    const rightPlanLabel = isPlus ? "Elite+" : "Elite";
+
+    const data = isPlus ? [
+      { label: "New Chats", left: "15", right: "Unlimited" },
+      { label: "Radius", left: "50km", right: "100km" },
+      { label: "Photos", left: "Blurred", right: "Visible" },
+      { label: "Media", left: "5/day", right: "Unlimited" },
+      { label: "Ads", left: "Reduced", right: "None" },
+      { label: "Incognito", left: "—", right: "✓" },
+      { label: "Receipts", left: "✓", right: "✓" },
+    ] : [
+      { label: "New Chats", left: "5", right: "15" },
+      { label: "Radius", left: "25km", right: "50km" },
+      { label: "Photos", left: "Blurred", right: "Blurred" },
+      { label: "Media", left: "2/day", right: "5/day" },
+      { label: "Ads", left: "Full", right: "Reduced" },
+      { label: "Incognito", left: "—", right: "—" },
+      { label: "Receipts", left: "—", right: "✓" },
+    ];
+
+    return (
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Plan Comparison</h3>
+        <div className="rounded-3xl border border-white/5 overflow-hidden bg-white/5">
+          <div className="grid grid-cols-3 bg-white/10 p-4 text-[8px] font-bold uppercase tracking-widest text-white/60">
+            <div>Feature</div>
+            <div className="text-center">{leftPlanLabel}</div>
+            <div className="text-center text-primary">{rightPlanLabel}</div>
           </div>
-        ))}
+          {data.map((row, i) => (
+            <div key={`row-${i}`} className="grid grid-cols-3 p-4 text-[10px] border-t border-white/5 items-center">
+              <div className="text-white/80">{row.label}</div>
+              <div className="text-center text-white/30">{row.left}</div>
+              <div className="text-center text-primary font-bold">{row.right}</div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
@@ -259,7 +275,7 @@ function ProfileContent() {
                     <div className="w-10 h-10" />
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
-                     <ComparisonTable />
+                     <ComparisonTable mode="elite" />
                   </div>
                   <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                      <Button onClick={() => handlePurchase('Elite', 99)} disabled={effectivePlan === 'elite'} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
@@ -295,7 +311,7 @@ function ProfileContent() {
                     <div className="w-10 h-10" />
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
-                     <ComparisonTable />
+                     <ComparisonTable mode="eliteplus" />
                   </div>
                   <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                      <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={effectivePlan === 'elite_plus'} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg neon-glow">
