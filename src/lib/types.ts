@@ -1,7 +1,21 @@
 
-export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected';
-export type SubscriptionStatus = 'Active' | 'Inactive' | 'Expired' | 'Pending';
+export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected' | 'unverified';
+export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending' | 'free';
 export type PlanType = 'free' | 'elite' | 'elite_plus';
+
+export interface UserSubscription {
+  planId: PlanType;
+  status: SubscriptionStatus;
+  expiresAt: any;
+  startedAt: any;
+}
+
+export interface UserUsage {
+  newChatsUsed: number;
+  likesUsed: number;
+  mediaUsed: number;
+  lastResetDate: string;
+}
 
 export type UserNotificationSettings = {
   newMessages: boolean;
@@ -52,15 +66,8 @@ export type UserProfile = {
   room?: "Yes" | "No";
   verificationStatus: VerificationStatus;
   verification?: VerificationData;
-  subscriptionStatus?: SubscriptionStatus;
-  plan: PlanType;
-  subscriptionEndDate?: any;
-  subscriptionPrice?: number;
-  dailyChatCount: number;
-  dailyMediaCount: number;
-  dailyLikeCount: number;
-  lastLikeResetDate?: string;
-  lastResetDate?: string;
+  subscription?: UserSubscription;
+  usage?: UserUsage;
   superLikeBalance: number;
   spotlightExpiry?: any;
   incognitoMode: boolean;
@@ -77,17 +84,9 @@ export type UserProfile = {
   photoUrl?: string;
   profilePhotos?: string[];
   onboardingCompleted: boolean;
-  welcomeSent?: boolean;
   updatedAt?: any;
   notificationSettings?: UserNotificationSettings;
   isDemoUser?: boolean;
-};
-
-export type BlockedUser = {
-  id: string;
-  uid: string;
-  name: string;
-  blockedAt: any;
 };
 
 export type Message = {
@@ -142,14 +141,6 @@ export type LikeRecord = {
   type: InteractionType;
   createdAt: any;
   status: 'active' | 'deleted';
-};
-
-export type MatchRecord = {
-  id: string;
-  userIds: string[];
-  createdAt: any;
-  status: 'active';
-  matchSource: InteractionType;
 };
 
 export type Purchase = {

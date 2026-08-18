@@ -18,52 +18,27 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { PLAN_CONFIG, isElite, isElitePlus, isSpotlightActive, usePlan } from "@/lib/plan-limits";
+import { getPlanConfig } from "@/lib/subscription-engine";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-const DEMO_USER: UserProfile = {
-  uid: "demo-artemis",
-  name: "Artemis",
-  age: 26,
-  bio: "Architect of digital spaces and collector of ethereal moments. Looking for someone to synchronize with in the noise of the city.",
-  gender: "Non-binary",
-  orientation: "Queer",
-  interestedIn: ["Anyone"],
-  verificationStatus: "Verified",
-  plan: "Free",
-  dailyChatCount: 0,
-  dailyMediaCount: 0,
-  dailyLikeCount: 0,
-  superLikeBalance: 3,
-  incognitoMode: false,
-  isSuspended: false,
-  isAdmin: false,
-  lastActive: new Date(),
-  isOnline: true,
-  onboardingCompleted: true,
-  photoUrl: "https://picsum.photos/seed/aura_artemis/600/800",
-  phoneNumber: "+91 0000000000",
-  location: { lat: 0, lng: 0 },
-  distance: "Nearby"
-};
+import { UpgradeModal } from "@/components/aura/UpgradeModal";
 
 export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
   const db = useFirestore();
   const { toast } = useToast();
-  const { profile: currentUserProfile } = useAuthContext();
-  const { config: planConfig, isElite: eliteTier, isElitePlus: plusTier } = usePlan();
+  const { profile: currentUserProfile, effectivePlan } = useAuthContext();
+  const planConfig = getPlanConfig(effectivePlan as any);
   
-  const [distance, setDistance] = useState([planConfig.maxRadiusKm]);
+  const [distance, setDistance] = useState([planConfig.searchRadiusKm]);
   const [ageRange, setAgeRange] = useState([18, 35]);
   const [isOpen, setIsOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeModal, setUpgradeModal] = useState<{isOpen: boolean, plan: 'elite' | 'elite_plus', feature: string} | null>(null);
   
   const [activeFilters, setActiveFilters] = useState({
-    distance: planConfig.maxRadiusKm,
+    distance: planConfig.searchRadiusKm,
     ageRange: [18, 35]
   });
 
@@ -71,16 +46,15 @@ export default function Dashboard() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => setCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
-        (error) => console.log("Location access denied", error)
+        (error) => console.log("Location access denied")
       );
     }
   }, []);
 
-  // Update distance state if plan changes
   useEffect(() => {
-    setDistance([planConfig.maxRadiusKm]);
-    setActiveFilters(prev => ({ ...prev, distance: planConfig.maxRadiusKm }));
-  }, [planConfig.maxRadiusKm]);
+    setDistance([planConfig.searchRadiusKm]);
+    setActiveFilters(prev => ({ ...prev, distance: planConfig.searchRadiusKm }));
+  }, [planConfig.searchRadiusKm]);
 
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -108,7 +82,9 @@ export default function Dashboard() {
       })
       .filter(user => user.distanceKm! <= activeFilters.distance)
       .sort((a, b) => {
-        if (isSpotlightActive(a) !== isSpotlightActive(b)) return isSpotlightActive(a) ? -1 : 1;
+        const aSpot = a.spotlightExpiry && (a.spotlightExpiry.toDate ? a.spotlightExpiry.toDate() : new Date(a.spotlightExpiry)) > new Date();
+        const bSpot = b.spotlightExpiry && (b.spotlightExpiry.toDate ? b.spotlightExpiry.toDate() : new Date(b.spotlightExpiry)) > new Date();
+        if (aSpot !== bSpot) return aSpot ? -1 : 1;
         return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
   }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
@@ -117,18 +93,16 @@ export default function Dashboard() {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
     filteredUsers.forEach((user, index) => {
       items.push({ type: 'user', data: user });
-      if (!plusTier && (index + 1) % 5 === 0) {
+      if (planConfig.ads !== 'none' && (index + 1) % 5 === 0) {
         items.push({ type: 'ad' });
       }
     });
     return items;
-  }, [filteredUsers, plusTier]);
+  }, [filteredUsers, planConfig.ads]);
 
   const handleDistanceChange = (val: number[]) => {
-    const limit = planConfig.maxRadiusKm;
-    if (val[0] > limit) {
-      setDistance([limit]);
-      setShowUpgradePrompt(true);
+    if (val[0] > planConfig.searchRadiusKm) {
+      setUpgradeModal({ isOpen: true, plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', feature: 'Search Radius' });
     } else {
       setDistance(val);
     }
@@ -152,26 +126,19 @@ export default function Dashboard() {
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="bg-[#05070D] text-white rounded-t-[40px] px-8 pt-10 pb-12 outline-none border-t border-white/10">
-              <SheetHeader className="mb-8">
-                <SheetTitle className="text-2xl font-bold">Discovery Filters</SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="mb-8"><SheetTitle className="text-2xl font-bold">Discovery Filters</SheetTitle></SheetHeader>
               <div className="space-y-10">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
                     <div className="flex items-center gap-2">
                        <span className="text-primary font-bold text-sm">{distance[0]} km</span>
-                       {distance[0] >= planConfig.maxRadiusKm && distance[0] < 100 && <Lock size={12} className="text-white/20" />}
+                       {distance[0] >= planConfig.searchRadiusKm && planConfig.searchRadiusKm < 100 && <Lock size={12} className="text-white/20" />}
                     </div>
                   </div>
-                  <Slider 
-                    value={distance} 
-                    onValueChange={handleDistanceChange} 
-                    max={100} 
-                    step={1} 
-                  />
+                  <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
                   <p className="text-[9px] text-white/20 uppercase font-bold tracking-tighter">
-                    {planConfig.displayName} limit: {planConfig.maxRadiusKm} km
+                    {planConfig.displayName} limit: {planConfig.searchRadiusKm} km
                   </p>
                 </div>
                 
@@ -186,13 +153,13 @@ export default function Dashboard() {
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-4">
                     <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Advanced Filters</Label>
-                    {!plusTier && (
+                    {planConfig.filters !== 'advanced' && (
                       <span className="bg-white/5 text-[8px] font-bold px-2 py-1 rounded-md text-white/40 uppercase tracking-widest flex items-center gap-1">
                          <Lock size={10} /> Elite Plus
                       </span>
                     )}
                   </div>
-                  <div className={cn("grid grid-cols-2 gap-2 transition-opacity", !plusTier && "opacity-40 grayscale pointer-events-none")}>
+                  <div className={cn("grid grid-cols-2 gap-2 transition-opacity", planConfig.filters !== 'advanced' && "opacity-40 grayscale pointer-events-none")}>
                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Gender Identity</div>
                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Interests</div>
                   </div>
@@ -231,58 +198,20 @@ export default function Dashboard() {
                   <Search size={32} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-white font-semibold">No one matches your filters</p>
-                  <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your search to discover more auras, or check out this demo profile.</p>
-                </div>
-                <Button 
-                  onClick={() => setActiveFilters({ distance: planConfig.maxRadiusKm, ageRange: [18, 80] })} 
-                  variant="ghost" 
-                  className="text-primary font-bold text-xs uppercase tracking-widest"
-                >
-                  Expand Search
-                </Button>
-              </div>
-
-              <div className="w-full max-w-2xl mx-auto grid grid-cols-2 gap-2">
-                <div className="col-span-2 mb-2 flex items-center gap-2 px-1">
-                   <div className="w-1.5 h-1.5 rounded-full bg-primary aura-glow-blue" />
-                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Demo Connection</span>
-                </div>
-                <div className="col-span-1 h-full">
-                  <AuraCard user={DEMO_USER} onClick={() => toast({ title: "Demo Interaction", description: "This is a preview of the discovery experience." })} />
-                </div>
-                <div className="col-span-1 h-full">
-                  <NativeAdCard />
+                  <p className="text-white font-semibold">Quiet in the Aura</p>
+                  <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your distance or age range to find matches.</p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <AnimatePresence>
-          {showUpgradePrompt && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-24 left-4 right-4 z-40 p-6 rounded-[32px] glass-dark border-primary/40 shadow-2xl"
-            >
-               <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="text-lg font-bold text-white tracking-tight">Expand your discovery</h4>
-                    <p className="text-xs text-white/60 font-light">
-                      {planConfig.displayName} is capped at {planConfig.maxRadiusKm} km. Upgrade to Aura {eliteTier ? 'Elite Plus' : 'Elite'} for more range.
-                    </p>
-                  </div>
-                  <button onClick={() => setShowUpgradePrompt(false)} className="text-white/20"><RefreshCcw size={16} /></button>
-               </div>
-               <Button onClick={() => router.push('/profile?tab=elite')} className="w-full h-12 mt-4 premium-gradient rounded-xl font-bold flex items-center justify-between px-6">
-                 <span>Upgrade My Aura</span>
-                 <ChevronRight size={18} />
-               </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <UpgradeModal 
+          isOpen={!!upgradeModal?.isOpen} 
+          onClose={() => setUpgradeModal(null)}
+          requiredPlan={upgradeModal?.plan as any}
+          featureName={upgradeModal?.feature || ''}
+        />
 
         <BottomNav />
       </div>

@@ -3,10 +3,11 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from './init';
-import { UserProfile } from '@/lib/types';
+import { UserProfile, UserUsage } from '@/lib/types';
 import { format } from 'date-fns';
+import { getEffectivePlan, PLAN_CONFIG } from '@/lib/subscription-engine';
 
 interface AuthContextType {
   user: (User & { isDemoUser?: boolean }) | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   onboardingCompleted: boolean;
   exitDemoMode: () => void;
   loginAsDemo: () => void;
+  effectivePlan: string;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   onboardingCompleted: false,
   exitDemoMode: () => {},
   loginAsDemo: () => {},
+  effectivePlan: 'free',
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -54,14 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isDemoActive()) {
-      const demoUser = {
-        uid: 'demo-user',
-        email: 'demo@aura.local',
-        displayName: 'Aura Demo',
-        phoneNumber: null,
-        isDemoUser: true,
-      } as any;
-
+      const demoUser = { uid: 'demo-user', email: 'demo@aura.local', isDemoUser: true } as any;
       const demoProfile: UserProfile = {
         uid: 'demo-user',
         name: 'Artemis (Demo)',
@@ -70,23 +66,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         gender: 'Non-binary',
         orientation: 'Queer',
         interestedIn: ['Anyone'],
-        plan: 'elite_plus',
+        subscription: { planId: 'elite_plus', status: 'active', expiresAt: null, startedAt: new Date() },
         verificationStatus: 'Verified',
         photoUrl: 'https://picsum.photos/seed/aura_demo/400/400',
-        onboardingCompleted: process.env.NEXT_PUBLIC_DEMO_ONBOARDING_COMPLETE === 'true',
+        onboardingCompleted: true,
         isDemoUser: true,
         isOnline: true,
         lastActive: new Date(),
         phoneNumber: '+91 0000000000',
-        dailyChatCount: 0,
-        dailyMediaCount: 0,
-        dailyLikeCount: 0,
         superLikeBalance: 10,
         incognitoMode: false,
         isSuspended: false,
-        isAdmin: true
+        isAdmin: true,
+        usage: { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: format(new Date(), 'yyyy-MM-dd') }
       };
-
       setUser(demoUser);
       setProfile(demoProfile);
       setLoading(false);
@@ -96,90 +89,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { auth, db } = initializeFirebase();
     if (!auth || !db) return;
 
-    const timeoutId = setTimeout(() => {
-      setLoading(false);
-    }, 8000);
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
       setUser(authUser);
-      
       if (authUser) {
         const userRef = doc(db, 'users', authUser.uid);
-        
-        const unsubscribeProfile = onSnapshot(
-          userRef,
-          (docSnap) => {
-            if (docSnap.exists()) {
-              setProfile(docSnap.data() as UserProfile);
-            } else {
-              setProfile(null);
+        const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data() as UserProfile;
+            
+            // Usage Reset Logic
+            const today = format(new Date(), 'yyyy-MM-dd');
+            if (data.usage?.lastResetDate !== today) {
+              updateDoc(userRef, {
+                'usage.newChatsUsed': 0,
+                'usage.likesUsed': 0,
+                'usage.mediaUsed': 0,
+                'usage.lastResetDate': today,
+                updatedAt: serverTimestamp()
+              }).catch(() => {});
             }
-            setLoading(false);
-            clearTimeout(timeoutId);
-          },
-          (error) => {
-            console.error('Profile sync error:', error);
-            setLoading(false);
-            clearTimeout(timeoutId);
-          }
-        );
-
-        updateDoc(userRef, {
-          isOnline: true,
-          lastActive: serverTimestamp()
-        }).catch(() => {});
-
-        const handleVisibilityChange = () => {
-          if (document.visibilityState === 'visible') {
-            updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
+            
+            setProfile(data);
           } else {
-            updateDoc(userRef, { isOnline: false }).catch(() => {});
+            setProfile(null);
           }
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
+          setLoading(false);
+        });
 
-        return () => {
-          unsubscribeProfile();
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-          updateDoc(userRef, { isOnline: false }).catch(() => {});
-        };
+        updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
+        return () => unsubscribeProfile();
       } else {
         setProfile(null);
         setLoading(false);
-        clearTimeout(timeoutId);
       }
     });
 
-    return () => {
-      unsubscribeAuth();
-      clearTimeout(timeoutId);
-    };
+    return () => unsubscribeAuth();
   }, []);
-
-  useEffect(() => {
-    if (!profile || profile.isDemoUser) return;
-    const { db } = initializeFirebase();
-    if (!db) return;
-
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const updates: any = {};
-    
-    if (profile.lastResetDate !== today) {
-      updates.dailyChatCount = 0;
-      updates.dailyMediaCount = 0;
-      updates.lastResetDate = today;
-    }
-    
-    if (profile.lastLikeResetDate !== today) {
-      updates.dailyLikeCount = 0;
-      updates.lastLikeResetDate = today;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      const userRef = doc(db, 'users', profile.uid);
-      updateDoc(userRef, updates).catch(() => {});
-    }
-  }, [profile?.uid, profile?.lastResetDate, profile?.lastLikeResetDate, profile?.isDemoUser]);
 
   const value = {
     user,
@@ -187,14 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     onboardingCompleted: !!profile?.onboardingCompleted,
     exitDemoMode,
-    loginAsDemo
+    loginAsDemo,
+    effectivePlan: getEffectivePlan(profile)
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuthContext = () => useContext(AuthContext);
