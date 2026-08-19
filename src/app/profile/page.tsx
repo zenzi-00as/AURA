@@ -207,13 +207,13 @@ function ProfileContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-8 pt-10 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground pt-8">{t('profile')}</h1>
-        <div className="flex gap-2 pt-8">
+      <header className="px-8 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
+        <div className="flex gap-2">
           {profile?.isAdmin && (
-            <button onClick={() => router.push('/admin')} className="w-11 h-11 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
+            <button onClick={() => router.push('/admin')} className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
           )}
-          <button onClick={() => router.push('/settings')} className="w-11 h-11 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
+          <button onClick={() => router.push('/settings')} className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
         </div>
       </header>
 
