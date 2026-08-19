@@ -66,26 +66,33 @@ export default function NotificationsPage() {
     }
   };
 
+  const hasUnread = notifications.some(n => !n.read);
+
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 aura-doodle min-h-screen">
-      <header className="px-8 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-[#2A2A2A] safe-top">
-        <h1 className="text-xl font-semibold tracking-tight text-white">{t('activity')}</h1>
-        <div className="flex gap-2">
-          <button onClick={() => router.push('/settings/notifications')} className="w-10 h-10 rounded-full bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F] hover:text-white transition-colors">
+      <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-white/5 safe-top">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20 relative">
+              <Bell size={18} className="text-white" />
+              {hasUnread && (
+                <div className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C93CFF] border-2 border-[#05070D] shadow-[0_0_8px_#C93CFF]"></span>
+                </div>
+              )}
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-white">{t('activity')}</h1>
+          </div>
+          <button 
+            onClick={() => router.push('/settings/notifications')} 
+            className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary/20 transition-all aura-glow-blue"
+          >
             <Settings size={18} />
           </button>
-          <div className="w-10 h-10 rounded-full bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F] relative">
-            <Bell size={18} />
-            {notifications.some(n => !n.read) && (
-              <div className="absolute top-2 right-2 flex h-2 w-2">
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C93CFF] shadow-[0_0_8px_#C93CFF]"></span>
-              </div>
-            )}
-          </div>
         </div>
       </header>
 
-      <div className="px-6 space-y-3 mt-4">
+      <div className="px-6 space-y-3 mt-6">
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
