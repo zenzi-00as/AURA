@@ -206,7 +206,7 @@ function ProfileContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-8 pt-4 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+      <header className="px-8 pt-10 pb-6 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
         <div className="flex gap-2">
           {profile?.isAdmin && (
@@ -342,14 +342,6 @@ function ProfileContent() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-
-          <div className="flex justify-center -mt-2 mb-4">
-            <motion.div animate={{ x: [0, 8, -8, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} className="flex items-center gap-2">
-              <div className="h-[2px] w-6 rounded-full bg-primary/30" />
-              <span className="text-[7px] font-bold text-white/20 uppercase tracking-[0.2em]">Swipe to Compare</span>
-              <div className="h-[2px] w-6 rounded-full bg-primary/30" />
-            </motion.div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
