@@ -25,7 +25,8 @@ import {
   Minus,
   Zap,
   Eye,
-  Clock
+  Clock,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -434,13 +435,33 @@ function ProfileContent() {
                        <span className="text-4xl font-bold tabular-nums">{superLikeQty}</span>
                        <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40"><Plus size={24} /></button>
                     </div>
-                    <div className="p-6 rounded-[32px] bg-white/5 border border-white/10 space-y-4">
+
+                    <div className="space-y-3">
+                      {[
+                        { icon: Zap, title: "Priority Delivery", desc: "Your profile jumps to the front of their Discovery queue." },
+                        { icon: Bell, title: "Instant Notification", desc: "They'll receive a specialized alert of your Super Like instantly." },
+                        { icon: Sparkles, title: "High-Fidelity Presence", desc: "Stand out with a signature blue aura highlight on your profile." },
+                        { icon: Heart, title: "3x Match Probability", desc: "Members who Super Like have a 3x higher synchronization rate." }
+                      ].map((benefit, i) => (
+                        <div key={`super-benefit-${i}`} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <benefit.icon size={18} />
+                          </div>
+                          <div className="space-y-0.5">
+                            <h4 className="text-sm font-bold text-white">{benefit.title}</h4>
+                            <p className="text-xs text-white/40 font-light leading-relaxed">{benefit.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 space-y-4">
                        <div className="flex items-center gap-3 text-primary">
                           <Sparkles size={20} />
                           <h4 className="text-[10px] font-bold uppercase tracking-widest">Interaction Power</h4>
                        </div>
                        <p className="text-sm text-white/80 font-light leading-relaxed">
-                         Super like is a special feature that tells someone you are very interested in them. When you tap the blue heart icon on a profile, your profile jumps to the top of their queue and shows up with notification.
+                         Super like definitively signals your highest level of interest. It bypasses the standard discovery sequence to create an immediate synchronization potential.
                        </p>
                     </div>
                   </div>
