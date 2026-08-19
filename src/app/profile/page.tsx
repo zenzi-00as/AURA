@@ -22,7 +22,10 @@ import {
   ChevronRight, 
   X,
   Plus,
-  Minus
+  Minus,
+  Zap,
+  Eye,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -359,14 +362,48 @@ function ProfileContent() {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-8 h-[50dvh]">
-                <div className="space-y-6 text-center">
-                  <Star size={48} className="text-primary mx-auto" />
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold">Priority Discovery</h3>
-                    <p className="text-sm text-white/60">Boost your profile to the top for 7 full days.</p>
+              <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[70dvh] overflow-hidden">
+                <div className="h-full flex flex-col">
+                  <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                    <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                    <span className="text-sm font-bold uppercase tracking-[0.3em]">Spotlight</span>
+                    <div className="w-10 h-10" />
+                  </header>
+                  <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 scrollbar-hide">
+                    <div className="text-center space-y-4">
+                      <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center shadow-2xl neon-glow">
+                        <Star size={40} className="text-white" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-bold">Priority Discovery</h3>
+                        <p className="text-sm text-white/60 font-light px-4">Boost your profile to the top for 7 full days.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {[
+                        { icon: Zap, title: "Instant Visibility", desc: "Be the first person everyone sees in their Discovery feed." },
+                        { icon: Eye, title: "10x More Reach", desc: "Get up to 10x more profile views and potential connections." },
+                        { icon: Clock, title: "7-Day Synchronization", desc: "Your profile remains highlighted for 7 full days." },
+                        { icon: Star, title: "Priority Results", desc: "Priority placement in search results and interactions." }
+                      ].map((benefit, i) => (
+                        <div key={`spot-benefit-${i}`} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <benefit.icon size={18} />
+                          </div>
+                          <div className="space-y-0.5">
+                            <h4 className="text-sm font-bold text-white">{benefit.title}</h4>
+                            <p className="text-xs text-white/40 font-light leading-relaxed">{benefit.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-14 rounded-2xl bg-primary font-bold">Activate — {formatPrice(30)}</Button>
+                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
+                    <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
+                      Activate — {formatPrice(30)}
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
