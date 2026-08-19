@@ -85,7 +85,7 @@ export default function NotificationsPage() {
           </div>
           <button 
             onClick={() => router.push('/settings/notifications')} 
-            className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary/20 transition-all aura-glow-blue"
+            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
           >
             <Settings size={18} />
           </button>
