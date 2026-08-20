@@ -84,6 +84,7 @@ export type UserProfile = {
   photoUrl?: string;
   profilePhotos?: string[];
   onboardingCompleted: boolean;
+  welcomeSent?: boolean;
   updatedAt?: any;
   notificationSettings?: UserNotificationSettings;
   isDemoUser?: boolean;

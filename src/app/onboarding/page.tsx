@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -12,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { useFirestore, initializeFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useCurrency } from "@/context/CurrencyContext";
-import { doc, serverTimestamp, writeBatch, collection, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, writeBatch, collection, updateDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
 import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
@@ -156,6 +157,14 @@ export default function Onboarding() {
     }
     
     const currentUser = auth.currentUser;
+
+    // Idempotency check: Don't run if onboarding already finalized
+    const existingSnap = await getDoc(doc(db, "users", currentUser.uid));
+    if (existingSnap.exists() && existingSnap.data()?.onboardingCompleted) {
+       router.replace("/dashboard");
+       return;
+    }
+
     setIsSubmitting(true);
     try {
       let verificationPath = "";
@@ -198,7 +207,7 @@ export default function Onboarding() {
         lastActive: serverTimestamp(),
         isOnline: true,
         onboardingCompleted: true,
-        welcomeSent: true,
+        welcomeSent: true, // Marker for system welcome
         updatedAt: serverTimestamp(),
         dailyChatCount: 0,
         dailyMediaCount: 0,
@@ -211,11 +220,12 @@ export default function Onboarding() {
 
       batch.set(userRef, profileData, { merge: true });
       
-      const roomId = `system_${currentUser.uid}`;
-      batch.set(doc(db, "chatRooms", roomId), {
-        id: roomId,
+      // Materialize System Welcome Conversation
+      const systemRoomId = `system_${currentUser.uid}`;
+      batch.set(doc(db, "chatRooms", systemRoomId), {
+        id: systemRoomId,
         participants: ["system", currentUser.uid],
-        lastMessage: "Welcome to AURA ❤️",
+        lastMessage: "Welcome to Aura ✨",
         lastTimestamp: serverTimestamp(),
         isSystem: true,
         unreadCount: {
@@ -223,9 +233,13 @@ export default function Onboarding() {
         }
       });
 
-      batch.set(doc(collection(db, "chatRooms", roomId, "messages")), {
+      const welcomeText = `Welcome to Aura ✨\n\nYour Aura journey starts here.\n\nConnect with real people, discover meaningful conversations, and keep your privacy in your control.\n\nA few things to remember:\n• Respect other users.\n• Never share passwords, OTPs or sensitive personal information.\n• Report suspicious or abusive behaviour.\n• Your privacy matters.\n• Use Incognito Mode when you want additional privacy.\n\nExplore profiles, send likes, start conversations and discover your Aura.`;
+
+      const msgRef = doc(collection(db, "chatRooms", systemRoomId, "messages"));
+      batch.set(msgRef, {
+        id: msgRef.id,
         senderId: "system",
-        text: `Hey ${formData.name} 👋\nWelcome to AURA ❤️\n\nYour profile has been created. If you submitted a verification image, our team will review it shortly.`,
+        text: welcomeText,
         timestamp: serverTimestamp(),
         seen: false
       });

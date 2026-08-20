@@ -20,7 +20,11 @@ import {
   UserX,
   Plus,
   Star,
-  MessageSquare
+  MessageSquare,
+  Lock,
+  Info,
+  ShieldCheck,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +40,8 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc
+  setDoc,
+  writeBatch
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -53,6 +58,8 @@ import { getPlanConfig, checkActionAllowed } from "@/lib/subscription-engine";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const REPORT_CATEGORIES: ReportType[] = ['Harassment', 'Spam', 'Fake profile', 'Scams', 'Other'];
 
@@ -105,28 +112,33 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (db && authUser && roomId && otherUid && !roomLoading) {
       if (!room) {
-        const check = checkActionAllowed(profile, 'newChat');
-        if (!check.allowed) {
-          toast({ variant: "destructive", title: "Daily Limit Reached", description: `Free/Elite members can start ${check.limit} new chats/day.` });
-          router.push('/chat');
-          return;
+        // System rooms are handled during onboarding, but let's check for normal matching
+        if (otherUid !== 'system' && !idParam.startsWith('system_')) {
+          const check = checkActionAllowed(profile, 'newChat');
+          if (!check.allowed) {
+            toast({ variant: "destructive", title: "Daily Limit Reached", description: `Free/Elite members can start ${check.limit} new chats/day.` });
+            router.push('/chat');
+            return;
+          }
+          setDoc(doc(db, "chatRooms", roomId), {
+            id: roomId,
+            participants: [authUser.uid, otherUid],
+            lastMessage: "",
+            lastTimestamp: serverTimestamp(),
+            unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
+            typing: { [authUser.uid]: false, [otherUid]: false }
+          });
+          updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) });
         }
-        setDoc(doc(db, "chatRooms", roomId), {
-          id: roomId,
-          participants: [authUser.uid, otherUid],
-          lastMessage: "",
-          lastTimestamp: serverTimestamp(),
-          unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
-          typing: { [authUser.uid]: false, [otherUid]: false }
-        });
-        updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) });
       } else {
         updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
       }
     }
-  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast]);
+  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast, idParam]);
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => { 
+    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" }); 
+  }, [messages]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -158,12 +170,28 @@ export default function ChatRoomPage() {
       await uploadBytes(storageRef, pendingFile);
       const mediaUrl = await getDownloadURL(storageRef);
 
-      await addDoc(collection(db, "chatRooms", roomId, "messages"), {
-        senderId: authUser.uid, text: "[Media]", timestamp: serverTimestamp(), seen: false, isMedia: true, mediaUrl, storagePath, viewMode, viewCount: { [authUser.uid]: 0, [otherUid]: 0 }
+      const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
+      await setDoc(msgRef, {
+        id: msgRef.id,
+        senderId: authUser.uid, 
+        text: "[Media]", 
+        timestamp: serverTimestamp(), 
+        seen: false, 
+        isMedia: true, 
+        mediaUrl, 
+        storagePath, 
+        viewMode, 
+        viewCount: { [authUser.uid]: 0, [otherUid]: 0 }
       });
-      await updateDoc(doc(db, "chatRooms", roomId), { lastMessage: "Shared media", lastTimestamp: serverTimestamp(), [`unreadCount.${otherUid}`]: increment(1) });
+
+      await updateDoc(doc(db, "chatRooms", roomId), { 
+        lastMessage: "Shared media", 
+        lastTimestamp: serverTimestamp(), 
+        [`unreadCount.${otherUid}`]: increment(1) 
+      });
       await updateDoc(doc(db, "users", authUser.uid), { 'usage.mediaUsed': increment(1) });
-      setPendingFile(null); setPendingPreview(null);
+      setPendingFile(null); 
+      setPendingPreview(null);
     } catch (error) {
       toast({ variant: "destructive", title: "Upload failed" });
     } finally {
@@ -176,14 +204,42 @@ export default function ChatRoomPage() {
     if (!msgText || !db || !roomId || !authUser || !otherUid) return;
     setInput("");
     try {
-      await addDoc(collection(db, "chatRooms", roomId, "messages"), { 
-        senderId: authUser.uid, text: msgText, timestamp: serverTimestamp(), seen: false 
+      const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
+      await setDoc(msgRef, { 
+        id: msgRef.id,
+        senderId: authUser.uid, 
+        text: msgText, 
+        timestamp: serverTimestamp(), 
+        seen: false 
       });
       await updateDoc(doc(db, "chatRooms", roomId), { 
-        lastMessage: msgText, lastTimestamp: serverTimestamp(), [`unreadCount.${otherUid}`]: increment(1) 
+        lastMessage: msgText, 
+        lastTimestamp: serverTimestamp(), 
+        [`unreadCount.${otherUid}`]: increment(1) 
       });
     } catch (error) {
       toast({ variant: "destructive", title: "Sync failed" });
+    }
+  };
+
+  const handleMediaClick = (msg: Message) => {
+    if (!authUser) return;
+    const views = msg.viewCount?.[authUser.uid] || 0;
+    
+    if (msg.viewMode === 'one' && views >= 1) {
+      toast({ title: "View Expired", description: "This media packet was valid for one view only." });
+      return;
+    }
+    if (msg.viewMode === 'two' && views >= 2) {
+      toast({ title: "View Expired", description: "This media packet was valid for two views only." });
+      return;
+    }
+
+    setSelectedMedia(msg);
+    if (db && roomId && msg.id) {
+       updateDoc(doc(db, "chatRooms", roomId, "messages", msg.id), {
+          [`viewCount.${authUser.uid}`]: increment(1)
+       });
     }
   };
 
@@ -193,6 +249,8 @@ export default function ChatRoomPage() {
     return <div className="flex h-screen-safe items-center justify-center bg-[#070709]"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
   }
 
+  const isSystemChat = room?.isSystem || idParam.startsWith('system_');
+
   return (
     <AuthGuard>
       <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden">
@@ -201,34 +259,89 @@ export default function ChatRoomPage() {
             <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2"><ArrowLeft size={22} /></button>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-white">{room?.isSystem ? "AURA Team" : (otherUser?.name || "Aura User")}</span>
-                {(room?.isSystem || otherUser?.verificationStatus === 'Verified') && <BadgeCheck size={16} className="text-primary" />}
-                {isOtherSpotlight && <Star size={16} className="text-primary" />}
+                <span className="font-semibold text-sm text-white">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
+                {(isSystemChat || otherUser?.verificationStatus === 'Verified') && <BadgeCheck size={16} className="text-primary" />}
+                {isOtherSpotlight && (
+                  <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
+                )}
               </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">{otherUser?.isOnline ? "Active" : "Offline"}</span>
+              <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">
+                {isSystemChat ? "Official System" : (otherUser?.isOnline ? "Active" : "Offline")}
+              </span>
             </div>
           </div>
-          <DropdownMenu>
-              <DropdownMenuTrigger asChild><button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><MoreVertical size={18} /></button></DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
-                  <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive flex items-center gap-3"><Flag size={16} /><span>Report</span></DropdownMenuItem>
-              </DropdownMenuContent>
-          </DropdownMenu>
+          {!isSystemChat && (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild><button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><MoreVertical size={18} /></button></DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
+                    <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive flex items-center gap-3"><Flag size={16} /><span>Report</span></DropdownMenuItem>
+                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-white/60 flex items-center gap-3"><UserX size={16} /><span>Block</span></DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 flex flex-col z-10">
-          {messages?.map((msg, idx) => {
+          {messages?.map((msg) => {
             const isMe = msg.senderId === authUser?.uid;
+            const isSystem = msg.senderId === 'system';
+
+            if (isSystem) {
+              return (
+                <div key={msg.id} className="flex flex-col items-center py-6 px-4 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center shadow-2xl neon-glow">
+                    <span className="text-white font-bold text-3xl">A</span>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-[32px] p-6 max-w-[320px]">
+                    <p className="text-sm text-white/80 font-light leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                  </div>
+                </div>
+              );
+            }
+
+            const views = msg.viewCount?.[authUser?.uid || ''] || 0;
+            const isExpired = !isMe && msg.isMedia && (
+              (msg.viewMode === 'one' && views >= 1) || 
+              (msg.viewMode === 'two' && views >= 2)
+            );
+
             return (
-              <motion.div key={msg.id || `msg-${idx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                 <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
-                  <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", isMe ? "premium-gradient text-white rounded-br-none" : "bg-white/5 text-white rounded-bl-none border border-white/10")}>
+                  <div className={cn(
+                    "px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", 
+                    isMe ? "premium-gradient text-white rounded-br-none" : "bg-white/5 text-white rounded-bl-none border border-white/10"
+                  )}>
                     {msg.isMedia ? (
-                      <img src={msg.mediaUrl} alt="" className="rounded-2xl max-w-full max-h-[300px] object-cover" onClick={() => setSelectedMedia(msg)} />
+                      <div 
+                        onClick={() => !isExpired && handleMediaClick(msg)}
+                        className={cn("relative rounded-2xl overflow-hidden cursor-pointer", isExpired && "opacity-40 grayscale")}
+                      >
+                         <img src={msg.mediaUrl} alt="" className={cn("max-w-full max-h-[300px] object-cover", isExpired && "blur-2xl")} />
+                         {msg.viewMode !== 'unlimited' && (
+                           <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/10 flex items-center gap-1.5">
+                             <Eye size={10} className="text-white" />
+                             <span className="text-[8px] font-bold text-white uppercase tracking-tighter">
+                               {msg.viewMode === 'one' ? '1 View' : '2 Views'}
+                             </span>
+                           </div>
+                         )}
+                         {isExpired && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 gap-2">
+                               <Lock size={20} className="text-white/60" />
+                               <span className="text-[10px] font-bold text-white/60 uppercase">Expired</span>
+                            </div>
+                         )}
+                      </div>
                     ) : (
                       <p className="text-sm leading-relaxed font-light">{msg.text}</p>
                     )}
                   </div>
+                  {isMe && planConfig.readReceipts && (
+                    <div className="flex items-center gap-1 mt-1 px-1">
+                      {msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-white/20" />}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
@@ -236,24 +349,102 @@ export default function ChatRoomPage() {
           <div ref={scrollRef} className="h-4 flex-shrink-0" />
         </div>
 
-        <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
-          <div className="flex items-center gap-3 w-full h-14">
-            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
-            <button onClick={() => fileInputRef.current?.click()} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><Plus size={22} /></button>
-            <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} placeholder="Message..." className="flex-1 h-12 bg-white/5 border-none rounded-[28px] px-6 text-sm text-white" />
-            <button onClick={handleSendText} disabled={!input.trim()} className="w-12 h-12 rounded-full premium-gradient p-0 shrink-0 flex items-center justify-center disabled:opacity-20"><Send size={20} className="text-white" /></button>
+        {isSystemChat ? (
+          <div className="flex-shrink-0 px-6 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
+             <div className="space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                   <Info size={16} />
+                   <span className="text-[10px] font-bold uppercase tracking-widest">Aura Guide Actions</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                   {[
+                     { label: "How Aura Works", icon: Star, path: "/about" },
+                     { label: "Privacy & Safety", icon: ShieldCheck, path: "/privacy-safety" },
+                     { label: "Plans & Limits", icon: Lock, path: "/profile" },
+                     { label: "Community", icon: BookOpen, path: "/terms" }
+                   ].map((action, i) => (
+                     <Button 
+                      key={`system-act-${i}`} 
+                      onClick={() => router.push(action.path)}
+                      variant="outline" 
+                      className="h-12 rounded-xl bg-white/5 border-white/10 text-[10px] font-bold uppercase justify-start gap-3 hover:bg-white/10"
+                     >
+                       <action.icon size={16} className="text-primary" />
+                       {action.label}
+                     </Button>
+                   ))}
+                </div>
+             </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
+            <div className="flex items-center gap-3 w-full h-14">
+              <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
+              <button onClick={() => fileInputRef.current?.click()} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><Plus size={22} /></button>
+              <Input 
+                value={input} 
+                onChange={(e) => setInput(e.target.value)} 
+                onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} 
+                placeholder="Message..." 
+                className="flex-1 h-12 bg-white/5 border-none rounded-[28px] px-6 text-sm text-white focus:ring-1 focus:ring-primary/20" 
+              />
+              <button onClick={handleSendText} disabled={!input.trim()} className="w-12 h-12 rounded-full premium-gradient p-0 shrink-0 flex items-center justify-center disabled:opacity-20"><Send size={20} className="text-white" /></button>
+            </div>
+          </div>
+        )}
 
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
-          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-5 w-[calc(100%-40px)] max-w-[280px]">
-            <DialogHeader><DialogTitle className="text-sm font-bold">Media Options</DialogTitle></DialogHeader>
-            <div className="py-2 space-y-3">
-              {pendingPreview && <img src={pendingPreview} className="w-full aspect-[4/3] rounded-2xl object-cover" />}
-              <Button onClick={handleSendMedia} className="w-full premium-gradient font-bold">Send Photo</Button>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[340px]">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold">Media Guard</DialogTitle>
+              <DialogDescription className="text-xs text-white/40">Select viewing availability for this packet.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-6">
+              {pendingPreview && <img src={pendingPreview} className="w-full aspect-square rounded-2xl object-cover border border-white/10" />}
+              
+              <RadioGroup value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="grid grid-cols-1 gap-2">
+                {[
+                  { id: 'unlimited', label: 'Unlimited View', desc: 'Syncs to chat history permanently.', icon: Eye },
+                  { id: 'one', label: 'One View', desc: 'Packet expires after opening once.', icon: Lock },
+                  { id: 'two', label: 'Two Views', desc: 'Allows exactly two view syncs.', icon: EyeOff }
+                ].map((opt) => (
+                  <div key={opt.id} className={cn(
+                    "flex items-center space-x-3 p-3 rounded-xl border transition-all cursor-pointer",
+                    viewMode === opt.id ? "bg-primary/10 border-primary" : "bg-white/5 border-transparent"
+                  )} onClick={() => setViewMode(opt.id as any)}>
+                    <RadioGroupItem value={opt.id} id={opt.id} className="border-white/20" />
+                    <div className="flex-1 space-y-0.5">
+                       <Label htmlFor={opt.id} className="text-xs font-bold flex items-center gap-2">
+                         <opt.icon size={12} className="text-primary" />
+                         {opt.label}
+                       </Label>
+                       <p className="text-[9px] text-white/40">{opt.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </RadioGroup>
+
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => { setPendingFile(null); setShowMediaOptions(false); }} className="flex-1 h-12 rounded-xl text-white/40 font-bold uppercase text-[10px]">Cancel</Button>
+                <Button onClick={handleSendMedia} className="flex-1 h-12 rounded-xl premium-gradient font-bold uppercase text-[10px]">Send Secure Packet</Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
+
+        {selectedMedia && (
+           <Dialog open={!!selectedMedia} onOpenChange={(o) => !o && setSelectedMedia(null)}>
+              <DialogContent className="bg-black p-0 border-none w-screen h-screen max-w-none flex items-center justify-center">
+                 <button onClick={() => setSelectedMedia(null)} className="absolute top-8 right-8 z-[100] w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white">
+                    <X size={24} />
+                 </button>
+                 <img src={selectedMedia.mediaUrl} className="max-w-full max-h-full object-contain" alt="" />
+                 <div className="absolute bottom-12 left-0 right-0 text-center">
+                    <p className="text-[10px] text-white/40 uppercase tracking-[0.4em] font-bold">Secure Aura Packet</p>
+                 </div>
+              </DialogContent>
+           </Dialog>
+        )}
 
         <UpgradeModal isOpen={!!upgradeModal?.isOpen} onClose={() => setUpgradeModal(null)} requiredPlan={upgradeModal?.plan} featureName={upgradeModal?.feature || ''} limit={upgradeModal?.limit} />
       </div>

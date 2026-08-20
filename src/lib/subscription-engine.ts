@@ -83,18 +83,18 @@ export type CheckResult = {
  * SAFE DEFAULT: 'free'
  */
 export function getEffectivePlan(profile: UserProfile | null): PlanType {
-  if (!profile || !profile.subscription) return 'free';
+  if (!profile) return 'free';
   
-  const sub = profile.subscription;
-  if (sub.status !== 'active') return 'free';
+  const plan = (profile.plan as PlanType) || 'free';
+  if (plan === 'free') return 'free';
 
-  // Check Expiry
-  if (sub.expiresAt) {
-    const expiryDate = sub.expiresAt.toDate ? sub.expiresAt.toDate() : new Date(sub.expiresAt);
+  // Check Expiry if subscription object exists
+  if (profile.subscription?.expiresAt) {
+    const expiryDate = profile.subscription.expiresAt.toDate ? profile.subscription.expiresAt.toDate() : new Date(profile.subscription.expiresAt);
     if (expiryDate <= new Date()) return 'free';
   }
 
-  return sub.planId ?? 'free';
+  return plan;
 }
 
 export function getPlanConfig(planId: PlanType): PlanConfig {
