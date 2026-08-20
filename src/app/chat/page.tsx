@@ -15,6 +15,42 @@ import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
 
+const DEMO_CHATS = [
+  {
+    id: "demo-chat-1",
+    name: "Julian",
+    lastMsg: "That architectural site you mentioned is incredible.",
+    time: "2m ago",
+    verified: true,
+    unreadCount: 1,
+    isSystem: false,
+    isOnline: true,
+    isSpotlight: false
+  },
+  {
+    id: "demo-chat-2",
+    name: "Sasha",
+    lastMsg: "Golden hour at the coast today was magical 🌅",
+    time: "1h ago",
+    verified: true,
+    unreadCount: 0,
+    isSystem: false,
+    isOnline: true,
+    isSpotlight: true
+  },
+  {
+    id: "demo-chat-3",
+    name: "Ezra",
+    lastMsg: "Found a rare vinyl pressing of that synth album!",
+    time: "3h ago",
+    verified: true,
+    unreadCount: 0,
+    isSystem: false,
+    isOnline: false,
+    isSpotlight: false
+  }
+];
+
 export default function ChatList() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -30,7 +66,7 @@ export default function ChatList() {
       orderBy("lastTimestamp", "desc"),
       limit(50)
     ) as Query<ChatRoom>;
-  }, [db, authUser?.uid]); // Use uid dependency for better stability
+  }, [db, authUser?.uid]);
 
   const { data: rooms, loading: roomsLoading } = useCollection<ChatRoom>(roomsQuery);
 
@@ -42,28 +78,38 @@ export default function ChatList() {
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
 
   const chatItems = useMemo(() => {
-    if (!rooms || !authUser || !profiles) return [];
+    const items = [];
     
-    // O(1) lookup map for profiles to drastically speed up mapping
-    const profileMap = new Map(profiles.map(p => [p.uid, p]));
-    
-    return rooms.map(room => {
-      const otherId = room.participants.find(id => id !== authUser.uid);
-      const otherUser = profileMap.get(otherId || '');
-      const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
+    // Add real chats
+    if (rooms && authUser && profiles) {
+      const profileMap = new Map(profiles.map(p => [p.uid, p]));
+      
+      const realItems = rooms.map(room => {
+        const otherId = room.participants.find(id => id !== authUser.uid);
+        const otherUser = profileMap.get(otherId || '');
+        const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
-      return {
-        id: room.id,
-        name: room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User"),
-        lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
-        time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
-        verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
-        unreadCount: room.unreadCount?.[authUser.uid] || 0,
-        isSystem: room.isSystem,
-        isOnline: otherUser?.isOnline,
-        isSpotlight
-      };
-    });
+        return {
+          id: room.id,
+          name: room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User"),
+          lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
+          time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
+          verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
+          unreadCount: room.unreadCount?.[authUser.uid] || 0,
+          isSystem: room.isSystem,
+          isOnline: otherUser?.isOnline,
+          isSpotlight
+        };
+      });
+      items.push(...realItems);
+    }
+
+    // Interleave demo chats if no real ones exist, or append them for visual richness
+    if (items.length < 5) {
+      items.push(...DEMO_CHATS);
+    }
+    
+    return items;
   }, [rooms, profiles, authUser?.uid]);
 
   const filteredChats = useMemo(() => {
@@ -110,7 +156,9 @@ export default function ChatList() {
                       <div className="flex items-center gap-1.5 min-w-0">
                         <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-white font-bold" : "text-white/60")}>{chat.name}</h3>
                         {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                        {chat.isSpotlight && <Star size={14} className="text-primary" />}
+                        {chat.isSpotlight && (
+                          <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
+                        )}
                       </div>
                       <span className="text-[10px] opacity-30">{chat.time}</span>
                     </div>
