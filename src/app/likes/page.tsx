@@ -54,13 +54,13 @@ export default function WhoLikesYouPage() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background pb-32 transition-colors aura-doodle min-h-screen">
-        <header className="px-8 h-20 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-[#2A2A2A] safe-top">
+        <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-white/5 safe-top">
           <div className="flex justify-between items-center">
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl fuchsia-gradient flex items-center justify-center shadow-lg shadow-[#C93CFF]/20">
-                <Heart size={20} className="text-white" />
+              <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+                <Heart size={18} className="text-white" />
               </div>
-              <h1 className="text-xl font-semibold tracking-tight text-white">Interested</h1>
+              <h1 className="text-xl font-bold tracking-tight text-white">Interested</h1>
             </motion.div>
           </div>
         </header>
