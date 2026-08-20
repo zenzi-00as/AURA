@@ -57,7 +57,7 @@ function ProfileContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [tempBio, setTempBio] = useState("");
   const [superLikeQty, setSuperLikeQty] = useState(1);
-  const [activeSheet, setActiveSheet] = useState<'elite' | 'eliteplus' | 'spotlight' | 'superlike' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'free' | 'elite' | 'eliteplus' | 'spotlight' | 'superlike' | null>(null);
 
   useEffect(() => {
     if (profile?.bio) setTempBio(profile.bio);
@@ -281,6 +281,64 @@ function ProfileContent() {
         <div className="space-y-4">
           <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Membership Hub</h3>
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
+            {/* Free Card */}
+            <Sheet open={activeSheet === 'free'} onOpenChange={(o) => setActiveSheet(o ? 'free' : null)}>
+              <SheetTrigger asChild>
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 text-white border border-white/10 text-left relative overflow-hidden group">
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-between">
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/60 px-2 py-0.5 rounded-md">Free</span>
+                       {effectivePlan === 'free' && <Check size={14} className="text-primary" />}
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-bold">Base Access</h3>
+                      <p className="text-[10px] opacity-50">Standard features for connecting with the Aura community.</p>
+                    </div>
+                  </div>
+                </motion.button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+                <div className="h-full flex flex-col">
+                  <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                    <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                    <span className="text-sm font-bold uppercase tracking-[0.3em]">Aura Free</span>
+                    <div className="w-10 h-10" />
+                  </header>
+                  <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
+                     <div className="space-y-6">
+                        <div className="text-center space-y-2">
+                           <h3 className="text-2xl font-bold">Standard Features</h3>
+                           <p className="text-sm text-white/40">Your basic presence in the Aura.</p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                           {[
+                             { label: "Daily New Chats", value: "5 / day" },
+                             { label: "Search Radius", value: "25 km" },
+                             { label: "Daily Likes", value: "5 / day" },
+                             { label: "Media Uploads", value: "2 / day" },
+                             { label: "Profile Photos", value: "Blurred" },
+                             { label: "Advertisements", value: "Standard" }
+                           ].map((feat, i) => (
+                             <div key={i} className="flex justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                               <span className="text-xs text-white/60">{feat.label}</span>
+                               <span className="text-xs font-bold text-white">{feat.value}</span>
+                             </div>
+                           ))}
+                        </div>
+                        <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 space-y-3">
+                           <p className="text-xs text-white/80 leading-relaxed">The Free plan is designed for members exploring the community. For enhanced visibility, unlimited interactions, and privacy controls, consider joining Aura Elite.</p>
+                        </div>
+                     </div>
+                  </div>
+                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
+                     <Button onClick={() => setActiveSheet('elite')} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg">
+                        Explore Elite Benefits
+                     </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
             {/* Elite Card */}
             <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
               <SheetTrigger asChild>
