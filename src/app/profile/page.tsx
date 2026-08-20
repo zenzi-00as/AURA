@@ -212,7 +212,7 @@ function ProfileContent() {
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
       <header className="px-8 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('profile')}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Profile</h1>
         <div className="flex gap-2">
           {profile?.isAdmin && (
             <button onClick={() => router.push('/admin')} className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
@@ -245,7 +245,11 @@ function ProfileContent() {
             <div className="space-y-1">
               <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
                 {profile.name}, {profile.age}
-                {effectivePlan !== 'free' && <Star size={20} className="text-primary" />}
+                {spotlight && (
+                  <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2) drop-shadow(0 0 5px rgba(0, 87, 255, 0.4))' }}>
+                    🌟
+                  </span>
+                )}
               </h2>
               <div className="flex items-center justify-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
                 <Shield size={12} />

@@ -180,7 +180,11 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 {user.isOnline && !user.incognitoMode ? "Online" : "Offline"}
               </span>
             </div>
-            {hasSpotlight && <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center">🌟</div>}
+            {hasSpotlight && (
+              <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20 flex items-center justify-center">
+                <span style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
+              </div>
+            )}
             {user.photoUrl && !blurPhotos ? (
               <img src={user.photoUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
             ) : (
