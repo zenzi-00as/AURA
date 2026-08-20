@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, Search, X, MessageSquare, Star } from "lucide-react";
+import { BadgeCheck, MessageSquare, Star } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -30,7 +30,7 @@ export default function ChatList() {
       orderBy("lastTimestamp", "desc"),
       limit(50)
     ) as Query<ChatRoom>;
-  }, [db, authUser]);
+  }, [db, authUser?.uid]); // Use uid dependency for better stability
 
   const { data: rooms, loading: roomsLoading } = useCollection<ChatRoom>(roomsQuery);
 
@@ -42,10 +42,14 @@ export default function ChatList() {
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
 
   const chatItems = useMemo(() => {
-    if (!rooms || !authUser) return [];
+    if (!rooms || !authUser || !profiles) return [];
+    
+    // O(1) lookup map for profiles to drastically speed up mapping
+    const profileMap = new Map(profiles.map(p => [p.uid, p]));
+    
     return rooms.map(room => {
       const otherId = room.participants.find(id => id !== authUser.uid);
-      const otherUser = profiles.find(p => p.uid === otherId);
+      const otherUser = profileMap.get(otherId || '');
       const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
       return {
@@ -60,9 +64,13 @@ export default function ChatList() {
         isSpotlight
       };
     });
-  }, [rooms, profiles, authUser]);
+  }, [rooms, profiles, authUser?.uid]);
 
-  const filteredChats = chatItems.filter(chat => chat.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredChats = useMemo(() => {
+    if (!searchTerm) return chatItems;
+    const term = searchTerm.toLowerCase();
+    return chatItems.filter(chat => chat.name.toLowerCase().includes(term));
+  }, [chatItems, searchTerm]);
 
   return (
     <AuthGuard>
@@ -81,27 +89,38 @@ export default function ChatList() {
 
         <div className="px-6 space-y-3 mt-6">
           {roomsLoading ? (
-            <div className="space-y-3">{[1, 2, 3].map(i => <div key={`skel-${i}`} className="h-20 w-full rounded-[24px] bg-white/5 animate-pulse" />)}</div>
-          ) : filteredChats.map((chat, idx) => (
-            <motion.div key={chat.id || `chat-${idx}`} onClick={() => router.push(`/chat/${chat.id}`)} className={cn("p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", chat.unreadCount > 0 ? "bg-white/10 border-primary/20" : "bg-white/5 border-white/5")}>
-              <div className={cn("w-14 h-14 rounded-2xl border border-white/10 flex items-center justify-center relative shrink-0", chat.isSystem ? "premium-gradient" : "bg-[#151515]")}>
-                {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-white/20">{chat.name[0]}</span>}
-                {chat.isOnline && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#070709]" />}
-              </div>
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex justify-between items-center mb-0.5">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-white font-bold" : "text-white/60")}>{chat.name}</h3>
-                    {chat.verified && <BadgeCheck size={14} className="text-primary" />}
-                    {chat.isSpotlight && <Star size={14} className="text-primary" />}
+            <div className="space-y-3">{[1, 2, 3, 4].map(i => <div key={`skel-${i}`} className="h-20 w-full rounded-[24px] bg-white/5 animate-pulse" />)}</div>
+          ) : (
+            <AnimatePresence initial={false}>
+              {filteredChats.map((chat, idx) => (
+                <motion.div 
+                  key={chat.id || `chat-${idx}`} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.03 }}
+                  onClick={() => router.push(`/chat/${chat.id}`)} 
+                  className={cn("p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", chat.unreadCount > 0 ? "bg-white/10 border-primary/20" : "bg-white/5 border-white/5")}
+                >
+                  <div className={cn("w-14 h-14 rounded-2xl border border-white/10 flex items-center justify-center relative shrink-0", chat.isSystem ? "premium-gradient" : "bg-[#151515]")}>
+                    {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-white/20">{chat.name[0]}</span>}
+                    {chat.isOnline && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#070709]" />}
                   </div>
-                  <span className="text-[10px] opacity-30">{chat.time}</span>
-                </div>
-                <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "text-white" : "text-white/30")}>{chat.lastMsg}</p>
-              </div>
-              {chat.unreadCount > 0 && <div className="h-5 min-w-[20px] px-2 rounded-full premium-gradient flex items-center justify-center"><span className="text-[9px] font-bold text-white">{chat.unreadCount}</span></div>}
-            </motion.div>
-          ))}
+                  <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-white font-bold" : "text-white/60")}>{chat.name}</h3>
+                        {chat.verified && <BadgeCheck size={14} className="text-primary" />}
+                        {chat.isSpotlight && <Star size={14} className="text-primary" />}
+                      </div>
+                      <span className="text-[10px] opacity-30">{chat.time}</span>
+                    </div>
+                    <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "text-white" : "text-white/30")}>{chat.lastMsg}</p>
+                  </div>
+                  {chat.unreadCount > 0 && <div className="h-5 min-w-[20px] px-2 rounded-full premium-gradient flex items-center justify-center"><span className="text-[9px] font-bold text-white">{chat.unreadCount}</span></div>}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
         <BottomNav />
       </div>

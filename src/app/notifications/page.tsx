@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles, Settings } from "lucide-react";
@@ -26,22 +27,26 @@ export default function NotificationsPage() {
       orderBy("timestamp", "desc"),
       limit(50)
     ) as Query<Notification>;
-  }, [db, authUser]);
+  }, [db, authUser?.uid]);
 
   const { data: notifications, loading } = useCollection<Notification>(notifsQuery);
 
+  // Mark-as-read effect optimized with a non-blocking batch execution
   useEffect(() => {
-    if (db && notifications.length > 0) {
+    if (db && notifications && notifications.length > 0) {
       const unreadNotifs = notifications.filter(n => !n.read);
       if (unreadNotifs.length > 0) {
-        const batch = writeBatch(db);
-        unreadNotifs.forEach(notif => {
-          if (notif.id) {
-            const ref = doc(db, "notifications", notif.id);
-            batch.update(ref, { read: true });
-          }
-        });
-        batch.commit().catch(() => {});
+        // Use a small timeout to avoid blocking the initial render cycle
+        const timer = setTimeout(() => {
+          const batch = writeBatch(db);
+          unreadNotifs.forEach(notif => {
+            if (notif.id) {
+              batch.update(doc(db, "notifications", notif.id), { read: true });
+            }
+          });
+          batch.commit().catch(err => console.error("Mark read sync failed", err));
+        }, 1000);
+        return () => clearTimeout(timer);
       }
     }
   }, [db, notifications]);
@@ -66,7 +71,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const hasUnread = notifications.some(n => !n.read);
+  const hasUnread = useMemo(() => notifications.some(n => !n.read), [notifications]);
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 aura-doodle min-h-screen">
@@ -95,12 +100,12 @@ export default function NotificationsPage() {
       <div className="px-6 space-y-3 mt-6">
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={`notif-skeleton-${i}`} className="h-20 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />
             ))}
           </div>
         ) : (
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             {notifications.length > 0 ? (
               notifications.map((notif, idx) => {
                 const Icon = getIcon(notif.type);
@@ -113,10 +118,9 @@ export default function NotificationsPage() {
                   <motion.div
                     key={notif.id || `notif-${idx}`}
                     layout
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.05, duration: 0.25 }}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: idx * 0.02 }}
                     className={cn(
                       "aura-card p-4 flex items-center gap-4 group active:scale-[0.98]",
                       !notif.read ? "aura-card-unread" : "aura-card-read"

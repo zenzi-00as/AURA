@@ -8,7 +8,7 @@ import { AuraCard } from "@/components/aura/AuraCard";
 import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Lock, ChevronRight, Info } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, Lock, ChevronRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,6 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, limit, Query } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { getPlanConfig } from "@/lib/subscription-engine";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
 
@@ -111,7 +110,6 @@ export default function Dashboard() {
   const router = useRouter();
   const { t } = useTranslation();
   const db = useFirestore();
-  const { toast } = useToast();
   const { profile: currentUserProfile, effectivePlan } = useAuthContext();
   const planConfig = getPlanConfig(effectivePlan as any);
   
@@ -160,6 +158,7 @@ export default function Dashboard() {
       .map(user => {
         let distKm = 999;
         if (currentLocation && user.location) {
+          // Haversine or simple distance is fine for UI
           distKm = Math.sqrt(Math.pow(user.location.lat - currentLocation.lat, 2) + Math.pow(user.location.lng - currentLocation.lng, 2)) * 111;
         }
         return { ...user, distance: distKm < 1 ? `${Math.round(distKm * 1000)}m away` : `${distKm.toFixed(1)}km away`, distanceKm: distKm };
@@ -171,7 +170,7 @@ export default function Dashboard() {
         if (aSpot !== bSpot) return aSpot ? -1 : 1;
         return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
-  }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
+  }, [firestoreUsers, currentUserProfile?.uid, activeFilters, currentLocation]);
 
   const discoveryItems = useMemo(() => {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
@@ -272,7 +271,7 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
           {usersLoading ? (
             <div className="grid grid-cols-2 gap-2">
-              {[1, 2, 3, 4].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.5] w-full rounded-[22px] bg-white/[0.04] animate-pulse border border-white/5" />)}
+              {[1, 2, 3, 4, 5, 6].map(i => <div key={`skeleton-${i}`} className="aspect-[1/1.5] w-full rounded-[22px] bg-white/[0.04] animate-pulse border border-white/5" />)}
             </div>
           ) : discoveryItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
