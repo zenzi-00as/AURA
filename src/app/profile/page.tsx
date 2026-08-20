@@ -471,11 +471,11 @@ function ProfileContent() {
                          Priority Discovery significantly amplifies your profile's signal within the Aura. By materializing at the start of every member's discovery stage, you definitively increase the frequency and quality of your potential synchronizations.
                        </p>
                     </div>
-                  </div>
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
+
                     <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
                       Activate — {formatPrice(30)}
                     </Button>
+                    <div className="h-4" />
                   </div>
                 </div>
               </SheetContent>
