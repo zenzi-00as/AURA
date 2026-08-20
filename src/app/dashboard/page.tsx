@@ -8,7 +8,7 @@ import { AuraCard } from "@/components/aura/AuraCard";
 import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Lock, ChevronRight } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, RefreshCcw, Lock, ChevronRight, Info } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,90 @@ import { getPlanConfig } from "@/lib/subscription-engine";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
+
+const DEMO_USERS: UserProfile[] = [
+  {
+    uid: 'demo-1',
+    name: 'Julian',
+    age: 24,
+    bio: 'Architectural designer with a passion for brutalist minimalism and early morning espresso.',
+    photoUrl: 'https://picsum.photos/seed/aura-demo-1/600/800',
+    distance: '1.2km away',
+    isOnline: true,
+    verificationStatus: 'Verified',
+    onboardingCompleted: true,
+    lastActive: new Date(),
+    phoneNumber: '+1000000000',
+    gender: 'Man',
+    orientation: 'Gay',
+    interestedIn: ['Men'],
+    superLikeBalance: 0,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false
+  },
+  {
+    uid: 'demo-2',
+    name: 'Sasha',
+    age: 29,
+    bio: 'Digital nomad and landscape photographer. Always chasing the perfect golden hour Aura.',
+    photoUrl: 'https://picsum.photos/seed/aura-demo-2/600/800',
+    distance: '3.5km away',
+    isOnline: true,
+    verificationStatus: 'Verified',
+    onboardingCompleted: true,
+    lastActive: new Date(),
+    phoneNumber: '+1000000001',
+    gender: 'Non-binary',
+    orientation: 'Queer',
+    interestedIn: ['Anyone'],
+    superLikeBalance: 0,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false,
+    spotlightExpiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5)
+  },
+  {
+    uid: 'demo-3',
+    name: 'Ezra',
+    age: 22,
+    bio: 'Music producer and synth enthusiast. Looking for someone to share vinyl and deep conversations.',
+    photoUrl: 'https://picsum.photos/seed/aura-demo-3/600/800',
+    distance: '0.8km away',
+    isOnline: false,
+    verificationStatus: 'Verified',
+    onboardingCompleted: true,
+    lastActive: new Date(),
+    phoneNumber: '+1000000002',
+    gender: 'Man',
+    orientation: 'Bisexual',
+    interestedIn: ['Men', 'Women'],
+    superLikeBalance: 0,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false
+  },
+  {
+    uid: 'demo-4',
+    name: 'Nova',
+    age: 26,
+    bio: 'Plant parent and sustainable fashion advocate. Exploring the intersection of tech and empathy.',
+    photoUrl: 'https://picsum.photos/seed/aura-demo-4/600/800',
+    distance: '5.2km away',
+    isOnline: true,
+    verificationStatus: 'Pending',
+    onboardingCompleted: true,
+    lastActive: new Date(),
+    phoneNumber: '+1000000003',
+    gender: 'Woman',
+    orientation: 'Lesbian',
+    interestedIn: ['Women'],
+    superLikeBalance: 0,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false
+  }
+];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -99,6 +183,17 @@ export default function Dashboard() {
     });
     return items;
   }, [filteredUsers, planConfig.ads]);
+
+  const demoDiscoveryItems = useMemo(() => {
+    const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
+    DEMO_USERS.forEach((user, index) => {
+      items.push({ type: 'user', data: user });
+      if ((index + 1) % 2 === 0) {
+        items.push({ type: 'ad' });
+      }
+    });
+    return items;
+  }, []);
 
   const handleDistanceChange = (val: number[]) => {
     if (val[0] > planConfig.searchRadiusKm) {
@@ -192,14 +287,50 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center space-y-12 py-10">
-              <div className="text-center space-y-4">
+            <div className="space-y-10">
+              <div className="px-4 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/20 mx-auto">
                   <Search size={32} />
                 </div>
                 <div className="space-y-1">
                   <p className="text-white font-semibold">Quiet in the Aura</p>
-                  <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your distance or age range to find matches.</p>
+                  <p className="text-white/40 text-xs font-light max-w-[240px] mx-auto">Expand your filters to find matches. Below are some recommendations to get you started.</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="px-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-primary" />
+                    <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Discovery Recommendations</h2>
+                  </div>
+                  <div className="bg-primary/10 text-primary text-[8px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">Demo Mode</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
+                  {demoDiscoveryItems.map((item, idx) => (
+                    <div key={`demo-${idx}`} className="h-full">
+                      {item.type === 'user' ? (
+                        <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
+                      ) : (
+                        <NativeAdCard />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="px-6 py-10 bg-white/[0.02] border-y border-white/5 flex flex-col items-center text-center gap-6">
+                   <div className="w-14 h-14 rounded-3xl premium-gradient flex items-center justify-center shadow-xl">
+                      <Lock size={24} className="text-white" />
+                   </div>
+                   <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-white">Unlock Full Discovery</h3>
+                      <p className="text-xs text-white/40 font-light max-w-[280px]">Upgrade to Aura Elite to increase your visibility and see everyone nearby.</p>
+                   </div>
+                   <Button onClick={() => router.push('/profile?tab=elite')} variant="outline" className="h-12 px-8 rounded-xl border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5">
+                      Join Aura Elite
+                      <ChevronRight size={14} className="ml-2" />
+                   </Button>
                 </div>
               </div>
             </div>
