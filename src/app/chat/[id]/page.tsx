@@ -42,7 +42,8 @@ import {
   updateDoc, 
   increment,
   setDoc,
-  writeBatch
+  writeBatch,
+  deleteDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -57,6 +58,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getPlanConfig, checkActionAllowed } from "@/lib/subscription-engine";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -94,6 +106,9 @@ export default function ChatRoomPage() {
   const [reportReason, setReportReason] = useState<ReportType>('Other');
   const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
+  
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -273,6 +288,26 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleBlockUser = async () => {
+    if (!db || !authUser || !otherUid || otherUid === 'system') return;
+    setIsBlocking(true);
+    try {
+      const blockRef = doc(db, "users", authUser.uid, "blockedUsers", otherUid);
+      await setDoc(blockRef, {
+        uid: otherUid,
+        name: otherUser?.name || "Aura User",
+        blockedAt: serverTimestamp()
+      });
+      
+      toast({ title: "User Blocked", description: "The synchronization has been restricted." });
+      router.replace('/chat');
+    } catch (error) {
+      toast({ variant: "destructive", title: "Synchronization failed" });
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   const isOtherSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
   if (roomLoading) {
@@ -305,7 +340,7 @@ export default function ChatRoomPage() {
                 <DropdownMenuTrigger asChild><button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><MoreVertical size={18} /></button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
                     <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive flex items-center gap-3 cursor-pointer"><Flag size={16} /><span>Report</span></DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-white/60 flex items-center gap-3 cursor-pointer"><UserX size={16} /><span>Block</span></DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowBlockDialog(true)} className="rounded-xl px-4 py-3 text-white/60 flex items-center gap-3 cursor-pointer"><UserX size={16} /><span>Block</span></DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -516,6 +551,34 @@ export default function ChatRoomPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
+          <AlertDialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 w-[calc(100%-40px)] max-w-[340px]">
+            <AlertDialogHeader className="space-y-4">
+              <div className="w-16 h-16 rounded-[24px] bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
+                <UserX size={32} />
+              </div>
+              <div className="text-center space-y-2">
+                <AlertDialogTitle className="text-xl font-bold">Restrict Connection?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-white/40 font-light leading-relaxed">
+                  Blocking this profile will definitively remove their presence from your Aura. You will no longer be able to synchronize or interact.
+                </AlertDialogDescription>
+              </div>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-col gap-3 pt-4">
+              <AlertDialogAction 
+                onClick={handleBlockUser} 
+                disabled={isBlocking}
+                className="w-full h-14 rounded-2xl bg-destructive hover:bg-destructive/90 text-white font-bold"
+              >
+                {isBlocking ? <Loader2 className="animate-spin" /> : "Confirm Block"}
+              </AlertDialogAction>
+              <AlertDialogCancel className="w-full h-12 rounded-xl bg-white/5 border-white/10 text-white/60 hover:bg-white/10">
+                Maybe Later
+              </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {selectedMedia && (
            <Dialog open={!!selectedMedia} onOpenChange={(o) => !o && setSelectedMedia(null)}>
