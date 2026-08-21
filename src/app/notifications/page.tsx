@@ -64,7 +64,7 @@ export default function NotificationsPage() {
   const getColor = (type: string) => {
     switch (type) {
       case 'verification': return "text-emerald-400 bg-emerald-400/10";
-      case 'proximity': return "text-amber-400 bg-amber-400/10";
+      case 'proximity': return "text-amber-400 bg-emerald-400/10";
       case 'message': return "text-[#C93CFF] bg-[#C93CFF]/10";
       case 'welcome': return "text-[#C93CFF] bg-[#C93CFF]/10";
       default: return "text-[#8F8F8F] bg-[#151515]";
