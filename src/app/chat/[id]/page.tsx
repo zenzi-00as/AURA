@@ -64,10 +64,10 @@ import { Label } from "@/components/ui/label";
 
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
-  { id: 'Spam', label: 'Spam or Scam' },
+  { id: 'Spam', label: 'Spam' },
   { id: 'Fake profile', label: 'Fake Profile' },
-  { id: 'Inappropriate content', label: 'Inappropriate Content' },
-  { id: 'Threats', label: 'Threats or Violence' },
+  { id: 'Inappropriate content', label: 'Inappropriate' },
+  { id: 'Threats', label: 'Threats' },
   { id: 'Other', label: 'Other' },
 ];
 
@@ -464,58 +464,58 @@ export default function ChatRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Report Dialog */}
+        {/* Report Dialog - COMPACT VERSION */}
         <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 w-[calc(100%-40px)] max-w-[400px]">
-            <DialogHeader className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
-                <AlertTriangle size={28} />
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[340px]">
+            <DialogHeader className="space-y-1">
+              <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
+                <AlertTriangle size={22} />
               </div>
-              <div className="text-center space-y-1">
-                <DialogTitle className="text-xl font-bold">Community Protection</DialogTitle>
-                <DialogDescription className="text-xs text-white/40">Provide context to help our safety team investigate.</DialogDescription>
+              <div className="text-center">
+                <DialogTitle className="text-lg font-bold">Community Protection</DialogTitle>
+                <DialogDescription className="text-[10px] text-white/40">Provide context for our safety team.</DialogDescription>
               </div>
             </DialogHeader>
 
-            <div className="py-6 space-y-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest px-1">Select Reason</label>
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest px-1">Select Reason</label>
                 <RadioGroup value={reportReason} onValueChange={(v: any) => setReportReason(v)} className="grid grid-cols-2 gap-2">
                   {REPORT_CATEGORIES.map((cat) => (
                     <div key={cat.id} className={cn(
-                      "flex items-center space-x-2 p-3 rounded-xl border transition-all cursor-pointer",
+                      "flex items-center space-x-2 p-2 rounded-lg border transition-all cursor-pointer",
                       reportReason === cat.id ? "bg-destructive/10 border-destructive/40" : "bg-white/5 border-transparent"
                     )} onClick={() => setReportReason(cat.id)}>
-                      <RadioGroupItem value={cat.id} id={`report-${cat.id}`} className="border-white/20" />
-                      <Label htmlFor={`report-${cat.id}`} className="text-[10px] font-medium leading-none cursor-pointer">{cat.label}</Label>
+                      <RadioGroupItem value={cat.id} id={`report-${cat.id}`} className="border-white/20 w-3.5 h-3.5" />
+                      <Label htmlFor={`report-${cat.id}`} className="text-[9px] font-medium leading-none cursor-pointer truncate">{cat.label}</Label>
                     </div>
                   ))}
                 </RadioGroup>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Details</label>
-                  <span className="text-[8px] text-destructive uppercase font-bold tracking-tighter">Required</span>
+                  <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Details</label>
+                  <span className="text-[7px] text-destructive uppercase font-bold tracking-tighter">Required</span>
                 </div>
                 <Textarea 
                   placeholder="Tell us what happened..." 
                   value={reportDescription} 
                   onChange={(e) => setReportDescription(e.target.value)}
-                  className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-xs resize-none focus:ring-destructive/20"
+                  className="bg-white/5 border-white/10 rounded-xl min-h-[70px] text-[10px] resize-none focus:ring-destructive/20 p-3"
                 />
               </div>
             </div>
 
-            <DialogFooter className="flex-col sm:flex-col gap-3">
+            <DialogFooter className="flex-col sm:flex-col gap-2">
               <Button 
                 onClick={handleReportSubmit} 
                 disabled={isReporting || !reportDescription.trim()}
-                className="w-full h-14 rounded-2xl bg-destructive hover:bg-destructive/90 text-white font-bold"
+                className="w-full h-12 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold text-xs"
               >
                 {isReporting ? <Loader2 className="animate-spin" /> : "Submit Security Packet"}
               </Button>
-              <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="w-full h-10 text-[10px] font-bold uppercase tracking-widest text-white/40">Cancel</Button>
+              <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="w-full h-8 text-[9px] font-bold uppercase tracking-widest text-white/40">Cancel</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
