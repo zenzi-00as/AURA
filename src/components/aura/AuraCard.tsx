@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
@@ -169,7 +168,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   return (
     <>
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-      <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-[#11141C] border border-white/10 rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col">
+      <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.1 }} className="w-full bg-[#11141C] border border-white/10 rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col">
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
             <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -433,6 +432,10 @@ function ProfileContent() {
                       </div>
                     </div>
 
+                    <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
+                      Activate — {formatPrice(30)}
+                    </Button>
+
                     <div className="space-y-3">
                       {[
                         { icon: Zap, title: "Instant Visibility", desc: "Be the first person everyone sees in their Discovery feed." },
@@ -461,10 +464,6 @@ function ProfileContent() {
                          Priority Discovery significantly amplifies your profile's signal within the Aura. By materializing at the start of every member's discovery stage, you definitively increase the frequency and quality of your potential synchronizations.
                        </p>
                     </div>
-
-                    <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
-                      Activate — {formatPrice(30)}
-                    </Button>
                     <div className="h-10" />
                   </div>
                 </div>

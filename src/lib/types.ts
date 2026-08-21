@@ -1,4 +1,3 @@
-
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected' | 'unverified';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending' | 'free';
 export type PlanType = 'free' | 'elite' | 'elite_plus';
