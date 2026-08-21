@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +19,8 @@ import {
   Check,
   Palette,
   Mail,
-  Coins
+  Coins,
+  EyeOff
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -46,10 +48,11 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
-import { useCollection, useFirestore, useUser, useMemoFirebase, initializeFirebase } from "@/firebase";
-import { collection, query, orderBy, deleteDoc, doc, Query } from "firebase/firestore";
+import { useCollection, useFirestore, useUser, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
+import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc } from "firebase/firestore";
 import { BlockedUser } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
+import { getPlanConfig } from "@/lib/subscription-engine";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -58,20 +61,32 @@ export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
   const db = useFirestore();
-  const { user: authUser } = useUser();
+  const { user: authUser, profile, effectivePlan } = useAuthContext();
+  const planConfig = getPlanConfig(effectivePlan as any);
   
   const [settings, setSettings] = useState({
     notifications: true,
-    marketing: false,
     privateProfile: false,
+    incognito: false,
+    onlineStatus: true
   });
   
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
-  
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
+
+  useEffect(() => {
+    if (profile) {
+      setSettings({
+        notifications: true,
+        privateProfile: false,
+        incognito: !!profile.incognitoMode,
+        onlineStatus: !!profile.isOnline
+      });
+    }
+  }, [profile]);
 
   const blockedQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -83,27 +98,43 @@ export default function SettingsPage() {
 
   const { data: blockedUsers, loading: blockedLoading } = useCollection<BlockedUser>(blockedQuery);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isSignOutDialogOpen && signOutCountdown > 0) {
-      interval = setInterval(() => {
-        setSignOutCountdown((prev) => prev - 1);
-      }, 1000);
-    } else if (isSignOutDialogOpen && signOutCountdown === 0) {
-      const { auth } = initializeFirebase();
-      if (auth) auth.signOut().then(() => router.push("/auth"));
+  const handleToggle = async (key: string, value: boolean) => {
+    if (!db || !authUser) return;
+
+    if (key === 'incognito' && !planConfig.incognito) {
+      toast({ title: "Elite Plus Required", description: "Incognito mode is an Elite Plus benefit." });
+      return;
     }
-    return () => clearInterval(interval);
-  }, [isSignOutDialogOpen, signOutCountdown, router]);
+
+    try {
+      const updateKey = key === 'incognito' ? 'incognitoMode' : 
+                      key === 'onlineStatus' ? 'isOnline' : key;
+      
+      await updateDoc(doc(db, "users", authUser.uid), {
+        [updateKey]: value
+      });
+      setSettings(prev => ({ ...prev, [key]: value }));
+      toast({ title: "Preference Updated" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Sync failed" });
+    }
+  };
 
   const handleSignOutClick = () => {
     setSignOutCountdown(5);
     setIsSignOutDialogOpen(true);
   };
 
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isSignOutDialogOpen && signOutCountdown > 0) {
+      interval = setInterval(() => setSignOutCountdown((prev) => prev - 1), 1000);
+    } else if (isSignOutDialogOpen && signOutCountdown === 0) {
+      const { auth } = initializeFirebase();
+      if (auth) auth.signOut().then(() => router.push("/auth"));
+    }
+    return () => clearInterval(interval);
+  }, [isSignOutDialogOpen, signOutCountdown, router]);
 
   const handleUnblock = (blockId: string, name: string) => {
     if (!db || !authUser) return;
@@ -112,16 +143,11 @@ export default function SettingsPage() {
     toast({ title: "User Unblocked", description: `${name} can now find you again.` });
   };
 
-  const handleDeleteAccount = () => {
-    toast({ variant: "destructive", title: "Account Deleted" });
-    router.push("/auth");
-  };
-
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-12 transition-colors duration-300">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 transition-colors">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
@@ -135,16 +161,33 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('privacy_safety')}</h2>
           </div>
           <div className="space-y-2">
+            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><EyeOff size={18} /></div>
+                <div className="text-left space-y-0.5">
+                   <h3 className="font-medium text-foreground">Incognito Mode</h3>
+                   {!planConfig.incognito && <p className="text-[8px] text-primary font-bold uppercase">Requires Elite Plus</p>}
+                </div>
+              </div>
+              <Switch checked={settings.incognito} onCheckedChange={(v) => handleToggle('incognito', v)} />
+            </div>
+
+            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><User size={18} /></div>
+                <h3 className="font-medium text-foreground">Show Online Status</h3>
+              </div>
+              <Switch checked={settings.onlineStatus} onCheckedChange={(v) => handleToggle('onlineStatus', v)} />
+            </div>
+
             <Dialog open={isBlockedListOpen} onOpenChange={setIsBlockedListOpen}>
               <DialogTrigger asChild>
                 <button className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
-                      <UserX size={18} />
-                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><UserX size={18} /></div>
                     <div className="text-left">
                       <h3 className="font-medium text-foreground">{t('blocked_users')}</h3>
-                      <p className="text-xs text-muted-foreground font-light">Manage who can't contact you.</p>
+                      <p className="text-xs text-muted-foreground font-light">Manage restrictions.</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />
@@ -153,52 +196,17 @@ export default function SettingsPage() {
               <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                 <DialogHeader className="space-y-3">
                   <DialogTitle className="text-2xl font-semibold">{t('blocked_users')}</DialogTitle>
-                  <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
-                    People in this list won't be able to message you.
-                  </DialogDescription>
                 </DialogHeader>
-
                 <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
-                  <AnimatePresence mode="popLayout">
-                    {blockedLoading ? (
-                      <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
-                    ) : (blockedUsers && blockedUsers.length > 0) ? (
-                      blockedUsers.map((user, idx) => (
-                        <motion.div key={user.id || `block-${idx}`} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border group">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground"><User size={18} /></div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">{user.name}</span>
-                              <span className="text-[10px] text-muted-foreground">{user.blockedAt?.toDate ? formatDistanceToNow(user.blockedAt.toDate(), { addSuffix: true }) : "recently"}</span>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)} className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary hover:bg-primary/10 rounded-xl px-4">Unblock</Button>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <div className="text-center py-12 space-y-3"><div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground"><Shield size={24} /></div><p className="text-sm text-muted-foreground font-light">Your blocked list is clear.</p></div>
-                    )}
-                  </AnimatePresence>
+                   {blockedLoading ? <Loader2 className="animate-spin mx-auto" /> : blockedUsers?.length ? blockedUsers.map(user => (
+                     <div key={user.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border">
+                        <span className="text-sm font-medium">{user.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)}>Unblock</Button>
+                     </div>
+                   )) : <p className="text-center text-muted-foreground py-10">Clear list.</p>}
                 </div>
-                <div className="pt-2"><Button onClick={() => setIsBlockedListOpen(false)} className="w-full h-14 rounded-2xl bg-muted text-foreground font-bold text-lg hover:bg-muted/80 transition-colors border border-border">{t('cancel')}</Button></div>
               </DialogContent>
             </Dialog>
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <Bell size={14} className="text-secondary" />
-            <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('notifications')}</h2>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border transition-colors">
-              <div className="space-y-1">
-                <h3 className="font-medium text-foreground">{t('push_notifications')}</h3>
-                <p className="text-xs text-muted-foreground font-light">Alerts for messages and activity.</p>
-              </div>
-              <Switch checked={settings.notifications} onCheckedChange={() => toggleSetting('notifications')} />
-            </div>
           </div>
         </section>
 
@@ -246,27 +254,16 @@ export default function SettingsPage() {
               <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><Palette size={18} /></div><div className="space-y-1"><h3 className="font-medium text-foreground">{t('dark_mode')}</h3><p className="text-xs text-muted-foreground font-light">{t('dark_mode_desc')}</p></div></div>
               <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
             </div>
-
-            <button onClick={() => window.location.href = "mailto:support@aura.com"} className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group">
-              <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><Mail size={18} /></div><div className="text-left space-y-1"><h3 className="font-medium text-foreground">{t('email_support')}</h3><p className="text-xs text-muted-foreground font-light">{t('email_support_desc')}</p></div></div>
-              <ChevronRight size={16} className="text-muted-foreground" />
-            </button>
           </div>
         </section>
 
         <section className="space-y-4 pt-4">
           <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">{t('account_actions')}</h2>
           <div className="space-y-2">
-            <button onClick={handleSignOutClick} className="w-full flex items-center gap-4 p-6 bg-card rounded-[32px] border border-border hover:bg-rose-500/10 hover:border-rose-500/20 transition-all text-foreground group"><div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:text-rose-500 transition-colors"><LogOut size={18} /></div><span className="font-medium">{t('sign_out')}</span></button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button className="w-full flex items-center gap-4 p-6 bg-rose-500/5 rounded-[32px] border border-rose-500/10 hover:bg-rose-500/10 transition-all text-rose-500 group"><div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500"><Trash2 size={18} /></div><span className="font-medium">{t('delete_account')}</span></button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
-                <AlertDialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto"><AlertTriangle size={32} /></div><div className="space-y-2 text-center"><AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle><AlertDialogDescription>This action is permanent.</AlertDialogDescription></div></AlertDialogHeader>
-                <AlertDialogFooter className="flex flex-col gap-3 pt-4 sm:flex-col"><AlertDialogAction onClick={handleDeleteAccount} className="w-full h-14 rounded-2xl bg-destructive text-destructive-foreground font-medium text-lg hover:bg-destructive/90 transition-colors">Delete Permanently</AlertDialogAction><AlertDialogCancel className="w-full h-12 rounded-xl bg-muted border-transparent text-foreground hover:bg-muted/80 hover:text-foreground transition-colors border border-border font-bold">{t('cancel')}</AlertDialogCancel></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <button onClick={handleSignOutClick} className="w-full h-16 px-8 rounded-3xl bg-muted border border-border flex items-center gap-4 text-foreground hover:bg-rose-500/10 transition-all">
+               <LogOut size={18} className="text-rose-500" />
+               <span className="font-medium">{t('sign_out')}</span>
+            </button>
           </div>
         </section>
 
@@ -274,11 +271,8 @@ export default function SettingsPage() {
           <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
             <DialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="space-y-2 text-center"><DialogTitle className="text-2xl font-semibold">{t('sign_out')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">Secure redirect in progress.</DialogDescription></div></DialogHeader>
             <div className="py-6 flex flex-col items-center justify-center space-y-4"><div className="relative w-24 h-24 flex items-center justify-center"><svg className="w-full h-full transform -rotate-90"><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted/20" /><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={276} strokeDashoffset={276 - (276 * signOutCountdown) / 5} className="text-primary transition-all duration-1000 ease-linear" /></svg><span className="absolute text-3xl font-bold">{signOutCountdown}</span></div><p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Secure Redirect</p></div>
-            <div className="pt-2"><Button variant="ghost" onClick={() => setIsSignOutDialogOpen(false)} className="w-full h-12 rounded-xl text-foreground hover:text-primary transition-colors font-bold">{t('cancel')}</Button></div>
           </DialogContent>
         </Dialog>
-
-        <div className="pt-8 text-center space-y-2 pb-12"><p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura v1.0.4</p></div>
       </div>
     </div>
   );

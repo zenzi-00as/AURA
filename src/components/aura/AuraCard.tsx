@@ -30,8 +30,6 @@ import { doc, getDoc, setDoc, serverTimestamp, updateDoc, increment } from "fire
 import { useToast } from "@/hooks/use-toast";
 import { MatchModal } from "./MatchModal";
 import { UpgradeModal } from "./UpgradeModal";
-import { initializeRazorpayPayment } from "@/lib/razorpay";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface AuraCardProps {
   user: UserProfile;
@@ -73,7 +71,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
     }
 
     if (type === 'super_like' && (currentUser.superLikeBalance || 0) <= 0) {
-      setShowSuperLikeConfirm(true);
+      toast({ variant: "destructive", title: "No Super Likes", description: "Purchase Super Likes in the Membership Hub." });
       return;
     }
 
@@ -185,8 +183,8 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 <span style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
               </div>
             )}
-            {user.photoUrl && !blurPhotos ? (
-              <img src={user.photoUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+            {user.photoUrl ? (
+              <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover transition-transform duration-500 hover:scale-105", blurPhotos && "blur-xl")} />
             ) : (
               <div className="w-full h-full bg-[#0B0F18] flex items-center justify-center"><Lock size={24} className="text-white/10" /></div>
             )}

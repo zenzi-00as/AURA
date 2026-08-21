@@ -90,7 +90,6 @@ export default function ChatRoomPage() {
   const [selectedMedia, setSelectedMedia] = useState<Message | null>(null);
   const [upgradeModal, setUpgradeModal] = useState<{isOpen: boolean, plan: any, feature: string, limit?: number | null} | null>(null);
   
-  // Report State
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState<ReportType>('Other');
   const [reportDescription, setReportDescription] = useState("");
@@ -125,7 +124,7 @@ export default function ChatRoomPage() {
         if (otherUid !== 'system' && !idParam.startsWith('system_')) {
           const check = checkActionAllowed(profile, 'newChat');
           if (!check.allowed) {
-            toast({ variant: "destructive", title: "Daily Limit Reached", description: `Free/Elite members can start ${check.limit} new chats/day.` });
+            setUpgradeModal({ isOpen: true, plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', feature: 'New Chats', limit: check.limit });
             router.push('/chat');
             return;
           }
@@ -143,7 +142,7 @@ export default function ChatRoomPage() {
         updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
       }
     }
-  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast, idParam]);
+  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast, idParam, effectivePlan]);
 
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
@@ -297,7 +296,7 @@ export default function ChatRoomPage() {
                 )}
               </div>
               <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">
-                {isSystemChat ? "Official System" : (otherUser?.isOnline ? "Active" : "Offline")}
+                {isSystemChat ? "Official System" : (otherUser?.isOnline && !otherUser.incognitoMode ? "Active" : "Offline")}
               </span>
             </div>
           </div>
@@ -424,7 +423,6 @@ export default function ChatRoomPage() {
           </div>
         )}
 
-        {/* Media Options Dialog */}
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
           <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[340px]">
             <DialogHeader>
@@ -464,7 +462,6 @@ export default function ChatRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Report Dialog - COMPACT VERSION */}
         <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
           <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[340px]">
             <DialogHeader className="space-y-1">
@@ -520,7 +517,6 @@ export default function ChatRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Media Fullscreen Viewer */}
         {selectedMedia && (
            <Dialog open={!!selectedMedia} onOpenChange={(o) => !o && setSelectedMedia(null)}>
               <DialogContent className="bg-black p-0 border-none w-screen h-screen max-w-none flex items-center justify-center">

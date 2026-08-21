@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
-import { collection, query, limit, Query } from "firebase/firestore";
+import { collection, query, limit, Query, where } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { getPlanConfig } from "@/lib/subscription-engine";
 import { cn } from "@/lib/utils";
@@ -140,7 +140,12 @@ export default function Dashboard() {
 
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, "users"), limit(100)) as Query<UserProfile>;
+    return query(
+      collection(db, "users"), 
+      where("onboardingCompleted", "==", true),
+      where("incognitoMode", "==", false),
+      limit(100)
+    ) as Query<UserProfile>;
   }, [db]);
 
   const { data: firestoreUsers, loading: usersLoading } = useCollection<UserProfile>(usersQuery);
@@ -158,7 +163,6 @@ export default function Dashboard() {
       .map(user => {
         let distKm = 999;
         if (currentLocation && user.location) {
-          // Haversine or simple distance is fine for UI
           distKm = Math.sqrt(Math.pow(user.location.lat - currentLocation.lat, 2) + Math.pow(user.location.lng - currentLocation.lng, 2)) * 111;
         }
         return { ...user, distance: distKm < 1 ? `${Math.round(distKm * 1000)}m away` : `${distKm.toFixed(1)}km away`, distanceKm: distKm };
@@ -316,20 +320,6 @@ export default function Dashboard() {
                       )}
                     </motion.div>
                   ))}
-                </div>
-
-                <div className="px-6 py-10 bg-white/[0.02] border-y border-white/5 flex flex-col items-center text-center gap-6">
-                   <div className="w-14 h-14 rounded-3xl premium-gradient flex items-center justify-center shadow-xl">
-                      <Lock size={24} className="text-white" />
-                   </div>
-                   <div className="space-y-2">
-                      <h3 className="text-lg font-bold text-white">Unlock Full Discovery</h3>
-                      <p className="text-xs text-white/40 font-light max-w-[280px]">Upgrade to Aura Elite to increase your visibility and see everyone nearby.</p>
-                   </div>
-                   <Button onClick={() => router.push('/profile?tab=elite')} variant="outline" className="h-12 px-8 rounded-xl border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5">
-                      Join Aura Elite
-                      <ChevronRight size={14} className="ml-2" />
-                   </Button>
                 </div>
               </div>
             </div>

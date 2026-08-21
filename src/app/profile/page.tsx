@@ -37,13 +37,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuthContext } from "@/firebase/auth-context";
-import { useFirestore, initializeFirebase } from "@/firebase";
-import { doc, updateDoc, serverTimestamp, addDoc, collection, increment } from "firebase/firestore";
+import { useFirestore, initializeFirebase, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, updateDoc, serverTimestamp, addDoc, collection, increment, query, where, orderBy, limit as firestoreLimit } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { getEffectivePlan, getPlanConfig, PLAN_CONFIG } from "@/lib/subscription-engine";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
+import { Purchase } from "@/lib/types";
 
 function ProfileContent() {
   const router = useRouter();
@@ -57,7 +58,7 @@ function ProfileContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [tempBio, setTempBio] = useState("");
   const [superLikeQty, setSuperLikeQty] = useState(1);
-  const [activeSheet, setActiveSheet] = useState<'free' | 'elite' | 'eliteplus' | 'spotlight' | 'superlike' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'free' | 'elite' | 'eliteplus' | 'spotlight' | 'superlike' | 'history' | null>(null);
 
   useEffect(() => {
     if (profile?.bio) setTempBio(profile.bio);
@@ -70,6 +71,13 @@ function ProfileContent() {
     else if (tab === 'spotlight') setActiveSheet('spotlight');
     else if (tab === 'superlike') setActiveSheet('superlike');
   }, [searchParams]);
+
+  const purchaseQuery = useMemoFirebase(() => {
+    if (!db || !authUser) return null;
+    return query(collection(db, "purchases"), where("uid", "==", authUser.uid), orderBy("timestamp", "desc"), firestoreLimit(20));
+  }, [db, authUser]);
+
+  const { data: purchaseHistory } = useCollection<Purchase>(purchaseQuery);
 
   const handleSave = async () => {
     if (!db || !authUser) return;
@@ -95,6 +103,7 @@ function ProfileContent() {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 28);
           await updateDoc(userRef, { 
+            plan: itemType === 'Elite' ? 'elite' : 'elite_plus',
             subscription: {
               planId: itemType === 'Elite' ? 'elite' : 'elite_plus', 
               status: 'active',
@@ -165,10 +174,6 @@ function ProfileContent() {
       { label: "Who Likes You", left: "Limited", right: "Full" },
       { label: "Ads", left: "Reduced", right: "None" },
       { label: "Priority discovery", left: Tick, right: "⭐ Highest" },
-      { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
-      { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
-      { label: "Priority support", left: "Standard", right: "Priority" },
-      { label: "Early access", left: Cross, right: Tick },
     ] : [
       { label: "Chats/day", left: "5", right: "15" },
       { label: "Radius", left: "25 km", right: "50 km" },
@@ -182,10 +187,6 @@ function ProfileContent() {
       { label: "Who Likes You", left: Cross, right: "Limited" },
       { label: "Ads", left: "Full", right: "Reduced" },
       { label: "Priority discovery", left: Cross, right: Tick },
-      { label: "Spotlight", left: formatPrice(30)+"/7d", right: formatPrice(30)+"/7d" },
-      { label: "Super Like", left: formatPrice(3), right: formatPrice(3) },
-      { label: "Priority support", left: Cross, right: "Standard" },
-      { label: "Early access", left: Cross, right: Cross },
     ];
 
     return (
@@ -325,14 +326,11 @@ function ProfileContent() {
                              </div>
                            ))}
                         </div>
-                        <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 space-y-3">
-                           <p className="text-xs text-white/80 leading-relaxed">The Free plan is designed for members exploring the community. For enhanced visibility, unlimited interactions, and privacy controls, consider joining Aura Elite.</p>
-                        </div>
                      </div>
                   </div>
                   <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
                      <Button onClick={() => setActiveSheet('elite')} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg">
-                        Explore Elite Benefits
+                        Upgrade to Elite
                      </Button>
                   </div>
                 </div>
@@ -475,7 +473,6 @@ function ProfileContent() {
                     <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
                       Activate — {formatPrice(30)}
                     </Button>
-                    <div className="h-4" />
                   </div>
                 </div>
               </SheetContent>
@@ -583,6 +580,46 @@ function ProfileContent() {
         )}
 
         <div className="space-y-3 pb-20">
+          <Sheet open={activeSheet === 'history'} onOpenChange={(o) => setActiveSheet(o ? 'history' : null)}>
+            <SheetTrigger asChild>
+               <button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between hover:bg-primary/5 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Clock size={18} /></div>
+                  <span className="font-medium">Purchase History</span>
+                </div>
+                <ChevronRight size={16} className="text-muted-foreground" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[80dvh] overflow-hidden">
+               <div className="h-full flex flex-col">
+                  <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 shrink-0">
+                    <button onClick={() => setActiveSheet(null)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                    <span className="text-sm font-bold uppercase tracking-[0.3em]">History</span>
+                    <div className="w-10 h-10" />
+                  </header>
+                  <div className="flex-1 overflow-y-auto px-8 py-8 space-y-4 scrollbar-hide">
+                    {purchaseHistory && purchaseHistory.length > 0 ? purchaseHistory.map((p) => (
+                      <div key={p.id} className="p-5 rounded-[28px] bg-white/5 border border-white/5 flex items-center justify-between">
+                         <div className="space-y-1">
+                            <h4 className="font-bold text-sm">{p.itemType} Activation</h4>
+                            <p className="text-[10px] text-white/40">{p.timestamp?.toDate ? p.timestamp.toDate().toLocaleDateString() : "Just now"}</p>
+                         </div>
+                         <div className="text-right space-y-1">
+                            <p className="text-sm font-bold text-primary">{p.currency} {p.amount}</p>
+                            <span className="text-[8px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Success</span>
+                         </div>
+                      </div>
+                    )) : (
+                      <div className="py-20 text-center space-y-4">
+                         <Clock size={40} className="text-white/10 mx-auto" />
+                         <p className="text-sm text-white/30">No transaction records found.</p>
+                      </div>
+                    )}
+                  </div>
+               </div>
+            </SheetContent>
+          </Sheet>
+
           {[ 
             { label: t('settings'), path: '/settings', icon: Settings }, 
             { label: t('about'), path: '/about', icon: Info }, 

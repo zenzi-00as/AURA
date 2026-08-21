@@ -149,6 +149,7 @@ export type Purchase = {
   uid: string;
   itemType: 'Elite' | 'ElitePlus' | 'SuperLike' | 'Spotlight';
   amount: number;
+  currency: string;
   timestamp: any;
   razorpayOrderId: string;
   status: 'Success' | 'Failed' | 'Pending';
