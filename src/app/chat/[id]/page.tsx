@@ -24,7 +24,8 @@ import {
   Lock,
   Info,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,14 @@ import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
-const REPORT_CATEGORIES: ReportType[] = ['Harassment', 'Spam', 'Fake profile', 'Scams', 'Other'];
+const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
+  { id: 'Harassment', label: 'Harassment' },
+  { id: 'Spam', label: 'Spam or Scam' },
+  { id: 'Fake profile', label: 'Fake Profile' },
+  { id: 'Inappropriate content', label: 'Inappropriate Content' },
+  { id: 'Threats', label: 'Threats or Violence' },
+  { id: 'Other', label: 'Other' },
+];
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -82,8 +90,10 @@ export default function ChatRoomPage() {
   const [selectedMedia, setSelectedMedia] = useState<Message | null>(null);
   const [upgradeModal, setUpgradeModal] = useState<{isOpen: boolean, plan: any, feature: string, limit?: number | null} | null>(null);
   
+  // Report State
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [reportReason, setReportReason] = useState<ReportType>('Other');
+  const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -112,7 +122,6 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (db && authUser && roomId && otherUid && !roomLoading) {
       if (!room) {
-        // System rooms are handled during onboarding, but let's check for normal matching
         if (otherUid !== 'system' && !idParam.startsWith('system_')) {
           const check = checkActionAllowed(profile, 'newChat');
           if (!check.allowed) {
@@ -243,6 +252,28 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleReportSubmit = async () => {
+    if (!db || !authUser || !otherUid || !reportDescription.trim()) return;
+    setIsReporting(true);
+    try {
+      await addDoc(collection(db, "reports"), {
+        reporterId: authUser.uid,
+        targetId: otherUid,
+        reason: reportReason,
+        description: reportDescription.trim(),
+        timestamp: serverTimestamp(),
+        status: 'Pending'
+      });
+      toast({ title: "Report Synchronized", description: "Our safety team has received your packet." });
+      setShowReportDialog(false);
+      setReportDescription("");
+    } catch (error) {
+      toast({ variant: "destructive", title: "Sync failed" });
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   const isOtherSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
   if (roomLoading) {
@@ -274,8 +305,8 @@ export default function ChatRoomPage() {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild><button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><MoreVertical size={18} /></button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-[#070709] border-white/10 rounded-2xl p-2 w-56 shadow-2xl backdrop-blur-xl">
-                    <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive flex items-center gap-3"><Flag size={16} /><span>Report</span></DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-white/60 flex items-center gap-3"><UserX size={16} /><span>Block</span></DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="rounded-xl px-4 py-3 text-destructive flex items-center gap-3 cursor-pointer"><Flag size={16} /><span>Report</span></DropdownMenuItem>
+                    <DropdownMenuItem className="rounded-xl px-4 py-3 text-white/60 flex items-center gap-3 cursor-pointer"><UserX size={16} /><span>Block</span></DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -393,6 +424,7 @@ export default function ChatRoomPage() {
           </div>
         )}
 
+        {/* Media Options Dialog */}
         <Dialog open={showMediaOptions} onOpenChange={setShowMediaOptions}>
           <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-6 w-[calc(100%-40px)] max-w-[340px]">
             <DialogHeader>
@@ -432,6 +464,63 @@ export default function ChatRoomPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Report Dialog */}
+        <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 w-[calc(100%-40px)] max-w-[400px]">
+            <DialogHeader className="space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
+                <AlertTriangle size={28} />
+              </div>
+              <div className="text-center space-y-1">
+                <DialogTitle className="text-xl font-bold">Community Protection</DialogTitle>
+                <DialogDescription className="text-xs text-white/40">Provide context to help our safety team investigate.</DialogDescription>
+              </div>
+            </DialogHeader>
+
+            <div className="py-6 space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest px-1">Select Reason</label>
+                <RadioGroup value={reportReason} onValueChange={(v: any) => setReportReason(v)} className="grid grid-cols-2 gap-2">
+                  {REPORT_CATEGORIES.map((cat) => (
+                    <div key={cat.id} className={cn(
+                      "flex items-center space-x-2 p-3 rounded-xl border transition-all cursor-pointer",
+                      reportReason === cat.id ? "bg-destructive/10 border-destructive/40" : "bg-white/5 border-transparent"
+                    )} onClick={() => setReportReason(cat.id)}>
+                      <RadioGroupItem value={cat.id} id={`report-${cat.id}`} className="border-white/20" />
+                      <Label htmlFor={`report-${cat.id}`} className="text-[10px] font-medium leading-none cursor-pointer">{cat.label}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Details</label>
+                  <span className="text-[8px] text-destructive uppercase font-bold tracking-tighter">Required</span>
+                </div>
+                <Textarea 
+                  placeholder="Tell us what happened..." 
+                  value={reportDescription} 
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-xs resize-none focus:ring-destructive/20"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-col gap-3">
+              <Button 
+                onClick={handleReportSubmit} 
+                disabled={isReporting || !reportDescription.trim()}
+                className="w-full h-14 rounded-2xl bg-destructive hover:bg-destructive/90 text-white font-bold"
+              >
+                {isReporting ? <Loader2 className="animate-spin" /> : "Submit Security Packet"}
+              </Button>
+              <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="w-full h-10 text-[10px] font-bold uppercase tracking-widest text-white/40">Cancel</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Media Fullscreen Viewer */}
         {selectedMedia && (
            <Dialog open={!!selectedMedia} onOpenChange={(o) => !o && setSelectedMedia(null)}>
               <DialogContent className="bg-black p-0 border-none w-screen h-screen max-w-none flex items-center justify-center">
