@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
             
-            // Usage Reset Logic
+            // Daily Limit Usage Reset Logic
             const today = format(new Date(), 'yyyy-MM-dd');
             if (data.usage?.lastResetDate !== today) {
               updateDoc(userRef, {
@@ -116,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
+        // Sync presence
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
         return () => unsubscribeProfile();
       } else {

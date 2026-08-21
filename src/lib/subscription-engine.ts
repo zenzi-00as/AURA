@@ -80,15 +80,15 @@ export type CheckResult = {
 
 /**
  * Gets the effective plan ID, considering expiry.
- * SAFE DEFAULT: 'free'
  */
 export function getEffectivePlan(profile: UserProfile | null): PlanType {
   if (!profile) return 'free';
+  if (profile.isDemoUser && profile.subscription?.planId) return profile.subscription.planId as PlanType;
   
   const plan = (profile.plan as PlanType) || 'free';
   if (plan === 'free') return 'free';
 
-  // Check Expiry if subscription object exists
+  // Check Expiry
   if (profile.subscription?.expiresAt) {
     const expiryDate = profile.subscription.expiresAt.toDate ? profile.subscription.expiresAt.toDate() : new Date(profile.subscription.expiresAt);
     if (expiryDate <= new Date()) return 'free';
@@ -112,7 +112,7 @@ export function checkActionAllowed(
   const config = getPlanConfig(planId);
   const usage = profile?.usage || { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: '' };
 
-  // Reset check (sanity, usually handled in sync)
+  // Reset check usually handled in sync, but we do a safe local check here
   const today = format(new Date(), 'yyyy-MM-dd');
   const isStale = usage.lastResetDate !== today;
   
@@ -138,10 +138,4 @@ export function checkActionAllowed(
   }
 
   return { allowed: true, limit, used, remaining };
-}
-
-export function hasEntitlement(profile: UserProfile | null, feature: keyof PlanConfig): boolean | string {
-  const planId = getEffectivePlan(profile);
-  const config = getPlanConfig(planId);
-  return config[feature] as any;
 }
