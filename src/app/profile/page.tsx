@@ -25,14 +25,13 @@ import {
   Minus,
   Zap,
   Eye,
-  Clock,
-  Bell
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -40,7 +39,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore, initializeFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc, serverTimestamp, addDoc, collection, increment, query, where, orderBy, limit as firestoreLimit } from "firebase/firestore";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { getEffectivePlan, getPlanConfig, PLAN_CONFIG } from "@/lib/subscription-engine";
+import { getPlanConfig } from "@/lib/subscription-engine";
 import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
@@ -154,7 +153,6 @@ function ProfileContent() {
 
   const ComparisonTable = ({ mode }: { mode: 'elite' | 'eliteplus' }) => {
     const isPlus = mode === 'eliteplus';
-    const { formatPrice } = useCurrency();
     const leftPlanLabel = isPlus ? "Elite" : "Free";
     const rightPlanLabel = isPlus ? `Elite Plus ${formatPrice(199)}` : `Elite ${formatPrice(99)}`;
 
@@ -247,7 +245,7 @@ function ProfileContent() {
               <h2 className="text-3xl font-semibold text-foreground flex items-center justify-center gap-2">
                 {profile.name}, {profile.age}
                 {spotlight && (
-                  <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2) drop-shadow(0 0 5px rgba(0, 87, 255, 0.4))' }}>
+                  <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>
                     🌟
                   </span>
                 )}
@@ -282,7 +280,6 @@ function ProfileContent() {
         <div className="space-y-4">
           <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1">Membership Hub</h3>
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
-            {/* Free Card */}
             <Sheet open={activeSheet === 'free'} onOpenChange={(o) => setActiveSheet(o ? 'free' : null)}>
               <SheetTrigger asChild>
                 <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 text-white border border-white/10 text-left relative overflow-hidden group">
@@ -327,17 +324,15 @@ function ProfileContent() {
                            ))}
                         </div>
                      </div>
-                  </div>
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0 safe-bottom">
                      <Button onClick={() => setActiveSheet('elite')} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg">
                         Upgrade to Elite
                      </Button>
+                     <div className="h-10" />
                   </div>
                 </div>
               </SheetContent>
             </Sheet>
 
-            {/* Elite Card */}
             <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
               <SheetTrigger asChild>
                 <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group shadow-[0_0_25px_rgba(0,87,255,0.3)]">
@@ -362,17 +357,15 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="elite" />
-                  </div>
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                      <Button onClick={() => handlePurchase('Elite', 99)} disabled={effectivePlan === 'elite'} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
                         {effectivePlan === 'elite' ? "Active" : `Upgrade — ${formatPrice(99)}`}
                      </Button>
+                     <div className="h-10" />
                   </div>
                 </div>
               </SheetContent>
             </Sheet>
 
-            {/* Elite Plus Card */}
             <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
               <SheetTrigger asChild>
                 <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group shadow-[0_0_30px_rgba(0,87,255,0.4)]">
@@ -398,11 +391,10 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="eliteplus" />
-                  </div>
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
                      <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={effectivePlan === 'elite_plus'} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg neon-glow">
                         {effectivePlan === 'elite_plus' ? "Active" : `Upgrade — ${formatPrice(199)}`}
                      </Button>
+                     <div className="h-10" />
                   </div>
                 </div>
               </SheetContent>
@@ -473,6 +465,7 @@ function ProfileContent() {
                     <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
                       Activate — {formatPrice(30)}
                     </Button>
+                    <div className="h-10" />
                   </div>
                 </div>
               </SheetContent>
@@ -508,8 +501,7 @@ function ProfileContent() {
                     <div className="space-y-3">
                       {[
                         { icon: Zap, title: "Priority Delivery", desc: "Your profile jumps to the front of their Discovery queue." },
-                        { icon: Bell, title: "Instant Notification", desc: "They'll receive a specialized alert of your Super Like instantly." },
-                        { icon: Sparkles, title: "High-Fidelity Presence", desc: "Stand out with a signature blue aura highlight on your profile." },
+                        { icon: Star, title: "High-Fidelity Presence", desc: "Stand out with a signature blue aura highlight on your profile." },
                         { icon: Heart, title: "3x Match Probability", desc: "Members who Super Like have a 3x higher synchronization rate." }
                       ].map((benefit, i) => (
                         <div key={`super-benefit-${i}`} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-start gap-4">
@@ -524,20 +516,10 @@ function ProfileContent() {
                       ))}
                     </div>
 
-                    <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 space-y-4">
-                       <div className="flex items-center gap-3 text-primary">
-                          <Sparkles size={20} />
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest">Interaction Power</h4>
-                       </div>
-                       <p className="text-sm text-white/80 font-light leading-relaxed">
-                         Super like definitively signals your highest level of interest. It bypasses the standard discovery sequence to create an immediate synchronization potential.
-                       </p>
-                    </div>
-                  </div>
-                  <div className="p-8 border-t border-white/5 bg-[#070709] shrink-0">
-                     <Button onClick={() => handlePurchase('SuperLike', superLikeQty * 3, superLikeQty)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
+                    <Button onClick={() => handlePurchase('SuperLike', superLikeQty * 3, superLikeQty)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
                         Get {superLikeQty} — {formatPrice(superLikeQty * 3)}
-                     </Button>
+                    </Button>
+                    <div className="h-10" />
                   </div>
                 </div>
               </SheetContent>

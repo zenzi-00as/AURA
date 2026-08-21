@@ -8,7 +8,7 @@ import { AuraCard } from "@/components/aura/AuraCard";
 import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, Lock, ChevronRight } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -133,7 +133,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Synchronize local radius with plan changes
   useEffect(() => {
     setDistance([planConfig.searchRadiusKm]);
     setActiveFilters(prev => ({ ...prev, distance: planConfig.searchRadiusKm }));
@@ -144,7 +143,7 @@ export default function Dashboard() {
     return query(
       collection(db, "users"), 
       where("onboardingCompleted", "==", true),
-      where("incognitoMode", "==", false), // Respect Incognito setting
+      where("incognitoMode", "==", false),
       limit(100)
     ) as Query<UserProfile>;
   }, [db]);
@@ -157,25 +156,19 @@ export default function Dashboard() {
     return firestoreUsers
       .filter(user => {
         if (user.uid === currentUserProfile.uid || user.isSuspended) return false;
-        
-        // Age Filter
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
         if (!withinAge) return false;
-
         return true;
       })
       .map(user => {
-        // Calculate Distance
         let distKm = 999;
         if (currentLocation && user.location) {
-          // Haversine approximation
           distKm = Math.sqrt(Math.pow(user.location.lat - currentLocation.lat, 2) + Math.pow(user.location.lng - currentLocation.lng, 2)) * 111;
         }
         return { ...user, distance: distKm < 1 ? `${Math.round(distKm * 1000)}m away` : `${distKm.toFixed(1)}km away`, distanceKm: distKm };
       })
       .filter(user => user.distanceKm! <= activeFilters.distance)
       .sort((a, b) => {
-        // Boost Spotlight profiles to top
         const aSpot = a.spotlightExpiry && (a.spotlightExpiry.toDate ? a.spotlightExpiry.toDate() : new Date(a.spotlightExpiry)) > new Date();
         const bSpot = b.spotlightExpiry && (b.spotlightExpiry.toDate ? b.spotlightExpiry.toDate() : new Date(b.spotlightExpiry)) > new Date();
         if (aSpot !== bSpot) return aSpot ? -1 : 1;
@@ -187,7 +180,6 @@ export default function Dashboard() {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
     filteredUsers.forEach((user, index) => {
       items.push({ type: 'user', data: user });
-      // Interleave ads based on plan
       if (planConfig.ads !== 'none' && (index + 1) % 5 === 0) {
         items.push({ type: 'ad' });
       }

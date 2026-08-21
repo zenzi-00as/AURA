@@ -12,7 +12,6 @@ import {
   CheckCheck, 
   BadgeCheck, 
   Loader2, 
-  Shield, 
   Eye, 
   EyeOff, 
   X,
@@ -20,7 +19,6 @@ import {
   UserX,
   Plus,
   Star,
-  MessageSquare,
   Lock,
   Info,
   ShieldCheck,
@@ -41,9 +39,7 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc,
-  writeBatch,
-  deleteDoc
+  setDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -53,8 +49,7 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { getPlanConfig, checkActionAllowed } from "@/lib/subscription-engine";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -66,8 +61,7 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
+  AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
@@ -76,10 +70,10 @@ import { Label } from "@/components/ui/label";
 
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
-  { id: 'Spam', label: 'Spam' },
+  { id: 'Spam', label: 'Spam or Scam' },
   { id: 'Fake profile', label: 'Fake Profile' },
-  { id: 'Inappropriate content', label: 'Inappropriate' },
-  { id: 'Threats', label: 'Threats' },
+  { id: 'Inappropriate content', label: 'Inappropriate Content' },
+  { id: 'Threats', label: 'Threats or Violence' },
   { id: 'Other', label: 'Other' },
 ];
 
@@ -553,7 +547,7 @@ export default function ChatRoomPage() {
         </Dialog>
 
         <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
-          <AlertDialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 w-[calc(100%-40px)] max-w-[340px]">
+          <DialogContent className="bg-[#070709] border-white/10 rounded-[32px] p-8 w-[calc(100%-40px)] max-w-[340px]">
             <AlertDialogHeader className="space-y-4">
               <div className="w-16 h-16 rounded-[24px] bg-destructive/10 flex items-center justify-center text-destructive mx-auto">
                 <UserX size={32} />
@@ -577,7 +571,7 @@ export default function ChatRoomPage() {
                 Maybe Later
               </AlertDialogCancel>
             </AlertDialogFooter>
-          </AlertDialogContent>
+          </DialogContent>
         </AlertDialog>
 
         {selectedMedia && (

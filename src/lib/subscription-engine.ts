@@ -1,5 +1,5 @@
 
-import { PlanType, UserProfile, UserSubscription, UserUsage } from "./types";
+import { PlanType, UserProfile } from "./types";
 import { format } from "date-fns";
 
 export interface PlanConfig {
@@ -56,10 +56,10 @@ export const PLAN_CONFIG: Record<PlanType, PlanConfig> = {
     id: 'elite_plus',
     displayName: "Aura Elite Plus",
     price: 199,
-    newChatsPerDay: null, // Unlimited
+    newChatsPerDay: null,
     searchRadiusKm: 100,
-    likesPerDay: null, // Unlimited
-    mediaPerDay: null, // Unlimited
+    likesPerDay: null,
+    mediaPerDay: null,
     profilePhotos: 'visible',
     incognito: true,
     readReceipts: true,
@@ -78,9 +78,6 @@ export type CheckResult = {
   remaining?: number | 'Unlimited';
 };
 
-/**
- * Gets the effective plan ID, considering expiry.
- */
 export function getEffectivePlan(profile: UserProfile | null): PlanType {
   if (!profile) return 'free';
   if (profile.isDemoUser && profile.subscription?.planId) return profile.subscription.planId as PlanType;
@@ -88,7 +85,6 @@ export function getEffectivePlan(profile: UserProfile | null): PlanType {
   const plan = (profile.plan as PlanType) || 'free';
   if (plan === 'free') return 'free';
 
-  // Check Expiry
   if (profile.subscription?.expiresAt) {
     const expiryDate = profile.subscription.expiresAt.toDate ? profile.subscription.expiresAt.toDate() : new Date(profile.subscription.expiresAt);
     if (expiryDate <= new Date()) return 'free';
@@ -101,9 +97,6 @@ export function getPlanConfig(planId: PlanType): PlanConfig {
   return PLAN_CONFIG[planId] || PLAN_CONFIG.free;
 }
 
-/**
- * Returns structured result for feature availability.
- */
 export function checkActionAllowed(
   profile: UserProfile | null, 
   action: 'newChat' | 'like' | 'media'
@@ -112,7 +105,6 @@ export function checkActionAllowed(
   const config = getPlanConfig(planId);
   const usage = profile?.usage || { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: '' };
 
-  // Reset check usually handled in sync, but we do a safe local check here
   const today = format(new Date(), 'yyyy-MM-dd');
   const isStale = usage.lastResetDate !== today;
   

@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { BadgeCheck, MessageSquare, Star } from "lucide-react";
+import { BadgeCheck, MessageSquare } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
@@ -80,7 +80,6 @@ export default function ChatList() {
   const chatItems = useMemo(() => {
     const items = [];
     
-    // Add real chats
     if (rooms && authUser && profiles) {
       const profileMap = new Map(profiles.map(p => [p.uid, p]));
       
@@ -104,7 +103,6 @@ export default function ChatList() {
       items.push(...realItems);
     }
 
-    // Interleave demo chats if no real ones exist, or append them for visual richness
     if (items.length < 5) {
       items.push(...DEMO_CHATS);
     }

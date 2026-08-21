@@ -1,16 +1,16 @@
+
 "use client";
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { Heart, Sparkles, Lock, Star, ChevronRight, Compass } from "lucide-react";
+import { Heart, Lock, Star, ChevronRight, Compass } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { collection, query, where, limit, Query, orderBy } from "firebase/firestore";
 import { LikeRecord, UserProfile } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ export default function WhoLikesYouPage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors aura-doodle min-h-screen">
+      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors min-h-screen">
         <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-white/5 safe-top">
           <div className="flex justify-between items-center">
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
