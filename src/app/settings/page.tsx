@@ -20,7 +20,8 @@ import {
   Palette,
   Mail,
   Coins,
-  EyeOff
+  EyeOff,
+  Loader2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
