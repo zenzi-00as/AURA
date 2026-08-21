@@ -45,7 +45,7 @@ export default function NotificationsPage() {
             }
           });
           batch.commit().catch(err => console.error("Mark read sync failed", err));
-        }, 1000);
+        }, 800);
         return () => clearTimeout(timer);
       }
     }
@@ -120,7 +120,7 @@ export default function NotificationsPage() {
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2, delay: idx * 0.02 }}
+                    transition={{ duration: 0.1, delay: idx * 0.01 }}
                     className={cn(
                       "aura-card p-4 flex items-center gap-4 group active:scale-[0.98]",
                       !notif.read ? "aura-card-unread" : "aura-card-read"
@@ -160,6 +160,7 @@ export default function NotificationsPage() {
                 key="empty-notifs"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                transition={{ duration: 0.1 }}
                 className="flex flex-col items-center justify-center py-20 text-center space-y-4"
               >
                 <div className="w-16 h-16 rounded-3xl bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F]">

@@ -146,7 +146,7 @@ export default function ChatRoomPage() {
   }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast, idParam]);
 
   useEffect(() => { 
-    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" }); 
+    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
   }, [messages]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,7 +337,7 @@ export default function ChatRoomPage() {
             );
 
             return (
-              <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+              <motion.div key={msg.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.1 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                 <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
                   <div className={cn(
                     "px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", 

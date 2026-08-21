@@ -276,13 +276,13 @@ export default function Dashboard() {
           ) : discoveryItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
               {discoveryItems.map((item, idx) => (
-                <div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} className="h-full">
+                <motion.div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.1, delay: idx * 0.02 }} className="h-full">
                   {item.type === 'user' ? (
                     <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
                   ) : (
                     <NativeAdCard />
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -308,13 +308,13 @@ export default function Dashboard() {
                 
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
                   {demoDiscoveryItems.map((item, idx) => (
-                    <div key={`demo-${idx}`} className="h-full">
+                    <motion.div key={`demo-${idx}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.1, delay: idx * 0.02 }} className="h-full">
                       {item.type === 'user' ? (
                         <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
                       ) : (
                         <NativeAdCard />
                       )}
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
 
