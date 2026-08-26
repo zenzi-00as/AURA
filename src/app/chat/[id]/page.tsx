@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -39,8 +38,7 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc,
-  onSnapshot
+  setDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -70,6 +68,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+
+/**
+ * @fileOverview High-Fidelity Chat Interaction Stage.
+ * Hardened against recursive unread synchronization loops and null-pointer boundary risks.
+ */
 
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
@@ -120,7 +123,7 @@ export default function ChatRoomPage() {
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
 
   const otherUid = useMemo(() => {
-    if (!room || !authUser) return idParam;
+    if (!room || !room.participants || !authUser) return idParam;
     return room.participants.find(uid => uid !== authUser.uid) || 'system';
   }, [room, authUser?.uid, idParam]);
 
@@ -157,8 +160,8 @@ export default function ChatRoomPage() {
           updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
         }
       } else {
-        // Optimized check to prevent infinite re-render loop
-        if (room.unreadCount && room.unreadCount[authUser.uid] !== 0) {
+        // Explicit non-zero check to prevent recursive snapshot loop
+        if (room.unreadCount && typeof room.unreadCount[authUser.uid] === 'number' && room.unreadCount[authUser.uid] !== 0) {
           updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
         }
       }
@@ -485,7 +488,7 @@ export default function ChatRoomPage() {
               <DialogDescription className="text-xs text-white/40">Select viewing availability for this packet.</DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-6">
-              {pendingPreview && <img src={pendingPreview} className="w-full aspect-square rounded-2xl object-cover border border-white/10" />}
+              {pendingPreview && <img src={pendingPreview} className="w-full aspect-square rounded-2xl object-cover border border-white/10" alt="Preview" />}
               
               <RadioGroup value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="grid grid-cols-1 gap-2">
                 {[
@@ -597,7 +600,7 @@ export default function ChatRoomPage() {
                 Maybe Later
               </AlertDialogCancel>
             </AlertDialogFooter>
-          </DialogContent>
+          </AlertDialog>
         </AlertDialog>
 
         {selectedMedia && (
@@ -606,7 +609,7 @@ export default function ChatRoomPage() {
                  <button onClick={() => setSelectedMedia(null)} className="absolute top-8 right-8 z-[100] w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white">
                     <X size={24} />
                  </button>
-                 <img src={selectedMedia.mediaUrl} className="max-w-full max-h-full object-contain" alt="" />
+                 <img src={selectedMedia.mediaUrl} className="max-w-full max-h-full object-contain" alt="Selected media" />
                  <div className="absolute bottom-12 left-0 right-0 text-center">
                     <p className="text-[10px] text-white/40 uppercase tracking-[0.4em] font-bold">Secure Aura Packet</p>
                  </div>

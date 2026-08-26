@@ -10,6 +10,11 @@ import {
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
+/**
+ * @fileOverview A high-fidelity hook for real-time Firestore collection synchronization.
+ * Hardened to prevent internal property access crashes during error context materialization.
+ */
+
 export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +39,9 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
         setLoading(false);
       },
       async (serverError) => {
+        // Safe path extraction fallback to avoid internal _query errors
         const permissionError = new FirestorePermissionError({
-          path: (initialQuery as any)._query?.path?.toString() || 'unknown',
+          path: 'collection/query', 
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);

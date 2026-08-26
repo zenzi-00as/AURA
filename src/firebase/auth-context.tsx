@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -8,6 +7,11 @@ import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import { getEffectivePlan } from '@/lib/subscription-engine';
+
+/**
+ * @fileOverview Central Authentication and Profile Synchronization Node.
+ * Hardened with explicit nested listener cleanup to prevent memory leaks and hydration errors.
+ */
 
 interface AuthContextType {
   user: (User & { isDemoUser?: boolean }) | null;
@@ -89,11 +93,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { auth, db } = initializeFirebase();
     if (!auth || !db) return;
 
+    let unsubscribeProfile: (() => void) | null = null;
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
+      // Hardware cleanup for previous session's profile listener
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+        unsubscribeProfile = null;
+      }
+
       setUser(authUser);
       if (authUser) {
         const userRef = doc(db, 'users', authUser.uid);
-        const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+        unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
             
@@ -116,16 +128,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
-        // Sync presence safely
+        // Sync presence safely with error suppression
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
-        return () => unsubscribeProfile();
       } else {
         setProfile(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeProfile) unsubscribeProfile();
+    };
   }, []);
 
   const value = {
