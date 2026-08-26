@@ -130,3 +130,25 @@ export function checkActionAllowed(
 
   return { allowed: true, limit, used, remaining };
 }
+
+export function isElite(profile: UserProfile | null) {
+  const plan = getEffectivePlan(profile);
+  return plan === 'elite' || plan === 'elite_plus';
+}
+
+export function isElitePlus(profile: UserProfile | null) {
+  const plan = getEffectivePlan(profile);
+  return plan === 'elite_plus';
+}
+
+export function isSpotlightActive(profile: UserProfile | null | undefined) {
+  if (!profile?.spotlightExpiry) return false;
+  try {
+    const expiry = profile.spotlightExpiry.toDate 
+      ? profile.spotlightExpiry.toDate() 
+      : (profile.spotlightExpiry instanceof Date ? profile.spotlightExpiry : new Date(profile.spotlightExpiry));
+    return expiry > new Date();
+  } catch (e) {
+    return false;
+  }
+}

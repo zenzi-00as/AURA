@@ -1,103 +1,58 @@
-
+/**
+ * @fileOverview Proxy module for plan limits, now definitively synchronized with the central engine.
+ */
 import { useAuthContext } from "@/firebase/auth-context";
-import { PlanType, UserProfile } from "./types";
+import { UserProfile } from "./types";
+import { 
+  getEffectivePlan, 
+  getPlanConfig, 
+  PLAN_CONFIG as ENGINE_PLAN_CONFIG,
+  isElite as engineIsElite,
+  isElitePlus as engineIsElitePlus,
+  isSpotlightActive as engineIsSpotlightActive
+} from "./subscription-engine";
 
-export const PLAN_CONFIG = {
-  free: {
-    displayName: "Aura Free",
-    maxRadiusKm: 25,
-    dailyLikes: 5,
-    dailyNewChats: 5,
-    dailyMessagesPerProfile: 10,
-    dailyMediaUploads: 2,
-    advancedFilters: false,
-    blurredPhotos: true,
-    adsEnabled: true,
-    seeWhoLikesYou: false,
-    prioritySupport: false,
-    earlyAccess: false,
-    incognito: false,
-  },
-  elite: {
-    displayName: "Aura Elite",
-    maxRadiusKm: 50,
-    dailyLikes: 10,
-    dailyNewChats: 15,
-    dailyMessagesPerProfile: 50,
-    dailyMediaUploads: 5,
-    advancedFilters: false, 
-    blurredPhotos: true,
-    adsEnabled: true, 
-    seeWhoLikesYou: true,
-    prioritySupport: true,
-    earlyAccess: false,
-    incognito: false,
-  },
-  elite_plus: {
-    displayName: "Aura Elite Plus",
-    maxRadiusKm: 100,
-    dailyLikes: 999999,
-    dailyNewChats: 999999,
-    dailyMessagesPerProfile: 999999,
-    dailyMediaUploads: 999999,
-    advancedFilters: true,
-    blurredPhotos: false,
-    adsEnabled: false,
-    seeWhoLikesYou: true,
-    prioritySupport: true,
-    earlyAccess: true,
-    incognito: true,
-  }
-};
+export const PLAN_CONFIG = ENGINE_PLAN_CONFIG;
 
-export function checkPlanLimit(profile: UserProfile | null, type: keyof typeof PLAN_CONFIG.free) {
-  if (!profile) return PLAN_CONFIG.free[type];
-  const plan = (profile.plan as keyof typeof PLAN_CONFIG) || 'free';
-  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.free;
-  return config[type];
+export function checkPlanLimit(profile: UserProfile | null, type: string) {
+  const planId = getEffectivePlan(profile);
+  const config = getPlanConfig(planId);
+  // Map legacy type keys to engine config keys
+  const keyMap: Record<string, keyof typeof config> = {
+    maxRadiusKm: 'searchRadiusKm',
+    dailyLikes: 'likesPerDay',
+    dailyNewChats: 'newChatsPerDay',
+    dailyMediaUploads: 'mediaPerDay',
+    adsEnabled: 'ads'
+  };
+  const key = keyMap[type] || type;
+  return (config as any)[key];
 }
 
-export function isElite(profile: UserProfile | null) {
-  return profile?.plan === 'elite' || profile?.plan === 'elite_plus';
-}
-
-export function isElitePlus(profile: UserProfile | null) {
-  return profile?.plan === 'elite_plus';
-}
-
-export function isSpotlightActive(profile: UserProfile | null | undefined) {
-  if (!profile?.spotlightExpiry) return false;
-  try {
-    const expiry = profile.spotlightExpiry.toDate 
-      ? profile.spotlightExpiry.toDate() 
-      : (profile.spotlightExpiry instanceof Date ? profile.spotlightExpiry : new Date(profile.spotlightExpiry));
-    return expiry > new Date();
-  } catch (e) {
-    return false;
-  }
-}
+export const isElite = engineIsElite;
+export const isElitePlus = engineIsElitePlus;
+export const isSpotlightActive = engineIsSpotlightActive;
 
 export function usePlan() {
-  const { profile } = useAuthContext();
-  const plan = (profile?.plan as keyof typeof PLAN_CONFIG) || 'free';
-  const config = PLAN_CONFIG[plan] || PLAN_CONFIG.free;
+  const { profile, effectivePlan } = useAuthContext();
+  const config = getPlanConfig(effectivePlan as any);
 
-  const getRemaining = (used: number, limit: number) => {
-    if (limit >= 999999) return "Unlimited";
+  const getRemaining = (used: number, limit: number | null) => {
+    if (limit === null) return "Unlimited";
     return Math.max(0, limit - used).toString();
   };
 
   return {
-    plan,
-    isElite: plan === 'elite' || plan === 'elite_plus',
-    isElitePlus: plan === 'elite_plus',
+    plan: effectivePlan,
+    isElite: engineIsElite(profile),
+    isElitePlus: engineIsElitePlus(profile),
     config,
-    maxRadius: config.maxRadiusKm,
-    remainingDailyChats: getRemaining(profile?.dailyChatCount || 0, config.dailyNewChats),
-    remainingDailyLikes: getRemaining(profile?.dailyLikeCount || 0, config.dailyLikes),
-    remainingDailyMedia: getRemaining(profile?.dailyMediaCount || 0, config.dailyMediaUploads),
-    canChat: config.dailyNewChats >= 999999 || (profile?.dailyChatCount || 0) < config.dailyNewChats,
-    canLike: config.dailyLikes >= 999999 || (profile?.dailyLikeCount || 0) < config.dailyLikes,
-    canSendMedia: config.dailyMediaUploads >= 999999 || (profile?.dailyMediaCount || 0) < config.dailyMediaUploads,
+    maxRadius: config.searchRadiusKm,
+    remainingDailyChats: getRemaining(profile?.usage?.newChatsUsed || 0, config.newChatsPerDay),
+    remainingDailyLikes: getRemaining(profile?.usage?.likesUsed || 0, config.likesPerDay),
+    remainingDailyMedia: getRemaining(profile?.usage?.mediaUsed || 0, config.mediaPerDay),
+    canChat: config.newChatsPerDay === null || (profile?.usage?.newChatsUsed || 0) < config.newChatsPerDay,
+    canLike: config.likesPerDay === null || (profile?.usage?.likesUsed || 0) < config.likesPerDay,
+    canSendMedia: config.mediaPerDay === null || (profile?.usage?.mediaUsed || 0) < config.mediaPerDay,
   };
 }

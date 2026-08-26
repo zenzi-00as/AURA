@@ -38,7 +38,8 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc
+  setDoc,
+  onSnapshot
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -66,6 +67,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
@@ -136,15 +139,21 @@ export default function ChatRoomPage() {
             router.push('/chat');
             return;
           }
-          setDoc(doc(db, "chatRooms", roomId), {
+          const roomData = {
             id: roomId,
             participants: [authUser.uid, otherUid],
             lastMessage: "",
             lastTimestamp: serverTimestamp(),
             unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
             typing: { [authUser.uid]: false, [otherUid]: false }
+          };
+          
+          setDoc(doc(db, "chatRooms", roomId), roomData).catch(async (e) => {
+            const err = new FirestorePermissionError({ path: `chatRooms/${roomId}`, operation: 'create', requestResourceData: roomData });
+            errorEmitter.emit('permission-error', err);
           });
-          updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) });
+          
+          updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
         }
       } else {
         updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
@@ -187,7 +196,7 @@ export default function ChatRoomPage() {
       const mediaUrl = await getDownloadURL(storageRef);
 
       const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
-      await setDoc(msgRef, {
+      const msgData = {
         id: msgRef.id,
         senderId: authUser.uid, 
         text: "[Media]", 
@@ -198,14 +207,21 @@ export default function ChatRoomPage() {
         storagePath, 
         viewMode, 
         viewCount: { [authUser.uid]: 0, [otherUid]: 0 }
+      };
+
+      setDoc(msgRef, msgData).catch(async (e) => {
+        const err = new FirestorePermissionError({ path: msgRef.path, operation: 'create', requestResourceData: msgData });
+        errorEmitter.emit('permission-error', err);
       });
 
-      await updateDoc(doc(db, "chatRooms", roomId), { 
+      updateDoc(doc(db, "chatRooms", roomId), { 
         lastMessage: "Shared media", 
         lastTimestamp: serverTimestamp(), 
         [`unreadCount.${otherUid}`]: increment(1) 
-      });
-      await updateDoc(doc(db, "users", authUser.uid), { 'usage.mediaUsed': increment(1) });
+      }).catch(() => {});
+      
+      updateDoc(doc(db, "users", authUser.uid), { 'usage.mediaUsed': increment(1) }).catch(() => {});
+      
       setPendingFile(null); 
       setPendingPreview(null);
     } catch (error) {
@@ -219,23 +235,25 @@ export default function ChatRoomPage() {
     const msgText = input.trim();
     if (!msgText || !db || !roomId || !authUser || !otherUid) return;
     setInput("");
-    try {
-      const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
-      await setDoc(msgRef, { 
-        id: msgRef.id,
-        senderId: authUser.uid, 
-        text: msgText, 
-        timestamp: serverTimestamp(), 
-        seen: false 
-      });
-      await updateDoc(doc(db, "chatRooms", roomId), { 
-        lastMessage: msgText, 
-        lastTimestamp: serverTimestamp(), 
-        [`unreadCount.${otherUid}`]: increment(1) 
-      });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Sync failed" });
-    }
+    const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
+    const msgData = { 
+      id: msgRef.id,
+      senderId: authUser.uid, 
+      text: msgText, 
+      timestamp: serverTimestamp(), 
+      seen: false 
+    };
+    
+    setDoc(msgRef, msgData).catch(async (e) => {
+      const err = new FirestorePermissionError({ path: msgRef.path, operation: 'create', requestResourceData: msgData });
+      errorEmitter.emit('permission-error', err);
+    });
+
+    updateDoc(doc(db, "chatRooms", roomId), { 
+      lastMessage: msgText, 
+      lastTimestamp: serverTimestamp(), 
+      [`unreadCount.${otherUid}`]: increment(1) 
+    }).catch(() => {});
   };
 
   const handleMediaClick = (msg: Message) => {
@@ -255,50 +273,55 @@ export default function ChatRoomPage() {
     if (db && roomId && msg.id) {
        updateDoc(doc(db, "chatRooms", roomId, "messages", msg.id), {
           [`viewCount.${authUser.uid}`]: increment(1)
-       });
+       }).catch(() => {});
     }
   };
 
   const handleReportSubmit = async () => {
     if (!db || !authUser || !otherUid || !reportDescription.trim()) return;
     setIsReporting(true);
-    try {
-      await addDoc(collection(db, "reports"), {
-        reporterId: authUser.uid,
-        targetId: otherUid,
-        reason: reportReason,
-        description: reportDescription.trim(),
-        timestamp: serverTimestamp(),
-        status: 'Pending'
-      });
-      toast({ title: "Report Synchronized", description: "Our safety team has received your packet." });
-      setShowReportDialog(false);
-      setReportDescription("");
-    } catch (error) {
-      toast({ variant: "destructive", title: "Sync failed" });
-    } finally {
-      setIsReporting(false);
-    }
+    const reportData = {
+      reporterId: authUser.uid,
+      targetId: otherUid,
+      reason: reportReason,
+      description: reportDescription.trim(),
+      timestamp: serverTimestamp(),
+      status: 'Pending'
+    };
+    
+    addDoc(collection(db, "reports"), reportData)
+      .then(() => {
+        toast({ title: "Report Synchronized", description: "Our safety team has received your packet." });
+        setShowReportDialog(false);
+        setReportDescription("");
+      })
+      .catch(async (e) => {
+        const err = new FirestorePermissionError({ path: 'reports', operation: 'create', requestResourceData: reportData });
+        errorEmitter.emit('permission-error', err);
+      })
+      .finally(() => setIsReporting(false));
   };
 
   const handleBlockUser = async () => {
     if (!db || !authUser || !otherUid || otherUid === 'system') return;
     setIsBlocking(true);
-    try {
-      const blockRef = doc(db, "users", authUser.uid, "blockedUsers", otherUid);
-      await setDoc(blockRef, {
-        uid: otherUid,
-        name: otherUser?.name || "Aura User",
-        blockedAt: serverTimestamp()
-      });
-      
-      toast({ title: "User Blocked", description: "The synchronization has been restricted." });
-      router.replace('/chat');
-    } catch (error) {
-      toast({ variant: "destructive", title: "Synchronization failed" });
-    } finally {
-      setIsBlocking(false);
-    }
+    const blockRef = doc(db, "users", authUser.uid, "blockedUsers", otherUid);
+    const blockData = {
+      uid: otherUid,
+      name: otherUser?.name || "Aura User",
+      blockedAt: serverTimestamp()
+    };
+    
+    setDoc(blockRef, blockData)
+      .then(() => {
+        toast({ title: "User Blocked", description: "The synchronization has been restricted." });
+        router.replace('/chat');
+      })
+      .catch(async (e) => {
+        const err = new FirestorePermissionError({ path: blockRef.path, operation: 'create', requestResourceData: blockData });
+        errorEmitter.emit('permission-error', err);
+      })
+      .finally(() => setIsBlocking(false));
   };
 
   const isOtherSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
