@@ -8,7 +8,7 @@ import { useCollection, useFirestore, initializeFirebase } from "@/firebase";
 import { collection, query, updateDoc, doc, serverTimestamp, limit, where } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import { UserProfile, Report } from "@/lib/types";
-import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink } from "lucide-react";
+import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -24,16 +24,17 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications'>('users');
   const [rejectionReason, setRejectionReason] = useState("");
 
+  // Gate collection listeners with admin entitlement to prevent permission faults for regular users
   const { data: users } = useCollection<UserProfile>(
-    db ? query(collection(db, "users"), limit(100)) : null
+    db && profile?.isAdmin ? query(collection(db, "users"), limit(100)) : null
   );
 
   const { data: reports } = useCollection<Report>(
-    db ? query(collection(db, "reports"), limit(50)) : null
+    db && profile?.isAdmin ? query(collection(db, "reports"), limit(50)) : null
   );
 
   const { data: verifications } = useCollection<UserProfile>(
-    db ? query(collection(db, "users"), where("verificationStatus", "==", "Pending"), limit(50)) : null
+    db && profile?.isAdmin ? query(collection(db, "users"), where("verificationStatus", "==", "Pending"), limit(50)) : null
   );
 
   const handleAction = async (uid: string, action: string) => {
@@ -148,7 +149,7 @@ export default function AdminPage() {
               </motion.div>
             )}
 
-            {activeTab === 'verifications' && (activeTab === 'verifications') && (
+            {activeTab === 'verifications' && (
               <motion.div key="admin-tab-verifications" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                 <div className="px-2">
                   <h2 className="text-sm font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">

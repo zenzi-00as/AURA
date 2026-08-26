@@ -6,13 +6,14 @@ import {
   onSnapshot,
   QuerySnapshot,
   DocumentData,
+  FirestoreError,
 } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 /**
  * @fileOverview A high-fidelity hook for real-time Firestore collection synchronization.
- * Hardened to prevent internal property access crashes during error context materialization.
+ * Refined to definitively handle permission denials vs. other synchronization faults.
  */
 
 export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
@@ -37,15 +38,22 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
         }));
         setData(items);
         setLoading(false);
+        setError(null);
       },
-      async (serverError) => {
-        // Safe path extraction fallback to avoid internal _query errors
-        const permissionError = new FirestorePermissionError({
-          path: 'collection/query', 
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setError(permissionError);
+      async (serverError: FirestoreError) => {
+        // Only emit a permission error if the code explicitly states it
+        if (serverError.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: 'collection/query', 
+            operation: 'list',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          setError(permissionError);
+        } else {
+          // Log systemic faults (e.g. missing indexes) for developer visibility
+          console.error('[AURA SYNC FAULT]', serverError.code, serverError.message);
+          setError(serverError);
+        }
         setLoading(false);
       }
     );
