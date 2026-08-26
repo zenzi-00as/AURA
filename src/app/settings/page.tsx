@@ -116,7 +116,7 @@ export default function SettingsPage() {
       setSettings(prev => ({ ...prev, [key]: value }));
       toast({ title: "Preference Updated" });
     } catch (e) {
-      toast({ variant: "destructive", title: "Sync failed" });
+      // toast error handled via listener
     }
   };
 
@@ -198,7 +198,11 @@ export default function SettingsPage() {
                   <DialogTitle className="text-2xl font-semibold">{t('blocked_users')}</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
-                   {blockedLoading ? <Loader2 className="animate-spin mx-auto" /> : blockedUsers?.length ? blockedUsers.map(user => (
+                   {blockedLoading ? (
+                     <div className="flex justify-center py-10">
+                       <Loader2 className="animate-spin text-primary" size={24} />
+                     </div>
+                   ) : blockedUsers?.length ? blockedUsers.map(user => (
                      <div key={user.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border">
                         <span className="text-sm font-medium">{user.name}</span>
                         <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)}>Unblock</Button>
