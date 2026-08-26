@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -81,7 +82,7 @@ const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
 
 export default function ChatRoomPage() {
   const params = useParams();
-  const idParam = params?.id as string;
+  const idParam = (params?.id as string) || "";
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -113,7 +114,7 @@ export default function ChatRoomPage() {
     if (!authUser || !idParam) return "";
     if (idParam.startsWith('system_') || idParam.includes('_')) return idParam;
     return [authUser.uid, idParam].sort().join("_");
-  }, [authUser, idParam]);
+  }, [authUser?.uid, idParam]);
 
   const roomRef = useMemoFirebase(() => (db && roomId) ? doc(db, "chatRooms", roomId) : null, [db, roomId]);
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
@@ -121,7 +122,7 @@ export default function ChatRoomPage() {
   const otherUid = useMemo(() => {
     if (!room || !authUser) return idParam;
     return room.participants.find(uid => uid !== authUser.uid) || 'system';
-  }, [room, authUser, idParam]);
+  }, [room, authUser?.uid, idParam]);
 
   const otherUserRef = useMemoFirebase(() => (db && otherUid && otherUid !== 'system') ? doc(db, "users", otherUid) : null, [db, otherUid]);
   const { data: otherUser } = useDoc<UserProfile>(otherUserRef as any);
@@ -156,10 +157,13 @@ export default function ChatRoomPage() {
           updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
         }
       } else {
-        updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
+        // Optimized check to prevent infinite re-render loop
+        if (room.unreadCount && room.unreadCount[authUser.uid] !== 0) {
+          updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
+        }
       }
     }
-  }, [db, authUser, roomId, otherUid, room, roomLoading, profile, router, toast, idParam, effectivePlan]);
+  }, [db, authUser?.uid, roomId, otherUid, room, roomLoading, profile, router, toast, idParam, effectivePlan]);
 
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
@@ -330,7 +334,7 @@ export default function ChatRoomPage() {
     return <div className="flex h-screen-safe items-center justify-center bg-[#070709]"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
   }
 
-  const isSystemChat = room?.isSystem || idParam.startsWith('system_');
+  const isSystemChat = room?.isSystem || idParam?.startsWith('system_');
 
   return (
     <AuthGuard>

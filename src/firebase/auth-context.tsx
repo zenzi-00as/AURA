@@ -3,11 +3,11 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase } from './init';
-import { UserProfile, UserUsage } from '@/lib/types';
+import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
-import { getEffectivePlan, PLAN_CONFIG } from '@/lib/subscription-engine';
+import { getEffectivePlan } from '@/lib/subscription-engine';
 
 interface AuthContextType {
   user: (User & { isDemoUser?: boolean }) | null;
@@ -34,13 +34,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isDemoActive = () => {
-    if (typeof window === 'undefined') return false;
-    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
-    const hasActiveSession = sessionStorage.getItem('aura_demo_active') === 'true';
-    return isDemoMode && hasActiveSession;
-  };
-
   const loginAsDemo = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('aura_demo_active', 'true');
@@ -56,7 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (isDemoActive()) {
+    // Hydration-safe demo check
+    const isDemoActive = 
+      process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && 
+      process.env.NODE_ENV !== 'production' &&
+      typeof window !== 'undefined' && 
+      sessionStorage.getItem('aura_demo_active') === 'true';
+
+    if (isDemoActive) {
       const demoUser = { uid: 'demo-user', email: 'demo@aura.local', isDemoUser: true } as any;
       const demoProfile: UserProfile = {
         uid: 'demo-user',
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
-        // Sync presence
+        // Sync presence safely
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
         return () => unsubscribeProfile();
       } else {
