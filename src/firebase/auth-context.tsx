@@ -40,27 +40,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginAsDemo = () => {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('aura_demo_active', 'true');
-      window.location.reload(); 
+      try {
+        sessionStorage.setItem('aura_demo_active', 'true');
+        window.location.reload(); 
+      } catch (e) {
+        console.error("Demo activation failed:", e);
+      }
     }
   };
 
   const exitDemoMode = () => {
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('aura_demo_active');
-      window.location.href = '/auth';
+      try {
+        sessionStorage.removeItem('aura_demo_active');
+        window.location.href = '/auth';
+      } catch (e) {
+        window.location.href = '/auth';
+      }
     }
   };
 
   useEffect(() => {
     // Hydration-safe demo check
-    const isDemoActive = 
-      process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && 
-      process.env.NODE_ENV !== 'production' &&
-      typeof window !== 'undefined' && 
-      sessionStorage.getItem('aura_demo_active') === 'true';
+    const getDemoStatus = () => {
+      if (typeof window === 'undefined') return false;
+      if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') return false;
+      if (process.env.NODE_ENV === 'production') return false;
+      try {
+        return sessionStorage.getItem('aura_demo_active') === 'true';
+      } catch (e) {
+        return false;
+      }
+    };
 
-    if (isDemoActive) {
+    if (getDemoStatus()) {
       const demoUser = { uid: 'demo-user', email: 'demo@aura.local', isDemoUser: true } as any;
       const demoProfile: UserProfile = {
         uid: 'demo-user',
@@ -91,12 +104,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { auth, db } = initializeFirebase();
-    if (!auth || !db) return;
+    if (!auth || !db) {
+      setLoading(false);
+      return;
+    }
 
     let unsubscribeProfile: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
-      // Hardware cleanup for previous session's profile listener
+      // Clear nested listener immediately on auth change
       if (unsubscribeProfile) {
         unsubscribeProfile();
         unsubscribeProfile = null;
@@ -111,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             // Daily Limit Usage Reset Logic
             const today = format(new Date(), 'yyyy-MM-dd');
-            if (data.usage?.lastResetDate !== today) {
+            if (data.usage?.lastResetDate && data.usage.lastResetDate !== today) {
               updateDoc(userRef, {
                 'usage.newChatsUsed': 0,
                 'usage.likesUsed': 0,
@@ -128,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
-        // Sync presence safely with error suppression
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
       } else {
         setProfile(null);

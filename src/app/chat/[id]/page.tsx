@@ -69,11 +69,6 @@ import { Label } from "@/components/ui/label";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
-/**
- * @fileOverview High-Fidelity Chat Interaction Stage.
- * Hardened against recursive unread synchronization loops and null-pointer boundary risks.
- */
-
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
   { id: 'Spam', label: 'Spam or Scam' },
@@ -85,7 +80,7 @@ const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
 
 export default function ChatRoomPage() {
   const params = useParams();
-  const idParam = (params?.id as string) || "";
+  const idParam = String(params?.id || "");
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -123,7 +118,7 @@ export default function ChatRoomPage() {
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
 
   const otherUid = useMemo(() => {
-    if (!room || !room.participants || !authUser) return idParam;
+    if (!room || !Array.isArray(room.participants) || !authUser) return idParam;
     return room.participants.find(uid => uid !== authUser.uid) || 'system';
   }, [room, authUser?.uid, idParam]);
 
@@ -160,8 +155,8 @@ export default function ChatRoomPage() {
           updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
         }
       } else {
-        // Explicit non-zero check to prevent recursive snapshot loop
-        if (room.unreadCount && typeof room.unreadCount[authUser.uid] === 'number' && room.unreadCount[authUser.uid] !== 0) {
+        const myUnread = room.unreadCount?.[authUser.uid];
+        if (typeof myUnread === 'number' && myUnread !== 0) {
           updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
         }
       }
@@ -170,7 +165,7 @@ export default function ChatRoomPage() {
 
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
-  }, [messages]);
+  }, [messages?.length]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
