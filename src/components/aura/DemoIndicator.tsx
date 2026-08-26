@@ -1,19 +1,23 @@
-
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@/firebase/auth-context';
 import { XCircle, ShieldAlert, GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 /**
  * @fileOverview A floating, draggable debug indicator for Development Demo Mode.
- * Allows members to reposition the status node anywhere on the interaction stage.
+ * Hardened with hydration-safety protocol.
  */
 export function DemoIndicator() {
   const { profile, exitDemoMode } = useAuthContext();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
-  if (!profile?.isDemoUser) return null;
+  if (!mounted || !profile?.isDemoUser) return null;
 
   return (
     <motion.div 

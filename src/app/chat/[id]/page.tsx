@@ -108,6 +108,7 @@ export default function ChatRoomPage() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isCreatingRoom = useRef(false);
 
   const roomId = useMemo(() => {
     if (!authUser || !idParam) return "";
@@ -130,40 +131,55 @@ export default function ChatRoomPage() {
   const messagesQuery = useMemoFirebase(() => (db && roomId) ? query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc")) : null, [db, roomId]);
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
+  // Synchronization Protocol: Room Creation & Unread Management
   useEffect(() => {
-    if (db && authUser && roomId && otherUid && !roomLoading) {
-      if (!room) {
-        if (otherUid !== 'system' && !idParam.startsWith('system_')) {
-          const check = checkActionAllowed(profile, 'newChat');
-          if (!check.allowed) {
-            setUpgradeModal({ isOpen: true, plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', feature: 'New Chats', limit: check.limit });
-            router.push('/chat');
-            return;
-          }
-          const roomData = {
-            id: roomId,
-            participants: [authUser.uid, otherUid],
-            lastMessage: "",
-            lastTimestamp: serverTimestamp(),
-            unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
-            typing: { [authUser.uid]: false, [otherUid]: false }
-          };
-          
-          setDoc(doc(db, "chatRooms", roomId), roomData).catch(async (e) => {
-            const err = new FirestorePermissionError({ path: `chatRooms/${roomId}`, operation: 'create', requestResourceData: roomData });
-            errorEmitter.emit('permission-error', err);
-          });
-          
+    if (!db || !authUser || !roomId || roomLoading) return;
+
+    // Phase 1: Room Creation
+    if (!room && !isCreatingRoom.current && otherUid !== 'system' && !idParam.startsWith('system_')) {
+      const check = checkActionAllowed(profile, 'newChat');
+      if (!check.allowed) {
+        setUpgradeModal({ 
+          isOpen: true, 
+          plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', 
+          feature: 'New Chats', 
+          limit: check.limit 
+        });
+        router.push('/chat');
+        return;
+      }
+
+      isCreatingRoom.current = true;
+      const roomData = {
+        id: roomId,
+        participants: [authUser.uid, otherUid],
+        lastMessage: "",
+        lastTimestamp: serverTimestamp(),
+        unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
+        typing: { [authUser.uid]: false, [otherUid]: false }
+      };
+      
+      setDoc(doc(db, "chatRooms", roomId), roomData)
+        .then(() => {
           updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
-        }
-      } else {
-        const myUnread = room.unreadCount?.[authUser.uid];
-        if (typeof myUnread === 'number' && myUnread !== 0) {
-          updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
-        }
+        })
+        .catch(async (e) => {
+          const err = new FirestorePermissionError({ path: `chatRooms/${roomId}`, operation: 'create', requestResourceData: roomData });
+          errorEmitter.emit('permission-error', err);
+        })
+        .finally(() => {
+          isCreatingRoom.current = false;
+        });
+    }
+
+    // Phase 2: Unread Reset (Only if non-zero to prevent snapshot loops)
+    if (room) {
+      const myUnread = room.unreadCount?.[authUser.uid];
+      if (typeof myUnread === 'number' && myUnread > 0) {
+        updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
       }
     }
-  }, [db, authUser?.uid, roomId, otherUid, room, roomLoading, profile, router, toast, idParam, effectivePlan]);
+  }, [db, authUser?.uid, roomId, otherUid, room, roomLoading, profile?.uid, idParam]); // Stable dependencies
 
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
@@ -608,7 +624,7 @@ export default function ChatRoomPage() {
                 Maybe Later
               </AlertDialogCancel>
             </AlertDialogFooter>
-          </AlertDialog>
+          </DialogContent>
         </AlertDialog>
 
         {selectedMedia && (

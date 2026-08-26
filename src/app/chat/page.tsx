@@ -83,8 +83,10 @@ export default function ChatList() {
       const profileMap = new Map(profiles.map(p => [p.uid, p]));
       
       const realItems = rooms.map(room => {
-        const otherId = room.participants?.find(id => id !== authUser.uid);
-        const otherUser = profileMap.get(otherId || '');
+        // Safe access guard for participants array
+        const participants = Array.isArray(room.participants) ? room.participants : [];
+        const otherId = participants.find(id => id !== authUser.uid);
+        const otherUser = otherId ? profileMap.get(otherId) : null;
         const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
         return {
@@ -93,7 +95,7 @@ export default function ChatList() {
           lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
           time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
           verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
-          unreadCount: room.unreadCount?.[authUser.uid] || 0,
+          unreadCount: (room.unreadCount && room.unreadCount[authUser.uid]) || 0,
           isSystem: room.isSystem,
           isOnline: otherUser?.isOnline,
           isSpotlight
@@ -112,7 +114,7 @@ export default function ChatList() {
   const filteredChats = useMemo(() => {
     if (!searchTerm) return chatItems;
     const term = searchTerm.toLowerCase();
-    return chatItems.filter(chat => chat.name.toLowerCase().includes(term));
+    return chatItems.filter(chat => (chat.name || "").toLowerCase().includes(term));
   }, [chatItems, searchTerm]);
 
   return (
