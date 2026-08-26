@@ -83,7 +83,7 @@ export default function ChatList() {
       const profileMap = new Map(profiles.map(p => [p.uid, p]));
       
       const realItems = rooms.map(room => {
-        const otherId = room.participants.find(id => id !== authUser.uid);
+        const otherId = room.participants?.find(id => id !== authUser.uid);
         const otherUser = profileMap.get(otherId || '');
         const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
@@ -146,7 +146,7 @@ export default function ChatList() {
                   className={cn("p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", chat.unreadCount > 0 ? "bg-white/10 border-primary/20" : "bg-white/5 border-white/5")}
                 >
                   <div className={cn("w-14 h-14 rounded-2xl border border-white/10 flex items-center justify-center relative shrink-0", chat.isSystem ? "premium-gradient" : "bg-[#151515]")}>
-                    {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-white/20">{chat.name[0]}</span>}
+                    {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-white/20">{chat.name?.[0] || "?"}</span>}
                     {chat.isOnline && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#070709]" />}
                   </div>
                   <div className="flex-1 flex flex-col min-w-0">

@@ -67,7 +67,7 @@ import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const REPORT_CATEGORIES: { id: ReportType; label: string }[] = [
   { id: 'Harassment', label: 'Harassment' },
@@ -89,6 +89,7 @@ export default function ChatRoomPage() {
   const planConfig = getPlanConfig(effectivePlan as any);
   
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -118,6 +119,7 @@ export default function ChatRoomPage() {
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
 
   const otherUid = useMemo(() => {
+    if (idParam.startsWith('system_')) return 'system';
     if (!room || !Array.isArray(room.participants) || !authUser) return idParam;
     return room.participants.find(uid => uid !== authUser.uid) || 'system';
   }, [room, authUser?.uid, idParam]);
@@ -211,18 +213,18 @@ export default function ChatRoomPage() {
         viewCount: { [authUser.uid]: 0, [otherUid]: 0 }
       };
 
-      setDoc(msgRef, msgData).catch(async (e) => {
+      await setDoc(msgRef, msgData).catch(async (e) => {
         const err = new FirestorePermissionError({ path: msgRef.path, operation: 'create', requestResourceData: msgData });
         errorEmitter.emit('permission-error', err);
       });
 
-      updateDoc(doc(db, "chatRooms", roomId), { 
+      await updateDoc(doc(db, "chatRooms", roomId), { 
         lastMessage: "Shared media", 
         lastTimestamp: serverTimestamp(), 
         [`unreadCount.${otherUid}`]: increment(1) 
       }).catch(() => {});
       
-      updateDoc(doc(db, "users", authUser.uid), { 'usage.mediaUsed': increment(1) }).catch(() => {});
+      await updateDoc(doc(db, "users", authUser.uid), { 'usage.mediaUsed': increment(1) }).catch(() => {});
       
       setPendingFile(null); 
       setPendingPreview(null);
@@ -235,27 +237,36 @@ export default function ChatRoomPage() {
 
   const handleSendText = async () => {
     const msgText = input.trim();
-    if (!msgText || !db || !roomId || !authUser || !otherUid) return;
-    setInput("");
-    const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
-    const msgData = { 
-      id: msgRef.id,
-      senderId: authUser.uid, 
-      text: msgText, 
-      timestamp: serverTimestamp(), 
-      seen: false 
-    };
+    if (!msgText || !db || !roomId || !authUser || !otherUid || isSending) return;
     
-    setDoc(msgRef, msgData).catch(async (e) => {
-      const err = new FirestorePermissionError({ path: msgRef.path, operation: 'create', requestResourceData: msgData });
-      errorEmitter.emit('permission-error', err);
-    });
+    setIsSending(true);
+    setInput("");
+    
+    try {
+      const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
+      const msgData = { 
+        id: msgRef.id,
+        senderId: authUser.uid, 
+        text: msgText, 
+        timestamp: serverTimestamp(), 
+        seen: false 
+      };
+      
+      await setDoc(msgRef, msgData).catch(async (e) => {
+        const err = new FirestorePermissionError({ path: msgRef.path, operation: 'create', requestResourceData: msgData });
+        errorEmitter.emit('permission-error', err);
+      });
 
-    updateDoc(doc(db, "chatRooms", roomId), { 
-      lastMessage: msgText, 
-      lastTimestamp: serverTimestamp(), 
-      [`unreadCount.${otherUid}`]: increment(1) 
-    }).catch(() => {});
+      await updateDoc(doc(db, "chatRooms", roomId), { 
+        lastMessage: msgText, 
+        lastTimestamp: serverTimestamp(), 
+        [`unreadCount.${otherUid}`]: increment(1) 
+      }).catch(() => {});
+    } catch (error) {
+      console.error("Message send fault", error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleMediaClick = (msg: Message) => {
@@ -471,7 +482,9 @@ export default function ChatRoomPage() {
                 placeholder="Message..." 
                 className="flex-1 h-12 bg-white/5 border-none rounded-[28px] px-6 text-sm text-white focus:ring-1 focus:ring-primary/20" 
               />
-              <button onClick={handleSendText} disabled={!input.trim()} className="w-12 h-12 rounded-full premium-gradient p-0 shrink-0 flex items-center justify-center disabled:opacity-20"><Send size={20} className="text-white" /></button>
+              <button onClick={handleSendText} disabled={!input.trim() || isSending} className="w-12 h-12 rounded-full premium-gradient p-0 shrink-0 flex items-center justify-center disabled:opacity-20">
+                {isSending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
+              </button>
             </div>
           </div>
         )}
