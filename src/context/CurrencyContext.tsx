@@ -9,7 +9,7 @@ export interface Currency {
   symbol: string;
   name: string;
   flag: string;
-  rate: number; // Simplified relative to INR base (199 INR = ~2.49 USD)
+  rate: number; // Simplified relative to INR base
 }
 
 export const CURRENCIES: Currency[] = [
@@ -23,7 +23,8 @@ export const CURRENCIES: Currency[] = [
 type CurrencyContextType = {
   currency: Currency;
   setCurrency: (code: CurrencyCode) => void;
-  formatPrice: (amountInINR: number) => string;
+  formatPrice: (amountInINR: number, includeGst?: boolean) => string;
+  getGstAmount: (amountInINR: number) => number;
 };
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -45,31 +46,49 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('aura_currency', code);
   };
 
-  const formatPrice = (amountInINR: number) => {
-    // We use fixed price points for a premium feel rather than pure math conversions
-    if (amountInINR === 1) { // Onboarding test
+  const getGstAmount = (amountInINR: number) => {
+    return amountInINR * 0.18;
+  };
+
+  const formatPrice = (amountInINR: number, includeGst: boolean = false) => {
+    const baseAmount = includeGst ? amountInINR + getGstAmount(amountInINR) : amountInINR;
+    
+    // Premium price point rounding for specific tiers
+    if (amountInINR === 1) { 
        const prices = { INR: '₹1', USD: '$0.01', EUR: '€0.01', GBP: '£0.01', BRL: 'R$0.05' };
        return prices[currency.code];
     }
-    if (amountInINR === 199) { // Elite
-       const prices = { INR: '₹199', USD: '$2.49', EUR: '€2.29', GBP: '£1.99', BRL: 'R$12.99' };
+    if (amountInINR === 199) { 
+       const prices = includeGst 
+        ? { INR: '₹234.82', USD: '$2.94', EUR: '€2.70', GBP: '£2.35', BRL: 'R$15.33' }
+        : { INR: '₹199', USD: '$2.49', EUR: '€2.29', GBP: '£1.99', BRL: 'R$12.99' };
        return prices[currency.code];
     }
-    if (amountInINR === 30) { // Spotlight
-       const prices = { INR: '₹30', USD: '$0.39', EUR: '€0.35', GBP: '£0.29', BRL: 'R$1.99' };
+    if (amountInINR === 99) { 
+       const prices = includeGst 
+        ? { INR: '₹116.82', USD: '$1.46', EUR: '€1.35', GBP: '£1.17', BRL: 'R$7.72' }
+        : { INR: '₹99', USD: '$1.24', EUR: '€1.14', GBP: '£0.99', BRL: 'R$6.49' };
        return prices[currency.code];
     }
-    if (amountInINR === 3) { // Super Like
-       const prices = { INR: '₹3', USD: '$0.05', EUR: '€0.04', GBP: '£0.04', BRL: 'R$0.25' };
+    if (amountInINR === 30) { 
+       const prices = includeGst 
+        ? { INR: '₹35.40', USD: '$0.46', EUR: '€0.41', GBP: '£0.34', BRL: 'R$2.35' }
+        : { INR: '₹30', USD: '$0.39', EUR: '€0.35', GBP: '£0.29', BRL: 'R$1.99' };
+       return prices[currency.code];
+    }
+    if (amountInINR === 3) { 
+       const prices = includeGst 
+        ? { INR: '₹3.54', USD: '$0.06', EUR: '€0.05', GBP: '£0.05', BRL: 'R$0.30' }
+        : { INR: '₹3', USD: '$0.05', EUR: '€0.04', GBP: '£0.04', BRL: 'R$0.25' };
        return prices[currency.code];
     }
 
-    const converted = amountInINR * currency.rate;
+    const converted = baseAmount * currency.rate;
     return `${currency.symbol}${converted.toFixed(2)}`;
   };
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatPrice }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatPrice, getGstAmount }}>
       {children}
     </CurrencyContext.Provider>
   );

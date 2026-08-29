@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -68,9 +67,12 @@ export function UpgradeModal({ isOpen, onClose, requiredPlan, featureName, limit
               }}
               className="w-full h-14 rounded-2xl premium-gradient text-white font-bold shadow-xl flex items-center justify-between px-6"
             >
-              <span>Join {config.displayName}</span>
+              <div className="flex flex-col items-start">
+                <span>Join {config.displayName}</span>
+                <span className="text-[8px] font-normal opacity-60">+ 18% GST</span>
+              </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs opacity-60 font-normal">{formatPrice(config.price)}</span>
+                <span className="text-xs opacity-60 font-normal">{formatPrice(config.price, true)}</span>
                 <ChevronRight size={18} />
               </div>
             </Button>

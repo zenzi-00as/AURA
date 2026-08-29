@@ -24,7 +24,8 @@ import {
   Minus,
   Zap,
   Eye,
-  Clock
+  Clock,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -49,7 +50,7 @@ function ProfileContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { formatPrice, currency } = useCurrency();
+  const { formatPrice, currency, getGstAmount } = useCurrency();
   const db = useFirestore();
   const { user: authUser, profile, effectivePlan } = useAuthContext();
   
@@ -88,9 +89,11 @@ function ProfileContent() {
     }
   };
 
-  const handlePurchase = (itemType: 'Elite' | 'ElitePlus' | 'Spotlight' | 'SuperLike', amount: number, quantity: number = 1) => {
+  const handlePurchase = (itemType: 'Elite' | 'ElitePlus' | 'Spotlight' | 'SuperLike', baseAmount: number, quantity: number = 1) => {
+    const totalAmount = baseAmount + getGstAmount(baseAmount);
+    
     initializeRazorpayPayment({
-      amount,
+      amount: totalAmount,
       currency: currency.code,
       itemType: itemType === 'ElitePlus' ? 'Elite' : itemType as any,
       onSuccess: async (res) => {
@@ -123,7 +126,7 @@ function ProfileContent() {
         await addDoc(collection(db, "purchases"), {
           uid: authUser.uid,
           itemType,
-          amount,
+          amount: totalAmount,
           currency: currency.code,
           timestamp: serverTimestamp(),
           razorpayOrderId: res.razorpay_order_id,
@@ -220,7 +223,7 @@ function ProfileContent() {
       </header>
 
       <div className="px-8 space-y-10">
-        <div className="text-center pt-6 -mb-4">
+        <div className="text-center pt-6">
           <motion.p 
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
@@ -295,11 +298,11 @@ function ProfileContent() {
                 <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-white/5 text-white border border-white/10 text-left relative overflow-hidden group">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/60 px-2 py-0.5 rounded-md">Free</span>
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/60 px-2 py-0.5 rounded-md">Main Plan</span>
                        {effectivePlan === 'free' && <Check size={14} className="text-primary" />}
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold">Base Access</h3>
+                      <h3 className="text-xl font-bold">Aura Free</h3>
                       <p className="text-[10px] opacity-50">Standard features for connecting with the Aura community.</p>
                     </div>
                   </div>
@@ -352,7 +355,7 @@ function ProfileContent() {
                        {effectivePlan === 'elite' && <Check size={14} className="text-white" />}
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold">{formatPrice(99)} / 28 Days</h3>
+                      <h3 className="text-xl font-bold">{formatPrice(99)} <span className="text-[10px] font-normal opacity-60">+ 18% GST</span></h3>
                       <p className="text-[10px] opacity-70">Unlock essential premium benefits and search reach.</p>
                     </div>
                   </div>
@@ -367,8 +370,24 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="elite" />
+                     
+                     <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-4">
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>Base Amount</span>
+                           <span>{formatPrice(99)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>GST (18%)</span>
+                           <span>{formatPrice(getGstAmount(99))}</span>
+                        </div>
+                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                           <span className="text-sm font-bold">Total Payable</span>
+                           <span className="text-xl font-black text-primary">{formatPrice(99, true)}</span>
+                        </div>
+                     </div>
+
                      <Button onClick={() => handlePurchase('Elite', 99)} disabled={effectivePlan === 'elite'} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
-                        {effectivePlan === 'elite' ? "Active" : `Upgrade — ${formatPrice(99)}`}
+                        {effectivePlan === 'elite' ? "Active" : `Upgrade — ${formatPrice(99, true)}`}
                      </Button>
                      <div className="h-10" />
                   </div>
@@ -385,7 +404,7 @@ function ProfileContent() {
                        {effectivePlan === 'elite_plus' && <Check size={14} className="text-white" />}
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold">{formatPrice(199)} / 28 Days</h3>
+                      <h3 className="text-xl font-bold">{formatPrice(199)} <span className="text-[10px] font-normal opacity-60">+ 18% GST</span></h3>
                       <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
                     </div>
                   </div>
@@ -401,8 +420,24 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="eliteplus" />
+                     
+                     <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-4">
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>Base Amount</span>
+                           <span>{formatPrice(199)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>GST (18%)</span>
+                           <span>{formatPrice(getGstAmount(199))}</span>
+                        </div>
+                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                           <span className="text-sm font-bold">Total Payable</span>
+                           <span className="text-xl font-black text-primary">{formatPrice(199, true)}</span>
+                        </div>
+                     </div>
+
                      <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={effectivePlan === 'elite_plus'} className="w-full h-16 rounded-[24px] premium-gradient font-bold text-lg neon-glow">
-                        {effectivePlan === 'elite_plus' ? "Active" : `Upgrade — ${formatPrice(199)}`}
+                        {effectivePlan === 'elite_plus' ? "Active" : `Upgrade — ${formatPrice(199, true)}`}
                      </Button>
                      <div className="h-10" />
                   </div>
@@ -422,6 +457,7 @@ function ProfileContent() {
                   <div className="space-y-1 relative z-10">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
                     <p className="text-sm font-bold">{formatPrice(30)}</p>
+                    <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
                   </div>
                 </button>
               </SheetTrigger>
@@ -443,8 +479,23 @@ function ProfileContent() {
                       </div>
                     </div>
 
+                    <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-4">
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>Base Amount</span>
+                           <span>{formatPrice(30)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>GST (18%)</span>
+                           <span>{formatPrice(getGstAmount(30))}</span>
+                        </div>
+                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                           <span className="text-sm font-bold">Total Payable</span>
+                           <span className="text-xl font-black text-primary">{formatPrice(30, true)}</span>
+                        </div>
+                     </div>
+
                     <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg neon-glow">
-                      Activate — {formatPrice(30)}
+                      Activate — {formatPrice(30, true)}
                     </Button>
 
                     <div className="space-y-3">
@@ -465,16 +516,6 @@ function ProfileContent() {
                         </div>
                       ))}
                     </div>
-
-                    <div className="p-6 rounded-[32px] bg-primary/5 border border-primary/10 space-y-4">
-                       <div className="flex items-center gap-3 text-primary">
-                          <Sparkles size={20} />
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest">Interaction Power</h4>
-                       </div>
-                       <p className="text-sm text-white/80 font-light leading-relaxed">
-                         Priority Discovery significantly amplifies your profile's signal within the Aura. By materializing at the start of every member's discovery stage, you definitively increase the frequency and quality of your potential synchronizations.
-                       </p>
-                    </div>
                     <div className="h-10" />
                   </div>
                 </div>
@@ -491,6 +532,7 @@ function ProfileContent() {
                   <div className="space-y-1 relative z-10">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
                     <p className="text-sm font-bold">{formatPrice(3)}</p>
+                    <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
                   </div>
                 </button>
               </SheetTrigger>
@@ -507,6 +549,25 @@ function ProfileContent() {
                        <span className="text-4xl font-bold tabular-nums">{superLikeQty}</span>
                        <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40"><Plus size={24} /></button>
                     </div>
+
+                    <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-4">
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>Base Amount</span>
+                           <span>{formatPrice(3 * superLikeQty)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-white/40">
+                           <span>GST (18%)</span>
+                           <span>{formatPrice(getGstAmount(3 * superLikeQty))}</span>
+                        </div>
+                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                           <span className="text-sm font-bold">Total Payable</span>
+                           <span className="text-xl font-black text-primary">{formatPrice(3 * superLikeQty, true)}</span>
+                        </div>
+                     </div>
+
+                    <Button onClick={() => handlePurchase('SuperLike', 3 * superLikeQty, superLikeQty)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
+                        Get {superLikeQty} — {formatPrice(3 * superLikeQty, true)}
+                    </Button>
 
                     <div className="space-y-3">
                       {[
@@ -525,10 +586,6 @@ function ProfileContent() {
                         </div>
                       ))}
                     </div>
-
-                    <Button onClick={() => handlePurchase('SuperLike', superLikeQty * 3, superLikeQty)} className="w-full h-16 rounded-[24px] bg-primary font-bold text-lg">
-                        Get {superLikeQty} — {formatPrice(superLikeQty * 3)}
-                    </Button>
                     <div className="h-10" />
                   </div>
                 </div>
