@@ -26,7 +26,7 @@
     --accent: 214 100% 50%; /* #0084FF */
     --accent-foreground: 0 0% 100%;
     
-    --destructive: 345 100% 50%; /* #FF0040 - High-Vibrancy Red */
+    --destructive: 345 100% 50%; /* Vibrant Red #FF0040 */
     --destructive-foreground: 0 0% 100%;
     
     --border: 0 0% 100% / 0.08;
@@ -78,7 +78,6 @@
 }
 
 @layer utilities {
-  /* High-Fidelity Glassmorphism */
   .glass {
     @apply bg-white/5 border border-white/10;
     backdrop-filter: blur(24px);
@@ -86,10 +85,6 @@
     transform: translateZ(0);
   }
 
-  .light .glass {
-    @apply bg-black/5 border-black/10;
-  }
-  
   .glass-dark {
     @apply bg-black/60 border border-white/5;
     backdrop-filter: blur(28px);
@@ -97,21 +92,11 @@
     transform: translateZ(0);
   }
 
-  .light .glass-dark {
-    @apply bg-white/60 border-black/5;
-  }
-
   .glass-card {
     background: linear-gradient(145deg, rgba(25,30,42,0.95), rgba(10,13,20,0.98));
     @apply border border-white/10 rounded-[28px] shadow-2xl;
   }
 
-  .light .glass-card {
-    background: linear-gradient(145deg, rgba(245,245,250,0.95), rgba(255,255,255,0.98));
-    @apply border-black/5 shadow-xl;
-  }
-  
-  /* Aura Premium Blue Gradients */
   .premium-gradient {
     background: linear-gradient(110deg, #0057FF 0%, #003FD6 28%, #07142B 58%, #05070D 100%);
   }
@@ -124,23 +109,13 @@
     background: linear-gradient(135deg, #0057FF 0%, #0B6CFF 50%, #003ED1 100%);
   }
   
-  /* Interaction Tokens */
   .neon-glow {
     box-shadow: 0 8px 30px rgba(0, 87, 255, 0.3);
   }
   
-  .aura-glow-blue {
-    box-shadow: 0 0 20px -5px rgba(0, 87, 255, 0.4);
-  }
-
-  /* Full Screen & Safe Area Utilities */
   .h-screen-safe {
     height: 100vh;
     height: 100dvh;
-  }
-  .min-h-screen-safe {
-    min-height: 100vh;
-    min-height: 100dvh;
   }
   .safe-top {
     padding-top: env(safe-area-inset-top);

@@ -225,7 +225,7 @@ function ProfileContent() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center pt-4"
+          className="text-center pt-6 -mb-4"
         >
           <p className="text-xl font-semibold text-muted-foreground/60 tracking-tight">
             Made with love ❤️ in INDIA 🇮🇳
