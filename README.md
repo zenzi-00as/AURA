@@ -3,7 +3,7 @@
 Aura is a premium, privacy-focused social discovery platform designed for the global LGBTQ+ community. Built on the principle of **Stateless Connection**, Aura provides a minimalist, secure, and ethereal space for authentic human interaction.
 
 ## 🚀 Project Overview
-Aura materializes as a high-fidelity mobile-first web application, featuring AI-powered identity verification, hardware-locked data synchronization, and a luxury membership ecosystem.
+Aura is a high-fidelity mobile-first web application featuring AI-powered identity verification, hardware-locked data synchronization, and a luxury membership ecosystem.
 
 ## ✨ Main Features
 - **Discovery Stage**: Proximity-based human discovery with advanced filtering nodes.
