@@ -50,8 +50,8 @@ export function OrientationSelector({ gender, selected, onSelect }: OrientationS
               {selected === opt && (
                 <Check 
                   size={14} 
-                  className="text-white shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]" 
-                  strokeWidth={4} 
+                  className="text-white shrink-0 drop-shadow-[0_0_8px_rgba(255,255,255,1)]" 
+                  strokeWidth={4.5} 
                 />
               )}
             </motion.button>

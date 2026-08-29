@@ -34,8 +34,8 @@ export function GenderSelector({ selected, onSelect }: GenderSelectorProps) {
             {selected === opt && (
               <Check 
                 size={14} 
-                className="text-white drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]" 
-                strokeWidth={4} 
+                className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,1)]" 
+                strokeWidth={4.5} 
               />
             )}
           </motion.button>
