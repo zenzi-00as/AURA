@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useCollection, useFirestore, initializeFirebase } from "@/firebase";
-import { collection, query, updateDoc, doc, serverTimestamp, limit, where } from "firebase/firestore";
+import { collection, query, updateDoc, doc, serverTimestamp, limit, where, orderBy } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
-import { UserProfile, Report } from "@/lib/types";
-import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { UserProfile, Report, SuperFund, Purchase } from "@/lib/types";
+import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink, Loader2, Sparkles, Coins, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function AdminPage() {
   const { profile } = useAuthContext();
@@ -21,10 +22,11 @@ export default function AdminPage() {
   const { storage } = initializeFirebase();
   const router = useRouter();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications'>('users');
+  const { formatPrice } = useCurrency();
+  const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications' | 'superfund'>('users');
   const [rejectionReason, setRejectionReason] = useState("");
 
-  // Gate collection listeners with admin entitlement to prevent permission faults for regular users
+  // Gate collection listeners with admin entitlement
   const { data: users } = useCollection<UserProfile>(
     db && profile?.isAdmin ? query(collection(db, "users"), limit(100)) : null
   );
@@ -36,6 +38,21 @@ export default function AdminPage() {
   const { data: verifications } = useCollection<UserProfile>(
     db && profile?.isAdmin ? query(collection(db, "users"), where("verificationStatus", "==", "Pending"), limit(50)) : null
   );
+
+  const { data: superFunds } = useCollection<SuperFund>(
+    db && profile?.isAdmin ? query(collection(db, "superFunds"), orderBy("timestamp", "desc"), limit(50)) : null
+  );
+
+  const superFundStats = useMemo(() => {
+    if (!superFunds) return { total: 0, count: 0 };
+    return superFunds.reduce((acc, fund) => {
+      if (fund.status === 'verified') {
+        acc.total += fund.amount;
+        acc.count += 1;
+      }
+      return acc;
+    }, { total: 0, count: 0 });
+  }, [superFunds]);
 
   const handleAction = async (uid: string, action: string) => {
     if (!db) return;
@@ -109,16 +126,26 @@ export default function AdminPage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background min-h-screen">
-        <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 sticky top-0 bg-background/80 backdrop-blur-xl z-20">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="text-muted-foreground"><ArrowLeft size={20} /></button>
-            <h1 className="text-xl font-bold">Aura Command</h1>
-          </div>
-          <div className="flex gap-1">
-            <Button size="sm" variant={activeTab === 'users' ? 'default' : 'ghost'} onClick={() => setActiveTab('users')}>Users</Button>
-            <Button size="sm" variant={activeTab === 'verifications' ? 'default' : 'ghost'} onClick={() => setActiveTab('verifications')}>Verifications</Button>
-            <Button size="sm" variant={activeTab === 'reports' ? 'default' : 'ghost'} onClick={() => setActiveTab('reports')}>Reports</Button>
+      <div className="flex-1 flex flex-col bg-background min-h-screen pb-20">
+        <header className="px-8 h-24 flex flex-col justify-center border-b border-white/5 sticky top-0 bg-background/80 backdrop-blur-xl z-20 safe-top">
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-4">
+                <button onClick={() => router.back()} className="text-muted-foreground"><ArrowLeft size={20} /></button>
+                <h1 className="text-xl font-bold">Aura Command</h1>
+             </div>
+             <div className="flex gap-1 overflow-x-auto">
+                {['users', 'verifications', 'reports', 'superfund'].map((tab) => (
+                  <Button 
+                    key={tab}
+                    size="sm" 
+                    variant={activeTab === tab ? 'default' : 'ghost'} 
+                    onClick={() => setActiveTab(tab as any)}
+                    className="capitalize text-[10px] font-bold tracking-widest h-8"
+                  >
+                    {tab}
+                  </Button>
+                ))}
+             </div>
           </div>
         </header>
 
@@ -133,6 +160,7 @@ export default function AdminPage() {
                         {u.name}, {u.age}
                         {u.verificationStatus === 'Verified' && <ShieldCheck size={14} className="text-primary" />}
                         {u.plan === 'Elite' && <Star size={14} className="text-primary" />}
+                        {u.isSuperFunder && <Sparkles size={14} className="text-amber-400" />}
                       </h3>
                       <p className="text-[10px] text-muted-foreground uppercase">{u.uid}</p>
                     </div>
@@ -215,6 +243,45 @@ export default function AdminPage() {
                     <p className="text-white/20 font-medium">No pending verification requests.</p>
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'superfund' && (
+              <motion.div key="admin-tab-superfund" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-2">
+                      <div className="flex items-center gap-2 text-primary">
+                         <Coins size={16} />
+                         <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Total Funds</span>
+                      </div>
+                      <p className="text-2xl font-black">{formatPrice(superFundStats.total)}</p>
+                   </div>
+                   <div className="p-6 rounded-[32px] bg-white/5 border border-white/5 space-y-2">
+                      <div className="flex items-center gap-2 text-primary">
+                         <TrendingUp size={16} />
+                         <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Supporters</span>
+                      </div>
+                      <p className="text-2xl font-black">{superFundStats.count}</p>
+                   </div>
+                </div>
+
+                <div className="space-y-3">
+                   <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-widest px-2">Recent Support Events</h2>
+                   {superFunds?.map((fund) => (
+                     <div key={fund.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-xl premium-gradient flex items-center justify-center shadow-lg">
+                              <Sparkles size={18} className="text-white" />
+                           </div>
+                           <div className="space-y-0.5">
+                              <h4 className="text-sm font-bold text-white">{fund.displayName}</h4>
+                              <p className="text-[9px] text-white/30">{fund.timestamp?.toDate ? fund.timestamp.toDate().toLocaleString() : "Just now"}</p>
+                           </div>
+                        </div>
+                        <p className="text-sm font-black text-primary">{formatPrice(fund.amount)}</p>
+                     </div>
+                   ))}
+                </div>
               </motion.div>
             )}
 

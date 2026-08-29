@@ -177,11 +177,18 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                 {user.isOnline && !user.incognitoMode ? "Online" : "Offline"}
               </span>
             </div>
-            {hasSpotlight && (
-              <div className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20 flex items-center justify-center">
-                <span style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
-              </div>
-            )}
+            <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+               {user.isSuperFunder && (
+                 <div className="w-8 h-8 rounded-full premium-gradient backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg">
+                    <Sparkles size={14} className="text-white" />
+                 </div>
+               )}
+               {hasSpotlight && (
+                 <div className="w-8 h-8 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20 flex items-center justify-center">
+                   <span style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
+                 </div>
+               )}
+            </div>
             {user.photoUrl ? (
               <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover transition-transform duration-500 hover:scale-105", blurPhotos && "blur-xl")} />
             ) : (
@@ -195,6 +202,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
+            {user.isSuperFunder && <Sparkles size={14} className="text-amber-400" />}
           </div>
           <div className="flex items-center gap-1 text-[9px] text-white/50 font-bold uppercase"><MapPin size={10} className="text-primary" />{user.distance || "Nearby"}</div>
           <p className="text-[10px] text-white/40 font-light line-clamp-2 leading-relaxed flex-1 italic">{user.bio}</p>
@@ -222,6 +230,12 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
                     <p className="text-sm text-white/60 font-light">Upgrade to Aura Elite Plus to unlock full-resolution identity photos.</p>
                     <Button onClick={() => { setIsDetailOpen(false); router.push('/profile?tab=eliteplus'); }} className="w-full h-14 blue-gradient rounded-2xl font-bold text-white shadow-xl neon-glow">Join Elite Plus</Button>
                   </div>
+                )}
+                {user.isSuperFunder && (
+                   <div className="absolute top-8 right-8 px-4 py-2 rounded-full bg-amber-400/20 backdrop-blur-md border border-amber-400/30 flex items-center gap-2 shadow-2xl">
+                      <Sparkles size={16} className="text-amber-400" />
+                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em]">Aura Supporter</span>
+                   </div>
                 )}
               </div>
               <div className="space-y-4">

@@ -87,6 +87,7 @@ export type UserProfile = {
   updatedAt?: any;
   notificationSettings?: UserNotificationSettings;
   isDemoUser?: boolean;
+  isSuperFunder?: boolean;
 };
 
 export type Message = {
@@ -117,7 +118,7 @@ export type ChatRoom = {
   privacyEnabled?: boolean;
 };
 
-export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight' | 'like' | 'super_like' | 'match';
+export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight' | 'like' | 'super_like' | 'match' | 'super_fund';
 
 export type Notification = {
   id: string;
@@ -143,15 +144,28 @@ export type LikeRecord = {
   status: 'active' | 'deleted';
 };
 
+export type PurchaseItemType = 'Elite' | 'ElitePlus' | 'SuperLike' | 'Spotlight' | 'SuperFund';
+
 export type Purchase = {
   id: string;
   uid: string;
-  itemType: 'Elite' | 'ElitePlus' | 'SuperLike' | 'Spotlight';
+  itemType: PurchaseItemType;
   amount: number;
   currency: string;
   timestamp: any;
   razorpayOrderId: string;
   status: 'Success' | 'Failed' | 'Pending';
+};
+
+export type SuperFund = {
+  id: string;
+  userId: string;
+  displayName: string;
+  amount: number;
+  currency: string;
+  isAnonymous: boolean;
+  timestamp: any;
+  status: 'verified' | 'pending';
 };
 
 export type ReportType = 'Harassment' | 'Spam' | 'Fake profile' | 'Scams' | 'Hate behavior' | 'Sexual exploitation' | 'Threats' | 'Inappropriate content' | 'Other';

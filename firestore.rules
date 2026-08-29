@@ -69,6 +69,13 @@ service cloud.firestore {
       }
     }
 
+    // Super Fund Rules
+    match /superFunds/{fundId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
     // System Records
     match /notifications/{notificationId} {
       allow read, update, delete: if isOwner(resource.data.userId);

@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuraCard } from "@/components/aura/AuraCard";
 import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
+import { SuperFundPrompt } from "@/components/aura/SuperFundPrompt";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, Lock } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, Lock, Heart } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -216,60 +217,75 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold tracking-tight text-white">{t('discovery')}</h1>
           </div>
           
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
-                <SlidersHorizontal size={18} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="bg-[#05070D] text-white rounded-t-[40px] px-8 pt-10 pb-12 outline-none border-t border-white/10">
-              <SheetHeader className="mb-8"><SheetTitle className="text-2xl font-bold">Discovery Filters</SheetTitle></SheetHeader>
-              <div className="space-y-10">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
-                    <div className="flex items-center gap-2">
-                       <span className="text-primary font-bold text-sm">{distance[0]} km</span>
-                       {distance[0] >= planConfig.searchRadiusKm && planConfig.searchRadiusKm < 100 && <Lock size={12} className="text-white/20" />}
+          <div className="flex items-center gap-2">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/super-fund')}
+              className="h-10 px-4 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2 group transition-all"
+            >
+              <Sparkles size={16} className="text-primary group-hover:animate-pulse" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            </motion.button>
+
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+                  <SlidersHorizontal size={18} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="bg-[#05070D] text-white rounded-t-[40px] px-8 pt-10 pb-12 outline-none border-t border-white/10">
+                <SheetHeader className="mb-8"><SheetTitle className="text-2xl font-bold">Discovery Filters</SheetTitle></SheetHeader>
+                <div className="space-y-10">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-bold text-sm">{distance[0]} km</span>
+                        {distance[0] >= planConfig.searchRadiusKm && planConfig.searchRadiusKm < 100 && <Lock size={12} className="text-white/20" />}
+                      </div>
+                    </div>
+                    <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
+                    <p className="text-[9px] text-white/20 uppercase font-bold tracking-tighter">
+                      {planConfig.displayName} limit: {planConfig.searchRadiusKm} km
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">{t('age_range')}</Label>
+                      <span className="text-primary font-bold text-sm">{ageRange[0]} - {ageRange[1]}</span>
+                    </div>
+                    <Slider value={ageRange} onValueChange={setAgeRange} min={18} max={80} step={1} />
+                  </div>
+
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Advanced Filters</Label>
+                      {planConfig.filters !== 'advanced' && (
+                        <span className="bg-white/5 text-[8px] font-bold px-2 py-1 rounded-md text-white/40 uppercase tracking-widest flex items-center gap-1">
+                          <Lock size={10} /> Elite Plus
+                        </span>
+                      )}
+                    </div>
+                    <div className={cn("grid grid-cols-2 gap-2 transition-opacity", planConfig.filters !== 'advanced' && "opacity-40 grayscale pointer-events-none")}>
+                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Gender Identity</div>
+                      <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Interests</div>
                     </div>
                   </div>
-                  <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
-                  <p className="text-[9px] text-white/20 uppercase font-bold tracking-tighter">
-                    {planConfig.displayName} limit: {planConfig.searchRadiusKm} km
-                  </p>
+                  
+                  <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg neon-glow">
+                    <Check className="mr-2" size={22} />
+                    Apply Filters
+                  </Button>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">{t('age_range')}</Label>
-                    <span className="text-primary font-bold text-sm">{ageRange[0]} - {ageRange[1]}</span>
-                  </div>
-                  <Slider value={ageRange} onValueChange={setAgeRange} min={18} max={80} step={1} />
-                </div>
-
-                <div className="pt-2">
-                  <div className="flex items-center justify-between mb-4">
-                    <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Advanced Filters</Label>
-                    {planConfig.filters !== 'advanced' && (
-                      <span className="bg-white/5 text-[8px] font-bold px-2 py-1 rounded-md text-white/40 uppercase tracking-widest flex items-center gap-1">
-                         <Lock size={10} /> Elite Plus
-                      </span>
-                    )}
-                  </div>
-                  <div className={cn("grid grid-cols-2 gap-2 transition-opacity", planConfig.filters !== 'advanced' && "opacity-40 grayscale pointer-events-none")}>
-                     <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Gender Identity</div>
-                     <div className="h-12 rounded-xl border border-white/10 flex items-center px-4 text-xs">Interests</div>
-                  </div>
-                </div>
-                
-                <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg neon-glow">
-                  <Check className="mr-2" size={22} />
-                  Apply Filters
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
+
+        <SuperFundPrompt />
 
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
           {usersLoading ? (
