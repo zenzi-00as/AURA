@@ -155,7 +155,7 @@ export default function Dashboard() {
     
     return firestoreUsers
       .filter(user => {
-        if (user.uid === currentUserProfile.uid || user.isSuspended) return false;
+        if (!user || user.uid === currentUserProfile.uid || user.isSuspended) return false;
         const withinAge = user.age >= activeFilters.ageRange[0] && user.age <= activeFilters.ageRange[1];
         if (!withinAge) return false;
         return true;
@@ -174,10 +174,12 @@ export default function Dashboard() {
         if (aSpot !== bSpot) return aSpot ? -1 : 1;
         return (a.distanceKm || 0) - (b.distanceKm || 0);
       });
-  }, [firestoreUsers, currentUserProfile?.uid, activeFilters, currentLocation]);
+  }, [firestoreUsers, currentUserProfile, activeFilters, currentLocation]);
 
   const discoveryItems = useMemo(() => {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
+    if (!filteredUsers) return items;
+    
     filteredUsers.forEach((user, index) => {
       items.push({ type: 'user', data: user });
       if (planConfig.ads !== 'none' && (index + 1) % 5 === 0) {
@@ -224,9 +226,9 @@ export default function Dashboard() {
               onClick={() => router.push('/super-fund')}
               className="h-10 px-5 rounded-full premium-gradient border border-white/10 flex items-center gap-2 group transition-all neon-glow"
             >
-              <Sparkles size={16} className="text-primary group-hover:animate-pulse" />
+              <Sparkles size={16} className="text-white group-hover:animate-pulse" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             </motion.button>
 
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
