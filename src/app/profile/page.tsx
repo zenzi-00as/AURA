@@ -155,7 +155,7 @@ function ProfileContent() {
 
   const ComparisonTable = ({ mode }: { mode: 'elite' | 'eliteplus' }) => {
     const isPlus = mode === 'eliteplus';
-    const leftPlanLabel = isPlus ? "Elite" : "Free";
+    const leftPlanLabel = isPlus ? "Elite" : "Main Plan";
     const rightPlanLabel = isPlus ? `Elite Plus ${formatPrice(199)}` : `Elite ${formatPrice(99)}`;
 
     const Cross = <X size={14} className="mx-auto text-white/20" />;
@@ -226,7 +226,7 @@ function ProfileContent() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center pt-8"
+          className="text-center pt-6 -mb-4"
         >
           <p className="text-lg font-semibold text-muted-foreground/60 tracking-tight">
             Made with love ❤️ in INDIA 🇮🇳
@@ -518,6 +518,14 @@ function ProfileContent() {
                         </div>
                       ))}
                     </div>
+
+                    <section className="space-y-4 pt-6 border-t border-white/5">
+                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Spotlight Protocol</h4>
+                      <p className="text-[11px] text-white/40 leading-relaxed font-light italic">
+                        Spotlight is Aura's priority discovery protocol. When activated, your identity node is prioritized within the global synchronization queue for 7 days. This increases your Aura's visibility to nearby members, leading to a higher rate of connection requests and profile engagements.
+                      </p>
+                    </section>
+
                     <div className="h-10" />
                   </div>
                 </div>
@@ -591,6 +599,14 @@ function ProfileContent() {
                         </div>
                       ))}
                     </div>
+
+                    <section className="space-y-4 pt-6 border-t border-white/5">
+                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Engagement Protocol</h4>
+                      <p className="text-[11px] text-white/40 leading-relaxed font-light italic">
+                        Super Likes are high-fidelity synchronization signals. Unlike standard likes, a Super Like immediately notifies the recipient and places your profile at the front of their interaction queue with a signature blue highlight. This definitively increases the probability of a mutual match within your proximity radius.
+                      </p>
+                    </section>
+
                     <div className="h-10" />
                   </div>
                 </div>
