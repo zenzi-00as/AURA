@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -181,7 +182,7 @@ function ProfileContent() {
       { label: "Verified badge*", left: Cross, right: Cross },
       { label: "Read receipts", left: Cross, right: Tick },
       { label: "Filters", left: "None", right: "Basic" },
-      { label: "Who Likes You", left: Cross, right: "Limited" },
+      { label: "Who Likes You", left: "Limited", right: "Full" },
       { label: "Ads", left: "Full", right: "Reduced" },
       { label: "Priority discovery", left: Cross, right: Tick },
     ];
@@ -211,17 +212,7 @@ function ProfileContent() {
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
       <header className="px-8 min-h-24 py-4 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
         <div className="flex justify-between items-center w-full">
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
-            <motion.p 
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-[10px] font-semibold text-muted-foreground/60 tracking-tight"
-            >
-              Made with love ❤️ in INDIA 🇮🇳
-            </motion.p>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
           <div className="flex gap-2">
             {profile?.isAdmin && (
               <button onClick={() => router.push('/admin')} className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
@@ -232,8 +223,19 @@ function ProfileContent() {
       </header>
 
       <div className="px-8 space-y-10">
+        <div className="text-center pt-6 -mb-4">
+          <motion.p 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-[10px] font-semibold text-muted-foreground/60 tracking-tight"
+          >
+            Made with love ❤️ in INDIA 🇮🇳
+          </motion.p>
+        </div>
+
         {profile && (
-          <div className="flex flex-col items-center text-center space-y-6 pt-6">
+          <div className="flex flex-col items-center text-center space-y-6 pt-4">
             <div className="relative">
               <div className={cn(
                 "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
