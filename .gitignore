@@ -1,7 +1,5 @@
-# Dependency nodes
+# Next.js
 node_modules/
-
-# Build artifacts
 .next/
 out/
 dist/
@@ -11,14 +9,28 @@ build/
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
 
-# Environment/Secrets
+# Environment
 .env
 .env.local
+.env.*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# System files
+# Secrets
+*.pem
+service-account.json
+firebase-key.json
+
+# IDE & OS
 .DS_Store
+.vscode/
+.idea/
+*.swp
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
