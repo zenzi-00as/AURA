@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -228,13 +229,13 @@ function ProfileContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center pt-6 -mb-4"
         >
-          <p className="text-lg font-semibold text-muted-foreground/60 tracking-tight">
+          <p className="text-xl font-semibold text-muted-foreground/60 tracking-tight">
             Made with love ❤️ in INDIA 🇮🇳
           </p>
         </motion.div>
 
         {profile && (
-          <div className="flex flex-col items-center text-center space-y-6 -mt-6 pt-4">
+          <div className="flex flex-col items-center text-center space-y-6 -mt-10 pt-4">
             <div className="relative">
               <div className={cn(
                 "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
