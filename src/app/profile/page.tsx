@@ -228,7 +228,7 @@ function ProfileContent() {
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-xs font-semibold text-muted-foreground/60 tracking-tight"
+            className="text-sm font-semibold text-muted-foreground/60 tracking-tight"
           >
             Made with love ❤️ in INDIA 🇮🇳
           </motion.p>
