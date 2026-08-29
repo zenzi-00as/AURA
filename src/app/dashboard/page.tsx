@@ -125,7 +125,7 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if ("geolocation" in navigator) {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => setCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude }),
         (error) => console.log("Location access denied")
@@ -228,7 +228,7 @@ export default function Dashboard() {
             >
               <Sparkles size={16} className="text-white group-hover:animate-pulse" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
             </motion.button>
 
             <Sheet open={isOpen} onOpenChange={setIsOpen}>

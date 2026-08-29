@@ -112,12 +112,12 @@ export default function ChatRoomPage() {
   const isCreatingRoom = useRef(false);
 
   const roomId = useMemo(() => {
-    if (!authUser || !idParam) return "";
+    if (!authUser?.uid || !idParam) return "";
     if (idParam.startsWith('system_') || idParam.includes('_')) return idParam;
     return [authUser.uid, idParam].sort().join("_");
   }, [authUser?.uid, idParam]);
 
-  const roomRef = useMemoFirebase(() => (db && roomId) ? doc(db, "chatRooms", roomId) : null, [db, roomId]);
+  const roomRef = useMemoFirebase(() => (db && roomId && roomId !== "") ? doc(db, "chatRooms", roomId) : null, [db, roomId]);
   const { data: room, loading: roomLoading } = useDoc<ChatRoom>(roomRef as any);
 
   const otherUid = useMemo(() => {
@@ -129,12 +129,12 @@ export default function ChatRoomPage() {
   const otherUserRef = useMemoFirebase(() => (db && otherUid && otherUid !== 'system') ? doc(db, "users", otherUid) : null, [db, otherUid]);
   const { data: otherUser } = useDoc<UserProfile>(otherUserRef as any);
 
-  const messagesQuery = useMemoFirebase(() => (db && roomId) ? query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc")) : null, [db, roomId]);
+  const messagesQuery = useMemoFirebase(() => (db && roomId && roomId !== "") ? query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc")) : null, [db, roomId]);
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
   // Synchronization Protocol: Room Creation & Unread Management
   useEffect(() => {
-    if (!db || !authUser || !roomId || roomLoading) return;
+    if (!db || !authUser || !roomId || roomId === "" || roomLoading) return;
 
     // Phase 1: Room Creation with definitive boundary check
     const syncRoom = async () => {
@@ -153,7 +153,8 @@ export default function ChatRoomPage() {
 
         isCreatingRoom.current = true;
         try {
-          const roomSnap = await getDoc(doc(db, "chatRooms", roomId));
+          const roomRef = doc(db, "chatRooms", roomId);
+          const roomSnap = await getDoc(roomRef);
           if (!roomSnap.exists()) {
             const roomData = {
               id: roomId,
@@ -163,7 +164,7 @@ export default function ChatRoomPage() {
               unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
               typing: { [authUser.uid]: false, [otherUid]: false }
             };
-            await setDoc(doc(db, "chatRooms", roomId), roomData);
+            await setDoc(roomRef, roomData);
             await updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) });
           }
         } catch (e) {
@@ -209,7 +210,7 @@ export default function ChatRoomPage() {
   };
 
   const handleSendMedia = async () => {
-    if (!authUser || !db || !storage || !pendingFile) return;
+    if (!authUser || !db || !storage || !pendingFile || !roomId) return;
     setIsUploading(true);
     setShowMediaOptions(false);
     try {
@@ -257,7 +258,7 @@ export default function ChatRoomPage() {
 
   const handleSendText = async () => {
     const msgText = input.trim();
-    if (!msgText || !db || !roomId || !authUser || !otherUid || isSending) return;
+    if (!msgText || !db || !roomId || roomId === "" || !authUser || !otherUid || isSending) return;
     
     setIsSending(true);
     setInput("");

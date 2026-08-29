@@ -45,7 +45,7 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
         // Only emit a permission error if the code explicitly states it
         if (serverError.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: 'collection/query', // Safe generic path to avoid crashing on internal _query access
+            path: 'collection/query', 
             operation: 'list',
           });
           errorEmitter.emit('permission-error', permissionError);
