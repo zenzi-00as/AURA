@@ -1,5 +1,55 @@
-# Firebase Studio
+# Aura ✨
 
-This is a NextJS starter in Firebase Studio.
+Aura is a premium, privacy-focused social discovery platform designed for the global LGBTQ+ community. Built on the principle of **Stateless Connection**, Aura provides a minimalist, secure, and ethereal space for authentic human interaction.
 
-To get started, take a look at src/app/page.tsx.
+## 🚀 Project Overview
+Aura materializes as a high-fidelity mobile-first web application, featuring AI-powered identity verification, hardware-locked data synchronization, and a luxury membership ecosystem.
+
+## ✨ Main Features
+- **Discovery Stage**: Proximity-based human discovery with advanced filtering nodes.
+- **Identity Guard**: AI-biometric selfie verification for a bot-free environment.
+- **Secure Messaging**: High-speed chat synchronization with ephemeral media support.
+- **Membership Hub**: Luxury tiers (Elite & Elite Plus) with hardware-locked benefit protocols.
+- **Super Fund**: A voluntary global support mechanism for community-driven development.
+- **Stateless Architecture**: Minimalist data persistence for maximum member privacy.
+
+## 🛠️ Technology Stack
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + ShadCN UI
+- **Backend**: Firebase (Authentication, Firestore, Cloud Storage)
+- **AI Core**: Google Genkit (Gemini 1.5 Flash)
+- **Animation**: Framer Motion
+- **Payments**: Razorpay Integration (Simulated)
+
+## 🔐 Security & Privacy
+- **Stateless Infrastructure**: Minimized social graph persistence.
+- **Environment Isolation**: No hardcoded secrets in the source code.
+- **Permission Protocols**: Robust Firestore Security Rules for absolute data protection.
+
+## ⚙️ Local Development
+1. **Clone the repository**.
+2. **Initialize Environment**:
+   ```bash
+   cp .env.example .env.local
+   ```
+   *Fill in your Firebase credentials in `.env.local`.*
+3. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+4. **Launch Aura**:
+   ```bash
+   npm run dev
+   ```
+
+## 📦 Production Build
+```bash
+npm run build
+```
+
+## 🛡️ Security Notes
+Never commit your `.env.local` file. Always ensure that Firebase Security Rules and Storage Rules are definitively synchronized with your production database.
+
+---
+*Made with love ❤️ in INDIA 🇮🇳*
