@@ -172,7 +172,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
             <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
-              <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline && !user.incognitoMode ? "bg-[#00D084]" : "bg-white/20")} />
+              <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline && !user.incognitoMode ? "bg-[#00FF88]" : "bg-white/20")} />
               <span className="text-[9px] font-bold text-white uppercase tracking-tighter">
                 {user.isOnline && !user.incognitoMode ? "Online" : "Offline"}
               </span>
