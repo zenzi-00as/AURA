@@ -223,16 +223,15 @@ function ProfileContent() {
       </header>
 
       <div className="px-8 space-y-10">
-        <div className="text-center pt-6 -mb-4">
-          <motion.p 
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-lg font-semibold text-muted-foreground/60 tracking-tight"
-          >
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center pt-8"
+        >
+          <p className="text-lg font-semibold text-muted-foreground/60 tracking-tight">
             Made with love ❤️ in INDIA 🇮🇳
-          </motion.p>
-        </div>
+          </p>
+        </motion.div>
 
         {profile && (
           <div className="flex flex-col items-center text-center space-y-6 -mt-6 pt-4">
@@ -458,6 +457,9 @@ function ProfileContent() {
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
                     <p className="text-sm font-bold">{formatPrice(30)}</p>
                     <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
+                    <div className="mt-2 pt-2 border-t border-white/5">
+                       <p className="text-[8px] text-primary font-bold uppercase leading-tight">Priority Discovery Reach</p>
+                    </div>
                   </div>
                 </button>
               </SheetTrigger>
@@ -533,6 +535,9 @@ function ProfileContent() {
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
                     <p className="text-sm font-bold">{formatPrice(3)}</p>
                     <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
+                    <div className="mt-2 pt-2 border-t border-white/5">
+                       <p className="text-[8px] text-primary font-bold uppercase leading-tight">3x Match Probability Sync</p>
+                    </div>
                   </div>
                 </button>
               </SheetTrigger>
