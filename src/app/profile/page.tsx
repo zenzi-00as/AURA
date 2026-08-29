@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -210,15 +209,13 @@ function ProfileContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-8 min-h-24 py-4 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
-        <div className="flex justify-between items-center w-full">
-          <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
-          <div className="flex gap-2">
-            {profile?.isAdmin && (
-              <button onClick={() => router.push('/admin')} className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
-            )}
-            <button onClick={() => router.push('/settings')} className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
-          </div>
+      <header className="px-8 h-16 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
+        <div className="flex gap-2">
+          {profile?.isAdmin && (
+            <button onClick={() => router.push('/admin')} className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"><Shield size={18} /></button>
+          )}
+          <button onClick={() => router.push('/settings')} className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><Settings size={18} /></button>
         </div>
       </header>
 
@@ -228,7 +225,7 @@ function ProfileContent() {
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-[10px] font-semibold text-muted-foreground/60 tracking-tight"
+            className="text-xs font-semibold text-muted-foreground/60 tracking-tight"
           >
             Made with love ❤️ in INDIA 🇮🇳
           </motion.p>
