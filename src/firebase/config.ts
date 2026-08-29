@@ -3,6 +3,7 @@
 /**
  * @fileOverview Firebase Client Configuration Node.
  * Synchronized with environment variables for professional GitHub security.
+ * Ensure these variables are populated in your local .env.local file.
  */
 
 export const firebaseConfig = {
