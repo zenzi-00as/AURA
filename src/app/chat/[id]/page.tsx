@@ -38,7 +38,8 @@ import {
   addDoc, 
   updateDoc, 
   increment,
-  setDoc
+  setDoc,
+  getDoc
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ChatRoom, UserProfile, Message, ReportType } from "@/lib/types";
@@ -135,44 +136,47 @@ export default function ChatRoomPage() {
   useEffect(() => {
     if (!db || !authUser || !roomId || roomLoading) return;
 
-    // Phase 1: Room Creation
-    if (!room && !isCreatingRoom.current && otherUid !== 'system' && !idParam.startsWith('system_')) {
-      const check = checkActionAllowed(profile, 'newChat');
-      if (!check.allowed) {
-        setUpgradeModal({ 
-          isOpen: true, 
-          plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', 
-          feature: 'New Chats', 
-          limit: check.limit 
-        });
-        router.push('/chat');
-        return;
-      }
+    // Phase 1: Room Creation with definitive boundary check
+    const syncRoom = async () => {
+      if (!room && !isCreatingRoom.current && otherUid !== 'system' && !idParam.startsWith('system_')) {
+        const check = checkActionAllowed(profile, 'newChat');
+        if (!check.allowed) {
+          setUpgradeModal({ 
+            isOpen: true, 
+            plan: effectivePlan === 'free' ? 'elite' : 'elite_plus', 
+            feature: 'New Chats', 
+            limit: check.limit 
+          });
+          router.push('/chat');
+          return;
+        }
 
-      isCreatingRoom.current = true;
-      const roomData = {
-        id: roomId,
-        participants: [authUser.uid, otherUid],
-        lastMessage: "",
-        lastTimestamp: serverTimestamp(),
-        unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
-        typing: { [authUser.uid]: false, [otherUid]: false }
-      };
-      
-      setDoc(doc(db, "chatRooms", roomId), roomData)
-        .then(() => {
-          updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) }).catch(() => {});
-        })
-        .catch(async (e) => {
-          const err = new FirestorePermissionError({ path: `chatRooms/${roomId}`, operation: 'create', requestResourceData: roomData });
-          errorEmitter.emit('permission-error', err);
-        })
-        .finally(() => {
+        isCreatingRoom.current = true;
+        try {
+          const roomSnap = await getDoc(doc(db, "chatRooms", roomId));
+          if (!roomSnap.exists()) {
+            const roomData = {
+              id: roomId,
+              participants: [authUser.uid, otherUid],
+              lastMessage: "",
+              lastTimestamp: serverTimestamp(),
+              unreadCount: { [authUser.uid]: 0, [otherUid]: 0 },
+              typing: { [authUser.uid]: false, [otherUid]: false }
+            };
+            await setDoc(doc(db, "chatRooms", roomId), roomData);
+            await updateDoc(doc(db, "users", authUser.uid), { 'usage.newChatsUsed': increment(1) });
+          }
+        } catch (e) {
+          console.error("Room Sync Fault", e);
+        } finally {
           isCreatingRoom.current = false;
-        });
-    }
+        }
+      }
+    };
 
-    // Phase 2: Unread Reset (Only if non-zero to prevent recursive snapshot loops)
+    syncRoom();
+
+    // Phase 2: Unread Reset with definitive non-zero boundary
     if (room && authUser) {
       const myUnread = room.unreadCount?.[authUser.uid];
       if (typeof myUnread === 'number' && myUnread > 0) {

@@ -222,7 +222,7 @@ export default function Dashboard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/super-fund')}
-              className="h-10 px-4 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2 group transition-all"
+              className="h-10 px-5 rounded-full premium-gradient border border-white/10 flex items-center gap-2 group transition-all neon-glow"
             >
               <Sparkles size={16} className="text-primary group-hover:animate-pulse" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>

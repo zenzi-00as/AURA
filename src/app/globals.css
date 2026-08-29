@@ -123,6 +123,10 @@
   .elite-gradient {
     background: linear-gradient(115deg, #004CFF, #0034B8 40%, #081020 75%, #05070D);
   }
+
+  .fuchsia-gradient {
+    background: linear-gradient(135deg, #D946EF 0%, #A855F7 50%, #8B5CF6 100%);
+  }
   
   /* Interaction Tokens */
   .neon-glow {
