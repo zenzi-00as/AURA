@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -25,8 +24,7 @@ import {
   Minus,
   Zap,
   Eye,
-  Clock,
-  ArrowLeft
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -227,7 +225,7 @@ function ProfileContent() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center pt-6 -mb-4"
+          className="text-center pt-4"
         >
           <p className="text-xl font-semibold text-muted-foreground/60 tracking-tight">
             Made with love ❤️ in INDIA 🇮🇳
@@ -457,7 +455,6 @@ function ProfileContent() {
                   <div className="space-y-1 relative z-10">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Spotlight</h4>
                     <p className="text-sm font-bold">{formatPrice(30)}</p>
-                    <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
                     <div className="mt-2 pt-2 border-t border-white/5">
                        <p className="text-[8px] text-primary font-bold uppercase leading-tight">Priority Discovery Reach</p>
                     </div>
@@ -543,7 +540,6 @@ function ProfileContent() {
                   <div className="space-y-1 relative z-10">
                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/60">Super Likes</h4>
                     <p className="text-sm font-bold">{formatPrice(3)}</p>
-                    <p className="text-[7px] text-white/30 uppercase">+ 18% GST</p>
                     <div className="mt-2 pt-2 border-t border-white/5">
                        <p className="text-[8px] text-primary font-bold uppercase leading-tight">3x Match Probability Sync</p>
                     </div>

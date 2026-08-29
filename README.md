@@ -23,8 +23,8 @@ Aura materializes as a high-fidelity mobile-first web application, featuring AI-
 - **Payments**: Razorpay Integration (Simulated)
 
 ## 🔐 Security & Privacy
-- **Stateless Infrastructure**: Minimized social graph persistence.
 - **Environment Isolation**: No hardcoded secrets in the source code.
+- **Stateless Infrastructure**: Minimized social graph persistence.
 - **Permission Protocols**: Robust Firestore Security Rules for absolute data protection.
 
 ## ⚙️ Local Development
@@ -47,9 +47,6 @@ Aura materializes as a high-fidelity mobile-first web application, featuring AI-
 ```bash
 npm run build
 ```
-
-## 🛡️ Security Notes
-Never commit your `.env.local` file. Always ensure that Firebase Security Rules and Storage Rules are definitively synchronized with your production database.
 
 ---
 *Made with love ❤️ in INDIA 🇮🇳*

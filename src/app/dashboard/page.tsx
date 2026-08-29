@@ -8,7 +8,7 @@ import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { SuperFundPrompt } from "@/components/aura/SuperFundPrompt";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, Lock, Heart } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Check, Search, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -83,26 +83,6 @@ const DEMO_USERS: UserProfile[] = [
     incognitoMode: false,
     isSuspended: false,
     isAdmin: false
-  },
-  {
-    uid: 'demo-4',
-    name: 'Nova',
-    age: 26,
-    bio: 'Plant parent and sustainable fashion advocate. Exploring the intersection of tech and empathy.',
-    photoUrl: 'https://picsum.photos/seed/aura-demo-4/600/800',
-    distance: '5.2km away',
-    isOnline: true,
-    verificationStatus: 'Pending',
-    onboardingCompleted: true,
-    lastActive: new Date(),
-    phoneNumber: '+1000000003',
-    gender: 'Woman',
-    orientation: 'Lesbian',
-    interestedIn: ['Women'],
-    superLikeBalance: 0,
-    incognitoMode: false,
-    isSuspended: false,
-    isAdmin: false
   }
 ];
 
@@ -134,9 +114,11 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    setDistance([planConfig.searchRadiusKm]);
-    setActiveFilters(prev => ({ ...prev, distance: planConfig.searchRadiusKm }));
-  }, [planConfig.searchRadiusKm]);
+    if (planConfig) {
+      setDistance([planConfig.searchRadiusKm]);
+      setActiveFilters(prev => ({ ...prev, distance: planConfig.searchRadiusKm }));
+    }
+  }, [planConfig]);
 
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
