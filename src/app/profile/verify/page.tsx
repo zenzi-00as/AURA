@@ -116,7 +116,7 @@ export default function VerifyProfilePage() {
 
         <div className="p-8 space-y-10">
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 rounded-[24px] fuchsia-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
+            <div className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
               <Shield size={32} className="text-white" />
             </div>
             <div className="space-y-2">
@@ -174,14 +174,14 @@ export default function VerifyProfilePage() {
                 <Button 
                   onClick={() => fileInputRef.current?.click()}
                   disabled={authLoading}
-                  className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/20"
+                  className="w-full h-14 rounded-2xl premium-gradient text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/20"
                 >
                   <Upload size={18} className="mr-3" />
                   {authLoading ? "Checking account..." : "Select Verification Photo"}
                 </Button>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-2 text-emerald-500 bg-emerald-500/5 py-3 rounded-xl border border-emerald-500/10">
+                  <div className="flex items-center justify-center gap-2 text-[#00FF88] bg-[#00FF88]/5 py-3 rounded-xl border border-[#00FF88]/10">
                     <ShieldCheck size={18} />
                     <span className="text-xs font-bold uppercase tracking-widest">Image Ready for Submission</span>
                   </div>

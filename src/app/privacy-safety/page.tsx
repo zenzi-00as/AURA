@@ -65,7 +65,7 @@ export default function PrivacySafetyPage() {
       title: mounted ? t('community_guidelines') : "Community Guidelines",
       description: mounted ? t('guidelines_desc') : "Our standards for respect and authenticity.",
       icon: BookOpen,
-      color: "text-emerald-500",
+      color: "text-[#00FF88]",
       content: [
         { title: mounted ? t('safety_consent') : "Consent Matters", desc: mounted ? t('safety_consent_desc') : "Always respect boundaries. Communication is key." },
         { title: "Respectful Communication", desc: "Harassment, hate speech, or abuse results in a permanent ban." },
@@ -89,7 +89,7 @@ export default function PrivacySafetyPage() {
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-16 h-16 rounded-[24px] fuchsia-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20"
+            className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20"
           >
             <Shield size={32} className="text-white" />
           </motion.div>
@@ -107,7 +107,7 @@ export default function PrivacySafetyPage() {
             <p className="text-[10px] text-muted-foreground font-light leading-snug">AI-checked identities to prevent bots.</p>
           </div>
           <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
-            <Globe className="text-emerald-500" size={20} />
+            <Globe className="text-[#00FF88]" size={20} />
             <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Global Safety</h4>
             <p className="text-[10px] text-muted-foreground font-light leading-snug">Resources for LGBTQ+ safety worldwide.</p>
           </div>
@@ -175,8 +175,8 @@ export default function PrivacySafetyPage() {
           </div>
         </section>
 
-        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
-          <div className="flex items-center gap-3 text-emerald-500">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-[#00FF88]/10 to-transparent">
+          <div className="flex items-center gap-3 text-[#00FF88]">
             <HeartHandshake size={24} />
             <h3 className="text-sm font-semibold text-foreground">Always With You</h3>
           </div>

@@ -43,7 +43,7 @@ export default function AboutPage() {
       title: mounted ? t('privacy_title') : "Privacy",
       desc: mounted ? t('privacy_desc') : "Your data stays where it belongs: with you.",
       icon: Shield,
-      color: "text-emerald-500"
+      color: "text-[#00FF88]"
     }
   ];
 
@@ -155,8 +155,8 @@ export default function AboutPage() {
         </section>
 
         {/* Our Promise Section */}
-        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-emerald-500/10 to-transparent">
-          <div className="flex items-center gap-3 text-emerald-500">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-[#00FF88]/10 to-transparent">
+          <div className="flex items-center gap-3 text-[#00FF88]">
             <Handshake size={24} />
             <h3 className="text-sm font-semibold text-foreground">{mounted ? t('our_promise') : "Our Commitment"}</h3>
           </div>
@@ -165,7 +165,7 @@ export default function AboutPage() {
               {t('promise_desc')}
             </p>
           )}
-          <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-[10px] text-[#00FF88] font-bold uppercase tracking-widest">
             <Lock size={12} />
             <span>Secured • No Ads • No Selling</span>
           </div>

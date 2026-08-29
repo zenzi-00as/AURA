@@ -62,7 +62,7 @@ export default function FeedbackPage() {
         </div>
         <Button 
           onClick={() => router.push('/profile')}
-          className="w-full h-14 rounded-2xl fuchsia-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
+          className="w-full h-14 rounded-2xl premium-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
         >
           Back to Profile
         </Button>
@@ -81,7 +81,7 @@ export default function FeedbackPage() {
 
       <div className="p-6 space-y-10">
         <div className="text-center space-y-3 py-4">
-          <div className="w-16 h-16 rounded-[24px] fuchsia-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
+          <div className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
             <MessageSquare size={32} className="text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-foreground">{t('feedback')}</h2>
@@ -114,7 +114,7 @@ export default function FeedbackPage() {
                     className={cn(
                       "transition-all",
                       (hoveredRating || rating) >= star
-                        ? "fill-primary text-primary drop-shadow-[0_0_8px_rgba(217,70,239,0.5)]"
+                        ? "fill-primary text-primary drop-shadow-[0_0_8px_rgba(0,87,255,0.5)]"
                         : "text-muted border-primary/20 hover:text-primary/30"
                     )}
                   />
@@ -158,7 +158,7 @@ export default function FeedbackPage() {
           <Button 
             onClick={handleSubmit}
             disabled={isLoading || !message.trim() || rating === 0}
-            className="w-full h-16 rounded-3xl fuchsia-gradient text-white font-medium text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+            className="w-full h-16 rounded-3xl premium-gradient text-white font-medium text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />

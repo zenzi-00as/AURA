@@ -212,7 +212,7 @@ function ProfileContent() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-32 transition-colors">
-      <header className="px-8 h-16 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
+      <header className="px-8 h-16 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top shrink-0">
         <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
         <div className="flex gap-2">
           {profile?.isAdmin && (
@@ -223,19 +223,19 @@ function ProfileContent() {
       </header>
 
       <div className="px-8 space-y-10">
-        <div className="text-center pt-2">
+        <div className="text-center pt-6 -mb-4">
           <motion.p 
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-sm font-semibold text-muted-foreground/60 tracking-tight"
+            className="text-lg font-semibold text-muted-foreground/60 tracking-tight"
           >
             Made with love ❤️ in INDIA 🇮🇳
           </motion.p>
         </div>
 
         {profile && (
-          <div className="flex flex-col items-center text-center space-y-6 -mt-6">
+          <div className="flex flex-col items-center text-center space-y-6 -mt-6 pt-4">
             <div className="relative">
               <div className={cn(
                 "w-36 h-36 rounded-[48px] bg-muted border-2 flex items-center justify-center aura-glow overflow-hidden relative transition-all",
@@ -248,7 +248,7 @@ function ProfileContent() {
                 )}
               </div>
               {profile.verificationStatus === 'Verified' && (
-                <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl fuchsia-gradient flex items-center justify-center border-4 border-background shadow-xl">
+                <div className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl premium-gradient flex items-center justify-center border-4 border-background shadow-xl">
                   <BadgeCheck size={22} className="text-white" />
                 </div>
               )}
@@ -278,14 +278,14 @@ function ProfileContent() {
            </div>
            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
               <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Spotlight</span>
-              <span className={cn("text-[9px] font-bold", spotlight ? "text-primary" : "text-white/40")}>
+              <span className={cn("text-[9px] font-bold", spotlight ? "text-[#00FF88]" : "text-white/40")}>
                 {spotlight ? "Active" : "Inactive"}
               </span>
            </div>
            <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center flex flex-col items-center justify-center gap-1">
               <span className="text-[8px] font-bold text-white/30 uppercase tracking-widest">Status</span>
               <span className={cn("text-[9px] font-bold", effectivePlan !== 'free' ? "text-primary" : "text-white/40")}>
-                {effectivePlan !== 'free' ? `${subDaysRemaining}d left` : "Free"}
+                {effectivePlan !== 'free' ? `${subDaysRemaining}d left` : "Main Plan"}
               </span>
            </div>
         </div>
@@ -299,7 +299,7 @@ function ProfileContent() {
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/60 px-2 py-0.5 rounded-md">Main Plan</span>
-                       {effectivePlan === 'free' && <Check size={14} className="text-primary" />}
+                       {effectivePlan === 'free' && <Check size={14} className="text-[#00FF88]" />}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold">Aura Free</h3>
@@ -655,7 +655,7 @@ function ProfileContent() {
                          </div>
                          <div className="text-right space-y-1">
                             <p className="text-sm font-bold text-primary">{p.currency} {p.amount}</p>
-                            <span className="text-[8px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase">Success</span>
+                            <span className="text-[8px] font-bold text-[#00FF88] bg-[#00FF88]/10 px-2 py-0.5 rounded-md uppercase">Success</span>
                          </div>
                       </div>
                     )) : (
