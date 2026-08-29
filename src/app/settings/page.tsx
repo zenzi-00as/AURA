@@ -133,7 +133,9 @@ export default function SettingsPage() {
       const { auth } = initializeFirebase();
       if (auth) auth.signOut().then(() => router.push("/auth"));
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isSignOutDialogOpen, signOutCountdown, router]);
 
   const handleUnblock = (blockId: string, name: string) => {

@@ -172,14 +172,14 @@ export default function ChatRoomPage() {
         });
     }
 
-    // Phase 2: Unread Reset (Only if non-zero to prevent snapshot loops)
-    if (room) {
+    // Phase 2: Unread Reset (Only if non-zero to prevent recursive snapshot loops)
+    if (room && authUser) {
       const myUnread = room.unreadCount?.[authUser.uid];
       if (typeof myUnread === 'number' && myUnread > 0) {
         updateDoc(doc(db, "chatRooms", roomId), { [`unreadCount.${authUser.uid}`]: 0 }).catch(() => {});
       }
     }
-  }, [db, authUser?.uid, roomId, otherUid, room, roomLoading, profile?.uid, idParam]); // Stable dependencies
+  }, [db, authUser?.uid, roomId, otherUid, room, roomLoading, profile?.uid, idParam, effectivePlan, router, profile]);
 
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 

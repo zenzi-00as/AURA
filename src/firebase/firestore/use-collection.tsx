@@ -14,6 +14,7 @@ import { FirestorePermissionError } from '../errors';
 /**
  * @fileOverview A high-fidelity hook for real-time Firestore collection synchronization.
  * Refined to definitively handle permission denials vs. other synchronization faults.
+ * Hardened to avoid unsafe internal property access (_query).
  */
 
 export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
@@ -44,14 +45,16 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
         // Only emit a permission error if the code explicitly states it
         if (serverError.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: 'collection/query', 
+            path: 'collection/query', // Safe generic path to avoid crashing on internal _query access
             operation: 'list',
           });
           errorEmitter.emit('permission-error', permissionError);
           setError(permissionError);
         } else {
           // Log systemic faults (e.g. missing indexes) for developer visibility
-          console.error('[AURA SYNC FAULT]', serverError.code, serverError.message);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[AURA SYNC FAULT]', serverError.code, serverError.message);
+          }
           setError(serverError);
         }
         setLoading(false);
