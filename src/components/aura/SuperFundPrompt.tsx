@@ -32,7 +32,7 @@ export function SuperFundPrompt() {
             initial={{ y: -40, opacity: 0, scale: 0.9 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -20, opacity: 0, scale: 0.9 }}
-            className="pointer-events-auto w-full max-w-[320px] glass-dark border border-primary/30 rounded-[32px] p-6 shadow-2xl relative overflow-hidden"
+            className="pointer-events-auto w-full max-w-[320px] bg-black border border-primary/30 rounded-[32px] p-6 shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10" />
             
@@ -54,9 +54,10 @@ export function SuperFundPrompt() {
               <div className="flex gap-2">
                  <Button 
                    onClick={() => { handleDismiss(); router.push('/super-fund'); }}
-                   className="flex-1 h-10 rounded-xl premium-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg"
+                   className="flex-1 h-10 rounded-xl premium-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-1.5"
                  >
                     Support Now
+                    <ChevronRight size={14} className="shrink-0" />
                  </Button>
                  <button 
                    onClick={handleDismiss}
