@@ -1,4 +1,4 @@
-# Dependencies
+# Dependency nodes
 node_modules/
 
 # Build artifacts
@@ -6,17 +6,19 @@ node_modules/
 out/
 dist/
 build/
-.firebase/
 
-# Environment secrets
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Environment/Secrets
 .env
 .env.local
-.env.*.local
-
-# Logs
-*.log
-firebase-debug.log*
+.env.development.local
+.env.test.local
+.env.production.local
 
 # System files
 .DS_Store
-Thumbs.db
+*.log

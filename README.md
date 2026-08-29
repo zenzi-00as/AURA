@@ -8,7 +8,7 @@ Aura materializes as a high-fidelity mobile-first web application, featuring AI-
 ## ✨ Main Features
 - **Discovery Stage**: Proximity-based human discovery with advanced filtering nodes.
 - **Identity Guard**: AI-biometric selfie verification for a bot-free environment.
-- **Secure Messaging**: High-speed chat synchronization with ephemeral media support.
+- **Secure Messaging**: High-speed chat synchronization with ephemeral media support and view-once packets.
 - **Membership Hub**: Luxury tiers (Elite & Elite Plus) with hardware-locked benefit protocols.
 - **Super Fund**: A voluntary global support mechanism for community-driven development.
 - **Stateless Architecture**: Minimalist data persistence for maximum member privacy.
