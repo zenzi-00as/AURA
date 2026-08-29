@@ -37,7 +37,13 @@ export function InterestedInSelector({ selected, onToggle }: InterestedInSelecto
                 )}
               >
                 <span className="truncate mr-1">{opt}</span>
-                {isSelected && <Check size={14} className="text-white shrink-0" />}
+                {isSelected && (
+                  <Check 
+                    size={14} 
+                    className="text-white shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]" 
+                    strokeWidth={4} 
+                  />
+                )}
               </motion.button>
             );
           })}

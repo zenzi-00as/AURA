@@ -47,7 +47,13 @@ export function OrientationSelector({ gender, selected, onSelect }: OrientationS
               )}
             >
               <span className="truncate mr-2">{opt}</span>
-              {selected === opt && <Check size={14} className="text-white shrink-0" />}
+              {selected === opt && (
+                <Check 
+                  size={14} 
+                  className="text-white shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]" 
+                  strokeWidth={4} 
+                />
+              )}
             </motion.button>
           ))}
         </AnimatePresence>
