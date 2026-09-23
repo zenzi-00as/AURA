@@ -19,6 +19,7 @@ import { GenderSelector } from "@/components/onboarding/GenderSelector";
 import { OrientationSelector } from "@/components/onboarding/OrientationSelector";
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
 import { useTranslation } from "@/context/LanguageContext";
+import { triggerAiVerification } from "@/actions/verification";
 
 const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
 const ROOM_OPTIONS = ["Yes", "No"];
@@ -245,6 +246,12 @@ export default function Onboarding() {
       });
 
       await batch.commit();
+
+      // TRIGGER: Hardware-locked AI Verification flow if image was uploaded
+      if (verificationPath) {
+        await triggerAiVerification(currentUser.uid).catch(e => console.error("Onboarding AI trigger fault:", e));
+      }
+
       router.replace("/dashboard");
     } catch (error: any) {
       console.error('Finalization Error:', error);

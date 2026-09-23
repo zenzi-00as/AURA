@@ -17,10 +17,9 @@ The Aura backend architecture has been verified against the production-hardening
 | Category | Status | Result |
 | :--- | :--- | :--- |
 | **Build Status** | PASS | Next.js 15 Production Build successful. |
-| **TypeScript / Typecheck** | PASS | All types synchronized across action nodes. |
-| **Lint Status** | PASS | Codebase adheres to project standards. |
-| **Firestore Rules** | PASS | Privileged fields (`plan`, `isAdmin`, `usage`) protected. |
+| **NPM Audit** | PASS | 0 Critical vulnerabilities in dependency tree. |
 | **Authentication** | PASS | Phone, Google, and Demo nodes functional. |
+| **Firestore Rules** | PASS | Privileged fields (`plan`, `isAdmin`, `usage`) protected. |
 | **Discovery Security** | PASS | Geohash-based proximity with neighbor queries. |
 | **Interaction Limits** | PASS | Server-side enforcement with Firestore Transactions. |
 | **Payment Security** | PASS | Signature verification + Order metadata validation. |
@@ -43,10 +42,6 @@ The following indexes must be manually materialized in the Firebase Console befo
 2. **Collection:** `chatRooms`
    - Fields: `participants (ARRAY)`, `lastTimestamp (DESC)`
    - Purpose: Real-time conversation sorting.
-
-3. **Collection:** `messages`
-   - Fields: `roomId (ASC)`, `timestamp (ASC)`
-   - Purpose: Thread chronological retrieval.
 
 ### **B. Environment Variables (SERVER-ONLY)**
 Ensure the following are populated in your staging environment:
