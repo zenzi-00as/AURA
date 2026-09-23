@@ -1,9 +1,8 @@
-
 'use server';
 
 /**
  * @fileOverview Atomic Interaction Hub.
- * Enforces daily limits and entitlement checks server-side to prevent bypasses.
+ * Hardened with Session UID verification to prevent identity spoofing.
  */
 
 import { initializeFirebase } from "@/firebase/init";
@@ -11,8 +10,13 @@ import { doc, getDoc, updateDoc, increment, serverTimestamp, setDoc, collection,
 import { checkActionAllowed, getEffectivePlan } from "@/lib/subscription-engine";
 
 export async function handleSecureLike(fromUid: string, toUid: string, type: 'like' | 'super_like') {
-  const { db } = initializeFirebase();
-  if (!db) return { success: false, error: "Database Fault" };
+  const { db, auth } = initializeFirebase();
+  if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
+
+  // CRITICAL: Session UID Verification
+  if (auth.currentUser.uid !== fromUid) {
+    return { success: false, error: "Unauthorized Identity Packet" };
+  }
 
   try {
     return await runTransaction(db, async (transaction) => {
@@ -58,8 +62,13 @@ export async function handleSecureLike(fromUid: string, toUid: string, type: 'li
 }
 
 export async function handleSecureChat(fromUid: string, roomId: string, text: string) {
-  const { db } = initializeFirebase();
-  if (!db) return { success: false, error: "Database Fault" };
+  const { db, auth } = initializeFirebase();
+  if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
+
+  // CRITICAL: Session UID Verification
+  if (auth.currentUser.uid !== fromUid) {
+    return { success: false, error: "Unauthorized Identity Packet" };
+  }
 
   try {
     return await runTransaction(db, async (transaction) => {

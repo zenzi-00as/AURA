@@ -1,4 +1,3 @@
-
 /**
  * Aura Production Razorpay Implementation.
  * Hardened for server-side verification and high-fidelity transactions.
@@ -24,7 +23,7 @@ export async function initializeRazorpayPayment(options: {
 
     if (!order.success) throw new Error(order.error || "Order generation failed");
 
-    // 2. Open Razorpay Checkout (Requires razorpay.js script to be loaded)
+    // 2. Open Razorpay Checkout
     const rzpOptions = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       amount: order.orderData.amount,
@@ -33,13 +32,11 @@ export async function initializeRazorpayPayment(options: {
       description: `${options.itemType} Activation`,
       order_id: order.orderData.id,
       handler: async function (response: any) {
-        // 3. Verify payment on Server
+        // 3. Verify payment on Server (removed itemType/quantity from call as they are fetched from order notes)
         const verification = await verifyRazorpayPayment({
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          itemType: options.itemType,
-          quantity: options.quantity || 1
+          razorpay_signature: response.razorpay_signature
         });
 
         if (verification.success) {

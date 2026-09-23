@@ -1,4 +1,3 @@
-
 'use client';
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
@@ -14,11 +13,12 @@ export interface FirebaseServices {
   storage: FirebaseStorage | null;
 }
 
+/**
+ * @fileOverview Central Firebase Initialization Node.
+ * Hardened to support both Client and Server Action contexts by removing environment-specific checks.
+ */
 export function initializeFirebase(): FirebaseServices {
-  if (typeof window === 'undefined') {
-    return { app: null, db: null, auth: null, storage: null };
-  }
-  
+  // Synchronized initialization for both browser and server-action contexts
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
