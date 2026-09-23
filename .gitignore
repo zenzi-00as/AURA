@@ -1,22 +1,24 @@
+# AURA SECURITY PERIMETER
+# Block build artifacts, local secrets, and system logs.
+
 # Dependencies
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
-# Build artifacts
+# Build Output
 .next/
 out/
 build/
 dist/
 
-# Firebase
+# Firebase Node
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
 firestore-debug.log
-ui-debug.log
 
-# Environment variables
+# Environment Secrets (CRITICAL)
 .env
 .env.local
 .env.*.local
@@ -24,14 +26,9 @@ ui-debug.log
 .env.development
 .env.test
 
-# IDE and OS files
+# System Artifacts
 .DS_Store
-.vscode/
-.idea/
-*.swp
-*.bak
-*.tmp
 *.log
-
-# Project specific
-public/mockServiceWorker.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
