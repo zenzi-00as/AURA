@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -12,6 +13,7 @@ import { doc, updateDoc, serverTimestamp, collection, addDoc } from "firebase/fi
 import { ref, uploadBytes } from "firebase/storage";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { cn } from "@/lib/utils";
+import { triggerAiVerification } from "@/actions/verification";
 
 export default function VerifyProfilePage() {
   const router = useRouter();
@@ -66,7 +68,8 @@ export default function VerifyProfilePage() {
 
     try {
       const fileName = `verification_${Date.now()}_${imageFile.name}`;
-      const storageRef = ref(storage, `verifications/${currentUser.uid}/${fileName}`);
+      const storagePath = `verifications/${currentUser.uid}/${fileName}`;
+      const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, imageFile);
 
       const userRef = doc(db, "users", currentUser.uid);
@@ -74,23 +77,26 @@ export default function VerifyProfilePage() {
         verificationStatus: 'Pending',
         verification: {
           status: 'pending',
-          imagePath: storageRef.fullPath,
+          imagePath: storagePath,
           submittedAt: serverTimestamp(),
           reviewedAt: null,
           rejectionReason: null
         }
       });
 
+      // TRIGGER: Hardware-locked AI Verification flow
+      await triggerAiVerification(currentUser.uid);
+
       await addDoc(collection(db, "notifications"), {
         userId: currentUser.uid,
         title: "Verification Under Review",
-        body: "Your identity verification request has been submitted for review.",
+        body: "Your identity verification request has been submitted. Our AI Guard is processing your bio-signals.",
         type: "verification",
         timestamp: serverTimestamp(),
         read: false
       });
 
-      toast({ title: "Submission Successful", description: "Your profile is now under review." });
+      toast({ title: "Submission Successful", description: "Your profile is now under AI review." });
       router.replace('/profile');
     } catch (error: any) {
       console.error('Upload Error:', error);
@@ -122,7 +128,7 @@ export default function VerifyProfilePage() {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">Identity Guard</h2>
               <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
-                Upload a clear photo so we can verify that your profile belongs to you.
+                Upload a clear photo so our AI can verify that your profile belongs to a real person.
               </p>
             </div>
           </div>
@@ -190,15 +196,10 @@ export default function VerifyProfilePage() {
                     disabled={isUploading || authLoading}
                     className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-center gap-3"
                   >
-                    {authLoading ? (
+                    {isUploading ? (
                       <div className="flex items-center gap-2">
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                        <span>Verifying Account...</span>
-                      </div>
-                    ) : isUploading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                        <span>Uploading Documents...</span>
+                        <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                        <span>Synchronizing AI...</span>
                       </div>
                     ) : (
                       <>
@@ -218,30 +219,11 @@ export default function VerifyProfilePage() {
               <h4 className="text-[10px] font-bold uppercase tracking-widest">Privacy Guarantee</h4>
             </div>
             <p className="text-xs text-white/40 font-light leading-relaxed">
-              Your verification image is encrypted and stored in a private vault. It will never be shown on your profile or shared with other members. Our safety team only uses it to confirm your identity.
+              Your verification image is encrypted and stored in a private vault. It will never be shown on your profile or shared with other members. Our AI Guard only uses it for biometric alignment.
             </p>
           </div>
         </div>
       </div>
     </AuthGuard>
-  );
-}
-
-function Loader2(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
   );
 }

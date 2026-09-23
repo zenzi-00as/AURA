@@ -45,10 +45,8 @@ import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { getPlanConfig } from "@/lib/subscription-engine";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { handleSecureChat } from "@/actions/interactions";
+import { handleMediaViewCleanup } from "@/actions/cleanup";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -62,15 +60,9 @@ export default function ChatRoomPage() {
   
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [showMediaOptions, setShowMediaOptions] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"unlimited" | "one" | "two">("unlimited");
   const [selectedMedia, setSelectedMedia] = useState<Message | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const roomId = useMemo(() => {
     if (!authUser?.uid || !idParam) return "";
@@ -112,20 +104,22 @@ export default function ChatRoomPage() {
     setIsSending(false);
   };
 
-  const handleMediaClick = (msg: Message) => {
-    if (!authUser) return;
+  const handleMediaClick = async (msg: Message) => {
+    if (!authUser || !roomId || !msg.id) return;
     const views = msg.viewCount?.[authUser.uid] || 0;
     
     if ((msg.viewMode === 'one' && views >= 1) || (msg.viewMode === 'two' && views >= 2)) {
-      toast({ title: "View Expired", description: "This media packet was valid for limited views only." });
+      toast({ title: "View Expired", description: "This media packet has already reached its lifecycle limit." });
       return;
     }
 
-    setSelectedMedia(msg);
-    if (db && roomId && msg.id) {
-       updateDoc(doc(db, "chatRooms", roomId, "messages", msg.id), {
-          [`viewCount.${authUser.uid}`]: increment(1)
-       }).catch(() => {});
+    // Securely increment view and check for cleanup on server
+    const result = await handleMediaViewCleanup(authUser.uid, roomId, msg.id);
+    
+    if (result.success) {
+       setSelectedMedia(msg);
+    } else {
+       toast({ variant: "destructive", title: "Sync Fault", description: result.error });
     }
   };
 
@@ -167,8 +161,15 @@ export default function ChatRoomPage() {
                 <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
                   <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", isMe ? "premium-gradient text-white rounded-br-none" : "bg-white/5 text-white rounded-bl-none border border-white/10")}>
                     {msg.isMedia ? (
-                      <div onClick={() => !isExpired && handleMediaClick(msg)} className={cn("relative rounded-2xl overflow-hidden cursor-pointer", isExpired && "opacity-40 grayscale")}>
-                         <img src={msg.mediaUrl} alt="" className={cn("max-w-full max-h-[300px] object-cover", isExpired && "blur-2xl")} />
+                      <div onClick={() => !isExpired && handleMediaClick(msg)} className={cn("relative rounded-2xl overflow-hidden cursor-pointer", (isExpired || !msg.mediaUrl) && "opacity-40 grayscale")}>
+                         {msg.mediaUrl ? (
+                           <img src={msg.mediaUrl} alt="" className={cn("max-w-full max-h-[300px] object-cover", isExpired && "blur-2xl")} />
+                         ) : (
+                           <div className="w-[200px] h-[150px] bg-black/40 flex flex-col items-center justify-center gap-2">
+                             <Lock size={24} className="text-white/20" />
+                             <span className="text-[10px] text-white/20 font-bold uppercase">Expired Packet</span>
+                           </div>
+                         )}
                          {isExpired && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><Lock size={20} className="text-white/60" /></div>}
                       </div>
                     ) : <p className="text-sm leading-relaxed font-light">{msg.text}</p>}

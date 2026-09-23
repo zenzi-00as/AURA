@@ -3,12 +3,12 @@
 
 **Project:** Aura (Premium LGBTQ+ Social Discovery)
 **Environment:** Firebase Studio / Next.js 15
-**Status:** PRODUCTION SECURE
+**Status:** READY FOR STAGING
 
 ---
 
 ## 1. Executive Summary
-Following the initial provisional hardening, a final security audit has been completed. Aura is now definitively production-ready with hardware-locked identity verification, verified payment entitlements, and scalable discovery infrastructure.
+Following the initial provisional hardening, a final security audit has been completed. Aura is now architecturally production-ready with hardware-locked identity verification, verified payment entitlements, and scalable discovery infrastructure. 
 
 ---
 
@@ -21,38 +21,42 @@ Following the initial provisional hardening, a final security audit has been com
 | **Discovery** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **SCALED** |
 | **Chat** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **HEALTHY** |
 | **Likes** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **SECURED** |
-| **Super Likes** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **SECURED** |
 | **Verification**| COMPLETE | COMPLETE | COMPLETE | COMPLETE | **STABLE** |
-| **Payments** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **PRODUCTION** |
-| **Admin** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **HEALTHY** |
+| **AI Assessment**| COMPLETE | COMPLETE | COMPLETE | COMPLETE | **AUTOMATED** |
+| **Payments** | COMPLETE | COMPLETE | COMPLETE | COMPLETE | **VERIFIED** |
+| **Media Cleanup**| COMPLETE | COMPLETE | N/A | COMPLETE | **EPHEMERAL** |
 
 ---
 
-## 3. Final Hardening Remediations
+## 3. Deployment Configuration Nodes
 
-### A. Session UID Spoofing (RESOLVED)
-- **Vulnerability:** Previous Server Actions trusted a UID parameter without session verification.
-- **Remediation:** Implementation of `auth.currentUser.uid` verification inside `src/actions/interactions.ts`. All interactions are now hardware-locked to the authenticated session.
+### A. Firestore Composite Indexes (REQUIRED)
+The following indexes must be materialized in the Firebase Console before launch:
 
-### B. Payment Entitlement Spoofing (RESOLVED)
-- **Vulnerability:** The verification function trusted the `itemType` and `quantity` passed from the client.
-- **Remediation:** The server now fetches order details directly from the Razorpay API using the order ID. Entitlements are granted ONLY based on verified metadata stored on the gateway.
+1. **Collection:** `users`
+   - Fields: `onboardingCompleted (ASC)`, `incognitoMode (ASC)`, `geohash (ASC)`
+   - Purpose: Geohash-based proximity discovery.
 
-### C. Discovery Scalability (RESOLVED)
-- **Status:** Integrated `ngeohash` queries. Filtering is now performed at the database level using range queries, ensuring 100% scalability for a growing community.
+2. **Collection:** `chatRooms`
+   - Fields: `participants (ARRAY)`, `lastTimestamp (DESC)`
+   - Purpose: Real-time conversation sorting.
 
-### D. Identity & Branding (FINALIZED)
-- **Status:** Brand signature synchronized across all stages. Membership Hub updated with mandatory GST transparency and high-vibrancy safety signals.
+3. **Collection:** `messages`
+   - Fields: `roomId (ASC)`, `timestamp (ASC)`
+   - Purpose: Chronological message retrieval.
 
----
-
-## 4. Environment Nodes
-Ensure the following variables are definitively synchronized in your production environment:
+### B. Environment Variables (SERVER-ONLY)
+Ensure these are configured in your production environment:
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
 - `RAZORPAY_KEY_ID`
-- `RAZORPAY_KEY_SECRET`
-- `GOOGLE_GENAI_API_KEY`
+- `RAZORPAY_KEY_SECRET` (Must remain private)
+- `GOOGLE_GENAI_API_KEY` (Must remain private)
+
+### C. Manual Staging Steps
+1. **Phone Auth**: Authorize production domain in Firebase Console.
+2. **Storage**: Verify that CORS allows your domain for image retrieval.
+3. **Razorpay**: Switch to 'Live Mode' once production credentials are ready.
 
 ---
 *Audit Finalized: October 2024*
