@@ -80,6 +80,7 @@ export async function verifyRazorpayPayment(data: {
       } else if (data.itemType === 'SuperLike') {
         await updateDoc(userRef, { superLikeBalance: increment(data.quantity), updatedAt: serverTimestamp() });
       } else if (data.itemType === 'SuperFund') {
+        const snap = await getDoc(userRef);
         await updateDoc(userRef, { isSuperFunder: true, updatedAt: serverTimestamp() });
         await addDoc(collection(db, "superFunds"), {
           userId: uid,
