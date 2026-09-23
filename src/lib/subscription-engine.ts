@@ -1,3 +1,4 @@
+
 import { PlanType, UserProfile } from "./types";
 import { format } from "date-fns";
 
@@ -85,7 +86,8 @@ export function getEffectivePlan(profile: UserProfile | null): PlanType {
   if (plan === 'free') return 'free';
 
   if (profile.subscription?.expiresAt) {
-    const expiryDate = profile.subscription.expiresAt.toDate ? profile.subscription.expiresAt.toDate() : new Date(profile.subscription.expiresAt);
+    const expiresAt = profile.subscription.expiresAt;
+    const expiryDate = expiresAt?.toDate ? expiresAt.toDate() : new Date(expiresAt);
     if (expiryDate <= new Date()) return 'free';
   }
 
@@ -100,6 +102,8 @@ export function checkActionAllowed(
   profile: UserProfile | null, 
   action: 'newChat' | 'like' | 'media'
 ): CheckResult {
+  if (!profile) return { allowed: false, reason: 'UNAUTHENTICATED' };
+
   const planId = getEffectivePlan(profile);
   const config = getPlanConfig(planId);
   const usage = profile?.usage || { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: '' };
@@ -144,9 +148,10 @@ export function isElitePlus(profile: UserProfile | null) {
 export function isSpotlightActive(profile: UserProfile | null | undefined) {
   if (!profile?.spotlightExpiry) return false;
   try {
-    const expiry = profile.spotlightExpiry.toDate 
-      ? profile.spotlightExpiry.toDate() 
-      : (profile.spotlightExpiry instanceof Date ? profile.spotlightExpiry : new Date(profile.spotlightExpiry));
+    const spotlightExpiry = profile.spotlightExpiry;
+    const expiry = spotlightExpiry.toDate 
+      ? spotlightExpiry.toDate() 
+      : (spotlightExpiry instanceof Date ? spotlightExpiry : new Date(spotlightExpiry));
     return expiry > new Date();
   } catch (e) {
     return false;

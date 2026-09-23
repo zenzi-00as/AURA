@@ -1,3 +1,4 @@
+
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected' | 'unverified';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending' | 'free';
 export type PlanType = 'free' | 'elite' | 'elite_plus';
@@ -76,6 +77,7 @@ export type UserProfile = {
     lat: number;
     lng: number;
   } | null;
+  geohash?: string; // SCALABILITY: Added for high-fidelity discovery
   distance?: string; 
   distanceKm?: number;
   lastActive: any; 

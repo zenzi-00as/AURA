@@ -1,7 +1,7 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Utility functions for centralized authorization logic
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -15,12 +15,8 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // User Profile Rules
     match /users/{userId} {
-      // Individual profile reading is open to all authenticated users
       allow get: if isAuthenticated();
-      
-      // Broad listing for Discovery must respect privacy settings
       allow list: if isAuthenticated() && (
         isAdmin() || (
           resource.data.onboardingCompleted == true && 
@@ -29,25 +25,28 @@ service cloud.firestore {
       );
 
       allow create: if isOwner(userId);
-      // Restrict sensitive field modification
+      
+      // HARDENED: Prevent client from modifying privileged fields
       allow update: if isOwner(userId) && 
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan', 'subscription', 'isAdmin', 'isSuspended', 'uid']);
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'plan', 'isAdmin', 'superLikeBalance', 'usage', 'isSuperFunder', 
+          'spotlightExpiry', 'subscription', 'verificationStatus', 'verification'
+        ]);
+        
       allow update, delete: if isAdmin();
       
-      // Blocked Users Sub-collection
       match /blockedUsers/{blockedId} {
         allow read, write: if isOwner(userId);
       }
     }
 
-    // Interaction Rules
     match /likes/{likeId} {
       allow read: if isAuthenticated() && (
         resource.data.fromUserId == request.auth.uid || 
         resource.data.toUserId == request.auth.uid
       );
-      allow create: if isAuthenticated() && request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && resource.data.fromUserId == request.auth.uid;
+      // HARDENED: Creation and deletion should be handled via Server Actions for limit enforcement
+      allow create, update, delete: if false; 
     }
 
     match /matches/{matchId} {
@@ -55,7 +54,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Messaging Rules
     match /chatRooms/{roomId} {
       allow read: if isAuthenticated() && request.auth.uid in resource.data.participants;
       allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participants;
@@ -63,20 +61,11 @@ service cloud.firestore {
       
       match /messages/{messageId} {
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
-        allow create: if isAuthenticated() && 
-          request.resource.data.senderId == request.auth.uid &&
-          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
+        // HARDENED: Only allow Server Actions to create messages to enforce daily chat limits
+        allow create: if false; 
       }
     }
 
-    // Super Fund Rules
-    match /superFunds/{fundId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdmin();
-    }
-
-    // System Records
     match /notifications/{notificationId} {
       allow read, update, delete: if isOwner(resource.data.userId);
       allow create: if isAdmin() || (isAuthenticated() && request.resource.data.type == 'message');
@@ -84,7 +73,12 @@ service cloud.firestore {
 
     match /purchases/{purchaseId} {
       allow read: if isOwner(resource.data.uid) || isAdmin();
-      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow create: if false; // Only Server Actions
+    }
+
+    match /superFunds/{fundId} {
+      allow read: if isAuthenticated();
+      allow create: if false; // Only Server Actions
     }
 
     match /reports/{reportId} {
