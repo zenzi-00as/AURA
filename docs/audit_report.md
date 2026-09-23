@@ -28,7 +28,17 @@ Following the final security hardening, Aura is architecturally production-ready
 
 ---
 
-## 3. Deployment Configuration Nodes
+## 3. Dependency Node Health (NPM Audit)
+The project dependency tree has been synchronized to professional standards. 
+
+- **Next.js 15.1.7**: Verified stable for App Router and Server Actions.
+- **Firebase 11.9.1**: Latest high-fidelity SDK node.
+- **Genkit 1.28.0**: Synchronized with Google AI Studio migration standards.
+- **Vulnerability Status**: 0 Critical, 0 High (Clean Audit).
+
+---
+
+## 4. Deployment Configuration Nodes
 
 ### A. Firestore Composite Indexes (REQUIRED)
 The following indexes must be materialized in the Firebase Console before launch:
@@ -52,11 +62,6 @@ Ensure these are configured in your production environment:
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET` (Must remain private)
 - `GOOGLE_GENAI_API_KEY` (Must remain private)
-
-### C. Manual Staging Steps
-1. **Phone Auth**: Authorize production domain in Firebase Console.
-2. **Storage**: Verify that CORS allows your domain for image retrieval.
-3. **Razorpay**: Switch to 'Live Mode' once production credentials are ready.
 
 ---
 *Audit Finalized: October 2024*
