@@ -6,11 +6,15 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
-// Definitively check for server-side credentials before initialization
-const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+// DEFINTIVE SECRET RETRIEVAL: Prioritize the new GEMINI_API_KEY (Auth Key)
+// Fallback to legacy names only for transitional compatibility
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
 
-if (!apiKey && process.env.NODE_ENV === 'development') {
-  console.warn("[AURA AI WARNING] Gemini API Key is missing. AI flows will fail.");
+// SERVER-SIDE SECURITY GUARD
+if (!apiKey) {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn("[AURA AI WARNING] Gemini API Key is missing. AI flows will fail. Ensure GEMINI_API_KEY is set in .env.local");
+  }
 }
 
 export const ai = genkit({
@@ -19,5 +23,6 @@ export const ai = genkit({
       apiKey: apiKey
     })
   ],
+  // Standardized model for Aura identity and safety checks
   model: 'googleai/gemini-1.5-flash',
 });
