@@ -173,11 +173,19 @@ export type SuperFund = {
 export type ReportType = 'Harassment' | 'Spam' | 'Fake profile' | 'Scams' | 'Hate behavior' | 'Sexual exploitation' | 'Threats' | 'Inappropriate content' | 'Other';
 
 export type Report = {
-  id?: string;
+  id: string;
   reporterId: string;
   targetId: string;
-  reason: ReportType;
+  reason: string;
   description?: string;
   timestamp: any;
   status: 'Pending' | 'Reviewed' | 'Resolved';
+  conversationId?: string;
+};
+
+export type BlockedUser = {
+  id: string;
+  uid: string;
+  name: string;
+  blockedAt: any;
 };

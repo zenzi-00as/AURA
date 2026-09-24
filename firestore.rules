@@ -38,7 +38,6 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
-      // FCM Device Tokens Security
       match /notificationDevices/{tokenId} {
         allow read, write: if isOwner(userId);
       }
@@ -84,7 +83,10 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow create: if isAuthenticated();
+      // Reporter can only create their own report and can't change status
+      allow create: if isAuthenticated() && 
+                   request.resource.data.reporterId == request.auth.uid &&
+                   request.resource.data.status == 'Pending';
       allow read, write: if isAdmin();
     }
   }

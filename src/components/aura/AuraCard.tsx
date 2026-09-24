@@ -1,24 +1,42 @@
 
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { BadgeCheck, MapPin, Lock, Sparkles, Heart, MessageSquare, X, Loader2, Star } from "lucide-react";
+import { BadgeCheck, MapPin, Lock, Heart, MessageSquare, X, Loader2, MoreVertical, ShieldAlert, UserX, Flag } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
 import { getPlanConfig } from "@/lib/subscription-engine";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { MatchModal } from "./MatchModal";
 import { UpgradeModal } from "./UpgradeModal";
 import { handleSecureLike } from "@/actions/interactions";
+import { handleBlockUser, handleReportUser } from "@/actions/moderation";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 interface AuraCardProps {
   user: UserProfile;
   onClick?: () => void;
 }
+
+const REPORT_CATEGORIES = [
+  "Harassment or bullying",
+  "Spam or scam",
+  "Fake profile / impersonation",
+  "Inappropriate content",
+  "Sexual or exploitative content",
+  "Threats or violence",
+  "Hate or abusive behavior",
+  "Underage/safety concern",
+  "Other"
+];
 
 export function AuraCard({ user, onClick }: AuraCardProps) {
   const { profile: currentUser, effectivePlan } = useAuthContext();
@@ -30,6 +48,13 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   const [showMatch, setShowMatch] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [upgradeModal, setUpgradeModal] = useState<{isOpen: boolean, plan: any, feature: string, limit?: number | null} | null>(null);
+
+  // Moderation state
+  const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportCategory, setReportCategory] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [isReporting, setIsReporting] = useState(false);
 
   const blurPhotos = planConfig.profilePhotos === 'blurred';
 
@@ -50,6 +75,35 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
       }
     }
     setIsLoading(false);
+  };
+
+  const onBlock = async () => {
+    if (!currentUser) return;
+    const res = await handleBlockUser(currentUser.uid, user.uid, user.name);
+    if (res.success) {
+      toast({ title: "User Blocked", description: "You will no longer encounter this profile." });
+      setIsDetailOpen(false);
+    } else {
+      toast({ variant: "destructive", title: "Safety sync fault", description: res.error });
+    }
+  };
+
+  const onReport = async () => {
+    if (!currentUser || !reportCategory) return;
+    setIsReporting(true);
+    const res = await handleReportUser({
+      reporterId: currentUser.uid,
+      targetId: user.uid,
+      reason: reportCategory,
+      description: reportDescription
+    });
+    if (res.success) {
+      toast({ title: "Report Submitted", description: "Thank you for helping keep Aura safe." });
+      setIsReportDialogOpen(false);
+    } else {
+      toast({ variant: "destructive", title: "Report sync fault", description: res.error });
+    }
+    setIsReporting(false);
   };
 
   const interactionButtons = (
@@ -97,7 +151,18 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         <SheetContent side="bottom" className="bg-[#05070D] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
           <div className="h-full flex flex-col">
             <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 bg-[#080A10E0] backdrop-blur-xl shrink-0">
-                <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
+                <div className="flex items-center gap-2">
+                   <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40"><MoreVertical size={14} /></button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-[#11141C] border-white/10 text-white rounded-2xl">
+                        <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500"><UserX size={16} /> Block User</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2"><Flag size={16} /> Report User</DropdownMenuItem>
+                      </DropdownMenuContent>
+                   </DropdownMenu>
+                </div>
                 <button onClick={() => setIsDetailOpen(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
             </header>
             <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
@@ -114,6 +179,54 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
     <UpgradeModal isOpen={!!upgradeModal?.isOpen} onClose={() => setUpgradeModal(null)} requiredPlan={upgradeModal?.plan} featureName={upgradeModal?.feature || ''} limit={upgradeModal?.limit} />
     <MatchModal isOpen={showMatch} onClose={() => setShowMatch(false)} user={user} currentUser={currentUser} matchType='like' />
+
+    {/* Moderation Dialogs */}
+    <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
+      <AlertDialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Block this user?</AlertDialogTitle>
+          <AlertDialogDescription className="text-white/60">
+            Blocked users cannot contact you or interact with your profile. You will no longer see each other in Discovery.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-white/5 border-white/10 text-white">Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white">Block</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+      <DialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px] p-8">
+        <DialogHeader>
+          <DialogTitle>Report User</DialogTitle>
+          <DialogDescription className="text-white/60">Help us keep Aura safe. Your report is strictly private.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <Select value={reportCategory} onValueChange={setReportCategory}>
+            <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-12">
+              <SelectValue placeholder="Select Reason" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-xl">
+              {REPORT_CATEGORIES.map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Textarea 
+            placeholder="Tell us more (optional)" 
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value)}
+            className="bg-white/5 border-white/10 rounded-xl min-h-[100px] resize-none"
+          />
+        </div>
+        <DialogFooter>
+          <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl">
+            {isReporting ? <Loader2 className="animate-spin" /> : "Submit Report"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }

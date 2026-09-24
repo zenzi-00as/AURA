@@ -1,22 +1,26 @@
+
 'use server';
 
 /**
  * @fileOverview Atomic Interaction Hub.
- * Hardened with Session UID verification to prevent identity spoofing.
+ * Hardened with Session UID verification and Block checking.
  */
 
 import { initializeFirebase } from "@/firebase/init";
 import { doc, getDoc, updateDoc, increment, serverTimestamp, setDoc, collection, runTransaction } from "firebase/firestore";
-import { checkActionAllowed, getEffectivePlan } from "@/lib/subscription-engine";
+import { checkActionAllowed } from "@/lib/subscription-engine";
+import { checkIsBlocked } from "./moderation";
 
 export async function handleSecureLike(fromUid: string, toUid: string, type: 'like' | 'super_like') {
   const { db, auth } = initializeFirebase();
   if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
 
   // CRITICAL: Session UID Verification
-  if (auth.currentUser.uid !== fromUid) {
-    return { success: false, error: "Unauthorized Identity Packet" };
-  }
+  if (auth.currentUser.uid !== fromUid) return { success: false, error: "Unauthorized Identity Packet" };
+
+  // CRITICAL: Block Verification
+  const blocked = await checkIsBlocked(fromUid, toUid);
+  if (blocked) return { success: false, error: "Interaction restricted by safety protocol" };
 
   try {
     return await runTransaction(db, async (transaction) => {
@@ -66,9 +70,7 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
   if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
 
   // CRITICAL: Session UID Verification
-  if (auth.currentUser.uid !== fromUid) {
-    return { success: false, error: "Unauthorized Identity Packet" };
-  }
+  if (auth.currentUser.uid !== fromUid) return { success: false, error: "Unauthorized Identity Packet" };
 
   try {
     return await runTransaction(db, async (transaction) => {
@@ -76,18 +78,26 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
       const roomSnap = await transaction.get(roomRef);
       if (!roomSnap.exists()) throw new Error("Communication node not found");
 
+      const participants = roomSnap.data().participants;
+      const otherUid = participants.find((id: string) => id !== fromUid);
+
+      // CRITICAL: Block Verification (Skip for system rooms)
+      if (otherUid && !roomId.startsWith('system_')) {
+        const blocked = await checkIsBlocked(fromUid, otherUid);
+        if (blocked) throw new Error("Messaging restricted by safety protocol");
+      }
+
       const userRef = doc(db, "users", fromUid);
       const userSnap = await transaction.get(userRef);
       const profile = userSnap.data() as any;
 
-      // Only check limit for the FIRST message in a new conversation (system rooms bypass)
+      // Only check limit for the FIRST message in a new conversation
       if (roomSnap.data().lastMessage === "" && !roomId.startsWith('system_')) {
         const check = checkActionAllowed(profile, 'newChat');
         if (!check.allowed) throw new Error("Daily chat synchronization limit reached");
         transaction.update(userRef, { 'usage.newChatsUsed': increment(1) });
       }
 
-      const otherUid = roomSnap.data().participants.find((id: string) => id !== fromUid);
       const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
       
       transaction.set(msgRef, {

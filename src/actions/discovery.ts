@@ -4,6 +4,7 @@
 /**
  * @fileOverview Geospatial Discovery Node.
  * Calibrates geohashes for scalable proximity queries.
+ * Hardened to exclude blocked relationships.
  */
 
 import { initializeFirebase } from "@/firebase/init";
@@ -32,6 +33,10 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
   const neighbors = ngeohash.neighbors(centerHash);
   const searchHashes = [centerHash, ...neighbors];
 
+  // Fetch blocked users to exclude from results
+  const blockedSnap = await getDocs(collection(db, "users", uid, "blockedUsers"));
+  const blockedIds = new Set(blockedSnap.docs.map(d => d.id));
+
   const results: any[] = [];
   
   // Parallel query nodes for high-speed synchronization
@@ -51,8 +56,11 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
   const batches = await Promise.all(queries);
   batches.forEach(batch => results.push(...batch));
 
-  // Deduplicate and filter self
+  // Deduplicate and filter: self, suspended, and blocked users
   return results.filter((user, index, self) => 
-    user.uid !== uid && !user.isSuspended && self.findIndex(u => u.uid === user.uid) === index
+    user.uid !== uid && 
+    !user.isSuspended && 
+    !blockedIds.has(user.uid) &&
+    self.findIndex(u => u.uid === user.uid) === index
   );
 }
