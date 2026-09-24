@@ -9,14 +9,20 @@ import { initializeFirebase } from "@/firebase/init";
 import { doc, getDoc, updateDoc, setDoc, serverTimestamp, increment, collection, addDoc } from "firebase/firestore";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import { validateServerEnv } from "@/lib/env-validation";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+// Initialize Razorpay with validated server environment
+function getRazorpayInstance() {
+  const env = validateServerEnv();
+  return new Razorpay({
+    key_id: env.razorpayKeyId || '',
+    key_secret: env.razorpaySecret,
+  });
+}
 
 export async function createRazorpayOrder({ amount, itemType, quantity }: { amount: number, itemType: string, quantity: number }) {
   try {
+    const razorpay = getRazorpayInstance();
     const options = {
       amount: Math.round(amount * 100), // Convert to paise
       currency: "INR",
@@ -40,7 +46,8 @@ export async function verifyRazorpayPayment(data: {
   if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
 
   const uid = auth.currentUser.uid;
-  const secret = process.env.RAZORPAY_KEY_SECRET || '';
+  const env = validateServerEnv();
+  const secret = env.razorpaySecret;
   const body = data.razorpay_order_id + "|" + data.razorpay_payment_id;
 
   const expectedSignature = crypto
@@ -50,6 +57,7 @@ export async function verifyRazorpayPayment(data: {
 
   if (expectedSignature === data.razorpay_signature) {
     try {
+      const razorpay = getRazorpayInstance();
       // HARDENED: Fetch order details directly from Razorpay to prevent itemType/quantity spoofing
       const order = await razorpay.orders.fetch(data.razorpay_order_id);
       if (!order) throw new Error("Order not found on gateway");
@@ -77,7 +85,7 @@ export async function verifyRazorpayPayment(data: {
         });
       } else if (itemType === 'Spotlight') {
         const snap = await getDoc(userRef);
-        const currentExp = snap.data()?.spotlightExpiry?.toDate ? snap.data().spotlightExpiry.toDate() : (snap.data()?.spotlightExpiry ? new Date(snap.data().spotlightExpiry) : new Date());
+        const currentExp = snap.data()?.spotlightExpiry?.toDate ? snap.data().spotlightExpiry.toDate() : (snap.data()?.spotlightExpiry ? new Date(snap.data().spotheartExpiry) : new Date());
         const baseDate = currentExp > new Date() ? currentExp : new Date();
         const newExpiry = new Date(baseDate);
         newExpiry.setDate(newExpiry.getDate() + 7);
