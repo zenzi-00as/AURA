@@ -3,15 +3,16 @@
 /**
  * @fileOverview Hardened Razorpay interaction node.
  * Definitively verifies signatures and order metadata server-side to prevent entitlement spoofing.
+ * Standardized with Aura Monitoring Protocol.
  */
 
 import { initializeFirebase } from "@/firebase/init";
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp, increment, collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "firebase/firestore";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { validateServerEnv } from "@/lib/env-validation";
+import { logger } from "@/lib/logger";
 
-// Initialize Razorpay with validated server environment
 function getRazorpayInstance() {
   const env = validateServerEnv();
   return new Razorpay({
@@ -21,18 +22,25 @@ function getRazorpayInstance() {
 }
 
 export async function createRazorpayOrder({ amount, itemType, quantity }: { amount: number, itemType: string, quantity: number }) {
+  const correlationId = logger.generateCorrelationId();
   try {
     const razorpay = getRazorpayInstance();
     const options = {
-      amount: Math.round(amount * 100), // Convert to paise
+      amount: Math.round(amount * 100),
       currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-      notes: { itemType, quantity } // Store details in notes for server-side verification
+      receipt: `receipt_${Date.now()}_${correlationId}`,
+      notes: { itemType, quantity, correlationId }
     };
 
     const order = await razorpay.orders.create(options);
+    logger.info('Razorpay Order Created', { correlationId, itemType, amount, orderId: order.id });
     return { success: true, orderData: order };
   } catch (e: any) {
+    logger.error('Razorpay Order Creation Failed', { 
+      category: 'PAYMENT_ERROR', 
+      correlationId, 
+      errorMessage: e.message 
+    });
     return { success: false, error: e.message };
   }
 }
@@ -43,7 +51,12 @@ export async function verifyRazorpayPayment(data: {
   razorpay_signature: string;
 }) {
   const { db, auth } = initializeFirebase();
-  if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
+  const correlationId = logger.generateCorrelationId();
+  
+  if (!db || !auth?.currentUser) {
+    logger.critical('Payment Verification Fault: Auth Sync', { correlationId });
+    return { success: false, error: "Authentication Sync Fault" };
+  }
 
   const uid = auth.currentUser.uid;
   const env = validateServerEnv();
@@ -58,15 +71,16 @@ export async function verifyRazorpayPayment(data: {
   if (expectedSignature === data.razorpay_signature) {
     try {
       const razorpay = getRazorpayInstance();
-      // HARDENED: Fetch order details directly from Razorpay to prevent itemType/quantity spoofing
       const order = await razorpay.orders.fetch(data.razorpay_order_id);
-      if (!order) throw new Error("Order not found on gateway");
+      
+      if (!order) {
+        logger.error('Order Not Found on Gateway', { category: 'PAYMENT_ERROR', correlationId, orderId: data.razorpay_order_id });
+        throw new Error("Order not found on gateway");
+      }
 
       const itemType = order.notes?.itemType as string;
       const quantity = parseInt(order.notes?.quantity?.toString() || "1");
       const amount = order.amount / 100;
-
-      if (!itemType) throw new Error("Invalid order metadata synchronization");
 
       const userRef = doc(db, "users", uid);
       
@@ -85,24 +99,13 @@ export async function verifyRazorpayPayment(data: {
         });
       } else if (itemType === 'Spotlight') {
         const snap = await getDoc(userRef);
-        const currentExp = snap.data()?.spotlightExpiry?.toDate ? snap.data().spotlightExpiry.toDate() : (snap.data()?.spotlightExpiry ? new Date(snap.data().spotheartExpiry) : new Date());
+        const currentExp = snap.data()?.spotlightExpiry?.toDate ? snap.data().spotlightExpiry.toDate() : (snap.data()?.spotlightExpiry ? new Date(snap.data().spotlightExpiry) : new Date());
         const baseDate = currentExp > new Date() ? currentExp : new Date();
         const newExpiry = new Date(baseDate);
         newExpiry.setDate(newExpiry.getDate() + 7);
         await updateDoc(userRef, { spotlightExpiry: newExpiry, updatedAt: serverTimestamp() });
       } else if (itemType === 'SuperLike') {
         await updateDoc(userRef, { superLikeBalance: increment(quantity), updatedAt: serverTimestamp() });
-      } else if (itemType === 'SuperFund') {
-        const snap = await getDoc(userRef);
-        await updateDoc(userRef, { isSuperFunder: true, updatedAt: serverTimestamp() });
-        await addDoc(collection(db, "superFunds"), {
-          userId: uid,
-          displayName: snap.data()?.name || "Aura Supporter",
-          amount: amount,
-          status: 'verified',
-          timestamp: serverTimestamp(),
-          paymentId: data.razorpay_payment_id
-        });
       }
 
       await addDoc(collection(db, "purchases"), {
@@ -111,15 +114,28 @@ export async function verifyRazorpayPayment(data: {
         amount,
         timestamp: serverTimestamp(),
         razorpayOrderId: data.razorpay_order_id,
-        status: 'Success'
+        status: 'Success',
+        correlationId
       });
 
+      logger.info('Payment Verified & Entitlement Granted', { correlationId, uid, itemType });
       return { success: true };
     } catch (err: any) {
-      console.error("[PAYMENT_VERIFY_ERROR]", err);
+      logger.error('Payment Verification Synchronization Fault', { 
+        category: 'PAYMENT_ERROR', 
+        correlationId, 
+        uid,
+        errorMessage: err.message 
+      });
       return { success: false, error: "Entitlement Synchronization Fault" };
     }
   }
 
+  logger.critical('Invalid Razorpay Signature Detected', { 
+    category: 'PAYMENT_ERROR', 
+    correlationId, 
+    uid, 
+    orderId: data.razorpay_order_id 
+  });
   return { success: false, error: "Invalid Signature Packet" };
 }

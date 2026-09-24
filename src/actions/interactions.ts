@@ -1,26 +1,35 @@
-
 'use server';
 
 /**
  * @fileOverview Atomic Interaction Hub.
- * Hardened with Session UID verification and Block checking.
+ * Standardized with Aura Monitoring Protocol and Block verification.
  */
 
 import { initializeFirebase } from "@/firebase/init";
-import { doc, getDoc, updateDoc, increment, serverTimestamp, setDoc, collection, runTransaction } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment, serverTimestamp, collection, runTransaction } from "firebase/firestore";
 import { checkActionAllowed } from "@/lib/subscription-engine";
 import { checkIsBlocked } from "./moderation";
+import { logger } from "@/lib/logger";
 
 export async function handleSecureLike(fromUid: string, toUid: string, type: 'like' | 'super_like') {
   const { db, auth } = initializeFirebase();
-  if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
+  const correlationId = logger.generateCorrelationId();
 
-  // CRITICAL: Session UID Verification
-  if (auth.currentUser.uid !== fromUid) return { success: false, error: "Unauthorized Identity Packet" };
+  if (!db || !auth?.currentUser) {
+    logger.error('Interaction Failed: Auth Fault', { category: 'AUTH_ERROR', correlationId });
+    return { success: false, error: "Authentication Sync Fault" };
+  }
 
-  // CRITICAL: Block Verification
+  if (auth.currentUser.uid !== fromUid) {
+    logger.critical('Interaction Identity Spoof Attempt', { category: 'AUTH_ERROR', correlationId, actor: auth.currentUser.uid, targetUid: fromUid });
+    return { success: false, error: "Unauthorized Identity Packet" };
+  }
+
   const blocked = await checkIsBlocked(fromUid, toUid);
-  if (blocked) return { success: false, error: "Interaction restricted by safety protocol" };
+  if (blocked) {
+    logger.warn('Blocked Interaction Attempted', { category: 'CHAT_ERROR', correlationId, fromUid, toUid });
+    return { success: false, error: "Interaction restricted by safety protocol" };
+  }
 
   try {
     return await runTransaction(db, async (transaction) => {
@@ -58,19 +67,25 @@ export async function handleSecureLike(fromUid: string, toUid: string, type: 'li
         status: 'active'
       });
 
+      logger.info('Secure Interaction Recorded', { correlationId, type, fromUid, toUid });
       return { success: true };
     });
   } catch (e: any) {
+    logger.error('Interaction Transaction Fault', { category: 'FIRESTORE_ERROR', correlationId, fromUid, errorMessage: e.message });
     return { success: false, error: e.message };
   }
 }
 
 export async function handleSecureChat(fromUid: string, roomId: string, text: string) {
   const { db, auth } = initializeFirebase();
+  const correlationId = logger.generateCorrelationId();
+
   if (!db || !auth?.currentUser) return { success: false, error: "Authentication Sync Fault" };
 
-  // CRITICAL: Session UID Verification
-  if (auth.currentUser.uid !== fromUid) return { success: false, error: "Unauthorized Identity Packet" };
+  if (auth.currentUser.uid !== fromUid) {
+    logger.critical('Chat Identity Spoof Attempt', { category: 'AUTH_ERROR', correlationId, actor: auth.currentUser.uid });
+    return { success: false, error: "Unauthorized Identity Packet" };
+  }
 
   try {
     return await runTransaction(db, async (transaction) => {
@@ -81,7 +96,6 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
       const participants = roomSnap.data().participants;
       const otherUid = participants.find((id: string) => id !== fromUid);
 
-      // CRITICAL: Block Verification (Skip for system rooms)
       if (otherUid && !roomId.startsWith('system_')) {
         const blocked = await checkIsBlocked(fromUid, otherUid);
         if (blocked) throw new Error("Messaging restricted by safety protocol");
@@ -91,7 +105,6 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
       const userSnap = await transaction.get(userRef);
       const profile = userSnap.data() as any;
 
-      // Only check limit for the FIRST message in a new conversation
       if (roomSnap.data().lastMessage === "" && !roomId.startsWith('system_')) {
         const check = checkActionAllowed(profile, 'newChat');
         if (!check.allowed) throw new Error("Daily chat synchronization limit reached");
@@ -114,9 +127,11 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
         [`unreadCount.${otherUid}`]: increment(1)
       });
 
+      logger.info('Secure Chat Synchronized', { correlationId, roomId, fromUid });
       return { success: true };
     });
   } catch (e: any) {
+    logger.error('Chat Transaction Fault', { category: 'CHAT_ERROR', correlationId, roomId, errorMessage: e.message });
     return { success: false, error: e.message };
   }
 }

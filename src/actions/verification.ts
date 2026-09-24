@@ -1,19 +1,24 @@
-
 'use server';
 
 /**
  * @fileOverview Automated Identity Guard Node.
- * Triggers Genkit AI verification flows and synchronizes results for Admin review.
+ * Standardized with Aura Monitoring Protocol.
  */
 
 import { initializeFirebase } from "@/firebase/init";
-import { doc, updateDoc, getDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
-import { getStorage, ref, getBytes } from "firebase/storage";
+import { doc, updateDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { ref, getBytes } from "firebase/storage";
 import { selfieVerification } from "@/ai/flows/selfie-verification-ai";
+import { logger } from "@/lib/logger";
 
 export async function triggerAiVerification(uid: string) {
   const { db, storage, auth } = initializeFirebase();
-  if (!db || !storage || !auth) return { success: false, error: "System Sync Fault" };
+  const correlationId = logger.generateCorrelationId();
+
+  if (!db || !storage || !auth) {
+    logger.error('AI Verification Trigger Fault: System Sync', { correlationId });
+    return { success: false, error: "System Sync Fault" };
+  }
 
   try {
     const userRef = doc(db, "users", uid);
@@ -25,37 +30,41 @@ export async function triggerAiVerification(uid: string) {
 
     if (!imagePath) throw new Error("Verification packet missing image node");
 
-    // 1. Fetch image buffer from secure Storage
     const storageRef = ref(storage, imagePath);
     const buffer = await getBytes(storageRef);
     const base64 = Buffer.from(buffer).toString('base64');
     const dataUri = `data:image/jpeg;base64,${base64}`;
 
-    // 2. Execute Genkit Flow
+    logger.info('Triggering AI Biometric Assessment', { correlationId, uid });
+
     const aiResult = await selfieVerification({
       photoDataUri: dataUri,
       userName: profile.name || "Aura Member",
       userDescription: profile.bio || ""
     });
 
-    // 3. Synchronize AI assessment to secure status node
-    // Note: AI never grants 'Verified' status automatically; it provides assessment for Admin.
     await updateDoc(userRef, {
       'verification.aiAssessment': {
         isRealPerson: aiResult.isRealPerson,
         isLiveCapture: aiResult.isLiveCapture,
         matchesProfile: aiResult.matchesProfile,
         reason: aiResult.reason,
-        processedAt: serverTimestamp()
+        processedAt: serverTimestamp(),
+        correlationId
       },
-      // If AI rejects definitively (not a person/photo of screen), we can set status to Rejected
       verificationStatus: aiResult.verificationStatus === 'Rejected' ? 'Rejected' : 'Pending',
       updatedAt: serverTimestamp()
     });
 
+    logger.info('AI Biometric Assessment Completed', { correlationId, uid, status: aiResult.verificationStatus });
     return { success: true, status: aiResult.verificationStatus };
   } catch (e: any) {
-    console.error("[AI_VERIFICATION_ERROR]", e);
+    logger.error('AI Verification Lifecycle Exception', { 
+      category: 'VERIFICATION_ERROR', 
+      correlationId, 
+      uid, 
+      errorMessage: e.message 
+    });
     return { success: false, error: e.message };
   }
 }

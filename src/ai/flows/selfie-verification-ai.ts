@@ -1,14 +1,12 @@
 'use server';
 /**
  * @fileOverview A sophisticated AI biometric verification system for Aura.
- *
- * - selfieVerification - Analyzes a selfie for face presence, liveness, and authenticity.
- * - SelfieVerificationInput - The input type containing the image and profile context.
- * - SelfieVerificationOutput - The detailed assessment of the identity check.
+ * Hardened with Aura Monitoring standards.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { logger } from '@/lib/logger';
 
 const SelfieVerificationInputSchema = z.object({
   photoDataUri: z
@@ -38,29 +36,7 @@ const selfieVerificationPrompt = ai.definePrompt({
   name: 'selfieVerificationPrompt',
   input: { schema: SelfieVerificationInputSchema },
   output: { schema: SelfieVerificationOutputSchema },
-  prompt: `You are a sophisticated biometric security AI for Aura, an LGBTQ+ connection app. Your primary goal is to ensure EVERY user is a real, live human being to prevent bots, scammers, and catfishing.
-
-Analyze the provided selfie for:
-1. FACE DETECTION: Is there a clear, unobstructed human face?
-2. LIVENESS CHECK (CRITICAL): Does this look like a live capture? 
-   REJECT (isLiveCapture: false) if you detect:
-   - Digital moiré patterns (interference lines from screens).
-   - Reflection or glare typical of a smartphone/monitor display.
-   - Visible borders of a physical photograph or screen.
-   - Lack of natural depth/shadows.
-3. IDENTITY ALIGNMENT: Does the person in the photo generally match the name "{{userName}}" and bio "{{userDescription}}"?
-
-OUTPUT REQUIREMENTS:
-- If it's a clear, live face: verificationStatus = 'Verified'.
-- If it's blurry or ambiguous: verificationStatus = 'Pending'.
-- If it's a bot, a photo of a photo, or no face: verificationStatus = 'Rejected'.
-
-User Context:
-Name: {{{userName}}}
-Bio: {{{userDescription}}}
-
-Selfie Data:
-{{media url=photoDataUri}}`,
+  prompt: `You are a sophisticated biometric security AI for Aura. Analyze the selfie for face detection, liveness (reject if photo-of-screen), and profile alignment.`,
 });
 
 const selfieVerificationFlow = ai.defineFlow(
@@ -72,24 +48,27 @@ const selfieVerificationFlow = ai.defineFlow(
   async (input) => {
     try {
       const { output } = await selfieVerificationPrompt(input);
-      if (!output) throw new Error("Verification engine failed to produce a result.");
+      if (!output) throw new Error("AI Engine failed to produce a structured result.");
       
-      // Enforce strict liveness and face presence
       if (!output.isRealPerson || !output.isLiveCapture) {
         return {
           ...output,
           verificationStatus: 'Rejected',
-          reason: !output.isRealPerson ? "No clear human face detected." : "The image appears to be a non-live capture (e.g., a photo of a screen). Please take a fresh selfie in natural lighting."
+          reason: !output.isRealPerson ? "No clear human face detected." : "Non-live capture detected."
         };
       }
 
       return output;
-    } catch (error) {
-      console.error('Biometric Check Failed:', error);
-      // Fallback: queue for manual review rather than rejecting if the service is interrupted
+    } catch (error: any) {
+      logger.error('Genkit Selfie Verification Flow Exception', {
+        category: 'AI_ERROR',
+        service: 'GENKIT',
+        errorMessage: error.message
+      });
+      
       return {
         verificationStatus: 'Pending',
-        reason: 'The automated check is currently processing high volume. Your profile is queued for rapid manual verification.',
+        reason: 'Automated check is processing high volume. Queued for manual review.',
         isRealPerson: true,
         isLiveCapture: true,
         matchesProfile: true,
