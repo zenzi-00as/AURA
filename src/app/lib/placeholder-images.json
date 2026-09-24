@@ -4,13 +4,19 @@
       "id": "aura-hero",
       "description": "Abstract colorful gradient representing identity",
       "imageUrl": "https://picsum.photos/seed/aura1/800/600",
-      "imageHint": "abstract gradient"
+      "imageHint": "abstract identity"
     },
     {
       "id": "user-avatar-placeholder",
       "description": "Generic user avatar placeholder",
       "imageUrl": "https://picsum.photos/seed/user/200/200",
-      "imageHint": "user profile"
+      "imageHint": "profile avatar"
+    },
+    {
+      "id": "verification-guide",
+      "description": "Illustration of a user taking a selfie",
+      "imageUrl": "https://picsum.photos/seed/verify/400/600",
+      "imageHint": "secure selfie"
     }
   ]
 }
