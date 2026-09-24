@@ -7,7 +7,7 @@
 export function validateServerEnv() {
   const required = [
     'RAZORPAY_KEY_SECRET',
-    'GOOGLE_GENAI_API_KEY'
+    'GEMINI_API_KEY'
   ];
 
   const missing = required.filter(key => !process.env[key]);
@@ -22,7 +22,7 @@ export function validateServerEnv() {
 
   return {
     razorpaySecret: process.env.RAZORPAY_KEY_SECRET!,
-    geminiKey: process.env.GOOGLE_GENAI_API_KEY!,
+    geminiKey: process.env.GEMINI_API_KEY!,
     razorpayKeyId: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
   };
 }
