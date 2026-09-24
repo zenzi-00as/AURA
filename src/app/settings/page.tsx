@@ -20,10 +20,12 @@ import {
   Mail,
   Coins,
   EyeOff,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/context/LanguageContext";
@@ -50,9 +53,11 @@ import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
 import { useCollection, useFirestore, useUser, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
 import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc } from "firebase/firestore";
+import { deleteUser } from "firebase/auth";
 import { BlockedUser } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { getPlanConfig } from "@/lib/subscription-engine";
+import { deleteAuraAccountData } from "@/actions/account";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -76,6 +81,11 @@ export default function SettingsPage() {
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
+
+  // Account Deletion State
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -116,7 +126,7 @@ export default function SettingsPage() {
       setSettings(prev => ({ ...prev, [key]: value }));
       toast({ title: "Preference Updated" });
     } catch (e) {
-      // toast error handled via listener
+      // Error handled by FirebaseProvider listener
     }
   };
 
@@ -143,6 +153,42 @@ export default function SettingsPage() {
     const blockRef = doc(db, "users", authUser.uid, "blockedUsers", blockId);
     deleteDoc(blockRef).catch(() => {});
     toast({ title: "User Unblocked", description: `${name} can now find you again.` });
+  };
+
+  const handlePermanentDeletion = async () => {
+    if (!authUser || deleteConfirmText !== "DELETE" || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      // 1. Trigger Server-side Data Cleanup
+      const result = await deleteAuraAccountData(authUser.uid);
+      if (!result.success) throw new Error(result.error);
+
+      // 2. Delete Auth User (requires recent login)
+      const { auth } = initializeFirebase();
+      if (auth?.currentUser) {
+        await deleteUser(auth.currentUser);
+      }
+
+      toast({ title: "Aura Deleted", description: "Your presence has been definitively removed." });
+      router.replace('/auth');
+    } catch (e: any) {
+      console.error("Deletion Error:", e);
+      if (e.code === 'auth/requires-recent-login') {
+        toast({ 
+          variant: "destructive", 
+          title: "Security Verification Required", 
+          description: "Please sign out and sign in again before deleting your account." 
+        });
+      } else {
+        toast({ 
+          variant: "destructive", 
+          title: "Deletion Synchronicity Fault", 
+          description: "Failed to purge all data nodes. Please try again." 
+        });
+      }
+      setIsDeleting(false);
+    }
   };
 
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
@@ -264,12 +310,73 @@ export default function SettingsPage() {
         </section>
 
         <section className="space-y-4 pt-4">
-          <h2 className="text-[10px] font-bold text-destructive uppercase tracking-widest px-1">{t('account_actions')}</h2>
+          <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Account Actions</h2>
           <div className="space-y-2">
             <button onClick={handleSignOutClick} className="w-full h-16 px-8 rounded-3xl bg-muted border border-border flex items-center gap-4 text-foreground hover:bg-rose-500/10 transition-all">
                <LogOut size={18} className="text-rose-500" />
                <span className="font-medium">{t('sign_out')}</span>
             </button>
+
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+              <DialogTrigger asChild>
+                <button className="w-full h-16 px-8 rounded-3xl bg-muted border border-border flex items-center gap-4 text-foreground hover:bg-rose-500/10 transition-all group">
+                   <Trash2 size={18} className="text-muted-foreground group-hover:text-rose-500 transition-colors" />
+                   <span className="font-medium">Delete Account</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-popover border-border text-foreground rounded-[40px] w-[calc(100%-40px)] max-w-[440px] p-10">
+                <DialogHeader className="space-y-6">
+                  <div className="w-20 h-20 rounded-[32px] bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto shadow-xl">
+                    <AlertTriangle size={40} />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <DialogTitle className="text-3xl font-bold tracking-tight">Delete your Aura?</DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
+                      Your profile and associated personal data will be permanently purged. This action cannot be undone.
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+
+                <div className="py-8 space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-2xl border border-border space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Final Confirmation</label>
+                    <p className="text-[10px] text-muted-foreground px-1 italic">Type DELETE to definitively authorize this action.</p>
+                    <Input 
+                      placeholder="DELETE" 
+                      value={deleteConfirmText} 
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      className="h-14 bg-background border-rose-500/20 text-center font-bold text-lg tracking-[0.2em]"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="flex flex-col gap-3 sm:flex-col sm:space-x-0">
+                  <Button 
+                    onClick={handlePermanentDeletion} 
+                    disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                    variant="destructive"
+                    className="w-full h-16 rounded-[24px] font-bold text-lg shadow-xl relative overflow-hidden"
+                  >
+                    {isDeleting ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="animate-spin" />
+                        <span>Purging Identity...</span>
+                      </div>
+                    ) : (
+                      "Delete My Account"
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsDeleteOpen(false)}
+                    disabled={isDeleting}
+                    className="w-full h-12 text-[10px] font-bold uppercase tracking-widest"
+                  >
+                    Cancel
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
 
