@@ -20,6 +20,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 import {
   Select,
   SelectContent,
@@ -61,7 +62,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
-      console.log("[AUTH] Active session detected, directing to destination node.");
+      logger.info('Auth Session Detected', { uid: user.uid });
       setIsRedirecting(true);
       if (onboardingCompleted) {
         router.replace("/dashboard");
@@ -87,8 +88,11 @@ export default function AuthPage() {
       recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible'
       });
-    } catch (error) {
-      console.error("[AUTH_ERROR] reCAPTCHA init failed", error);
+    } catch (error: any) {
+      logger.error('reCAPTCHA Initialization Failed', { 
+        category: 'AUTH_ERROR', 
+        errorMessage: error.message 
+      });
     }
   };
 
@@ -115,6 +119,8 @@ export default function AuthPage() {
     if (isLoading || isRedirecting) return;
     
     setIsLoading(true);
+    const correlationId = logger.generateCorrelationId();
+
     try {
       if (step === "details") {
         if (!email.includes("@")) throw new Error("Invalid Email Identity");
@@ -123,7 +129,7 @@ export default function AuthPage() {
         }
         if (!agreedToTerms) throw new Error("Terms required to synchronize");
 
-        console.log("[AUTH] Initiating phone synchronization stage.");
+        logger.info('Initiating Phone Auth', { correlationId });
         initRecaptcha();
         const fullPhone = countryCode + phone;
         
@@ -135,12 +141,12 @@ export default function AuthPage() {
         if (otpNormalized.length !== 6) throw new Error("Enter the 6-digit verification code");
         if (!confirmationResultRef.current) throw new Error("Verification session expired. Please go back.");
 
-        console.log("[AUTH] Verifying credential packet.");
+        logger.info('Verifying OTP Packet', { correlationId });
         const result = await confirmationResultRef.current.confirm(otpNormalized);
         const authedUser = result.user;
 
         if (authedUser) {
-          console.log("[AUTH] Firebase Auth Success. Syncing Firestore profile.");
+          logger.info('Phone Auth Success', { correlationId, uid: authedUser.uid });
           const userRef = doc(db, "users", authedUser.uid);
           const snap = await getDoc(userRef);
 
@@ -152,10 +158,14 @@ export default function AuthPage() {
               onboardingCompleted: false,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
-              dailyChatCount: 0,
-              dailyMediaCount: 0,
+              usage: {
+                newChatsUsed: 0,
+                likesUsed: 0,
+                mediaUsed: 0,
+                lastResetDate: new Date().toISOString().split('T')[0]
+              },
               superLikeBalance: 0,
-              plan: 'Free',
+              plan: 'free',
               incognitoMode: false,
               isSuspended: false,
               isAdmin: false,
@@ -166,7 +176,12 @@ export default function AuthPage() {
         }
       }
     } catch (error: any) {
-      console.error("[AUTH_ERROR]", error.code, error.message);
+      logger.error('Authentication Sync Fault', { 
+        category: 'AUTH_ERROR', 
+        correlationId, 
+        errorCode: error.code,
+        errorMessage: error.message 
+      });
       const message = getFriendlyError(error.code) || error.message;
       toast({ variant: "destructive", title: "Authentication Error", description: message });
       if (step === "otp") setOtp("");
@@ -179,14 +194,16 @@ export default function AuthPage() {
     if (!auth || !db) return;
     if (isLoading || isRedirecting) return;
     setIsLoading(true);
+    const correlationId = logger.generateCorrelationId();
+
     try {
-      console.log("[AUTH] Materializing Google Login Stage.");
+      logger.info('Initiating Google Auth', { correlationId });
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const authedUser = result.user;
 
       if (authedUser) {
-        console.log("[AUTH] Google Sync Success. Orchestrating profile.");
+        logger.info('Google Auth Success', { correlationId, uid: authedUser.uid });
         const userRef = doc(db, "users", authedUser.uid);
         const snap = await getDoc(userRef);
 
@@ -200,17 +217,23 @@ export default function AuthPage() {
             onboardingCompleted: false,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            plan: 'Free',
+            plan: 'free',
             incognitoMode: false,
             isSuspended: false,
             isAdmin: false,
             isOnline: true,
-            lastActive: serverTimestamp()
+            lastActive: serverTimestamp(),
+            usage: {
+              newChatsUsed: 0,
+              likesUsed: 0,
+              mediaUsed: 0,
+              lastResetDate: new Date().toISOString().split('T')[0]
+            }
           });
         }
       }
     } catch (error: any) {
-      console.error("[AUTH_ERROR]", error);
+      logger.error('Google Access Denied', { category: 'AUTH_ERROR', correlationId, errorMessage: error.message });
       toast({ variant: "destructive", title: "Google Access Denied", description: "Unable to synchronize with Google." });
     } finally {
       setIsLoading(false);
@@ -220,7 +243,7 @@ export default function AuthPage() {
   const handleDemoAccess = () => {
     if (isDemoLoading) return;
     setIsDemoLoading(true);
-    console.log("[AUTH] Entering Development Demo Stage.");
+    logger.info('Entering Demo Mode Node');
     setTimeout(() => {
       loginAsDemo();
     }, 1200);
@@ -232,7 +255,6 @@ export default function AuthPage() {
     <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-y-auto">
       <div className="absolute inset-0 z-0 hero-radial" />
       
-      {/* Header Section */}
       <header className="mb-10 relative z-10 flex flex-col items-center text-center">
         <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-8">
           <span className="text-white font-bold text-xl">A</span>
@@ -263,7 +285,6 @@ export default function AuthPage() {
             {step === "details" ? (
               <div className="space-y-6">
                 <div className="space-y-4">
-                  {/* Email address field */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
                     <Input 
@@ -275,7 +296,6 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  {/* Country code + Phone number field */}
                   <div className="flex gap-4">
                     <div className="w-24">
                       <Select 
@@ -307,7 +327,6 @@ export default function AuthPage() {
                     />
                   </div>
 
-                  {/* Terms & Privacy checkbox */}
                   <div className="flex items-start space-x-3 px-1 pt-2">
                     <Checkbox 
                       id="terms" 
@@ -322,7 +341,6 @@ export default function AuthPage() {
                 </div>
 
                 <div className="pt-4 space-y-6">
-                  {/* Generate Access button */}
                   <Button 
                     onClick={handleNext}
                     disabled={isLoading || isRedirecting}
@@ -333,14 +351,12 @@ export default function AuthPage() {
                     <ArrowRight size={20} className="text-white" />
                   </Button>
 
-                  {/* Quick Access Section */}
                   <div className="flex items-center gap-4">
                      <div className="h-[1px] flex-1 bg-white/10" />
                      <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Quick Access</span>
                      <div className="h-[1px] flex-1 bg-white/10" />
                   </div>
 
-                  {/* Continue with Google button */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
@@ -355,7 +371,6 @@ export default function AuthPage() {
                     <ArrowRight size={20} className="text-white/20 group-hover:text-white transition-colors" />
                   </motion.button>
 
-                  {/* Development Demo Button */}
                   {isDemoModeEnabled && (
                     <motion.button
                       initial={{ opacity: 0 }}
