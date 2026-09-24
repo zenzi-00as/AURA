@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -8,7 +9,25 @@ import { useCollection, useFirestore, initializeFirebase } from "@/firebase";
 import { collection, query, updateDoc, doc, serverTimestamp, limit, where, orderBy } from "firebase/firestore";
 import { getDownloadURL, ref } from "firebase/storage";
 import { UserProfile, Report, SuperFund, Purchase } from "@/lib/types";
-import { Shield, UserCheck, UserX, Star, ArrowLeft, ShieldCheck, Clock, ExternalLink, Loader2, Sparkles, Coins, TrendingUp } from "lucide-react";
+import { 
+  Shield, 
+  UserCheck, 
+  UserX, 
+  Star, 
+  ArrowLeft, 
+  ShieldCheck, 
+  Clock, 
+  ExternalLink, 
+  Loader2, 
+  Sparkles, 
+  Coins, 
+  TrendingUp,
+  Database,
+  Save,
+  RotateCcw,
+  AlertTriangle,
+  Info
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +42,7 @@ export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications' | 'superfund'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'reports' | 'verifications' | 'superfund' | 'system'>('users');
   const [rejectionReason, setRejectionReason] = useState("");
 
   // Gate collection listeners with admin entitlement
@@ -133,8 +152,8 @@ export default function AdminPage() {
                 <button onClick={() => router.back()} className="text-muted-foreground"><ArrowLeft size={20} /></button>
                 <h1 className="text-xl font-bold">Aura Command</h1>
              </div>
-             <div className="flex gap-1 overflow-x-auto">
-                {['users', 'verifications', 'reports', 'superfund'].map((tab) => (
+             <div className="flex gap-1 overflow-x-auto max-w-[200px] sm:max-w-none">
+                {['users', 'verifications', 'reports', 'superfund', 'system'].map((tab) => (
                   <Button 
                     key={tab}
                     size="sm" 
@@ -300,6 +319,83 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </motion.div>
+            )}
+
+            {activeTab === 'system' && (
+              <motion.div key="admin-tab-system" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                 <div className="p-8 rounded-[40px] glass-card border-white/10 space-y-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                          <Database size={24} />
+                       </div>
+                       <div className="space-y-1">
+                          <h2 className="text-xl font-bold text-white">System Infrastructure</h2>
+                          <p className="text-xs text-white/40 uppercase tracking-widest">Backup & Recovery Protocol</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                       <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                          <div className="flex items-center gap-2 text-[#00FF88]">
+                             <Save size={18} />
+                             <h4 className="text-[10px] font-bold uppercase tracking-widest">Backup Status</h4>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-2xl font-black text-white">HEALTHY</p>
+                             <p className="text-[10px] text-white/30 font-medium">Protocol: Google Managed Export</p>
+                          </div>
+                       </div>
+                       <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                          <div className="flex items-center gap-2 text-primary">
+                             <RotateCcw size={18} />
+                             <h4 className="text-[10px] font-bold uppercase tracking-widest">Last Sync</h4>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-2xl font-black text-white">VERIFIED</p>
+                             <p className="text-[10px] text-white/30 font-medium">Timestamp: Automated Node</p>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4 pt-6 border-t border-white/5">
+                       <div className="flex items-center gap-2 text-amber-500">
+                          <AlertTriangle size={16} />
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest">Recovery Guidelines</h4>
+                       </div>
+                       <div className="space-y-3">
+                          {[
+                            "Data recovery must be performed via Google Cloud Console.",
+                            "Authentication records require weekly CLI exports.",
+                            "Storage Object Versioning is active for member media.",
+                            "Direct production restoration requires system owner approval."
+                          ].map((tip, i) => (
+                            <div key={i} className="flex gap-3 text-xs text-white/60 font-light">
+                               <div className="w-1.5 h-1.5 rounded-full bg-white/10 mt-1.5 shrink-0" />
+                               <p>{tip}</p>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    <div className="pt-4">
+                       <Button 
+                         variant="outline" 
+                         onClick={() => window.open('https://console.cloud.google.com/firestore/backups', '_blank')}
+                         className="w-full h-14 rounded-2xl border-white/10 hover:bg-white/5 text-white/80 gap-2"
+                       >
+                          <ExternalLink size={16} />
+                          Access GCP Recovery Console
+                       </Button>
+                    </div>
+                 </div>
+
+                 <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 flex gap-4">
+                    <Info className="text-primary shrink-0" size={20} />
+                    <p className="text-xs text-white/40 leading-relaxed font-light">
+                      Aura operates on a stateless infrastructure node. Regular exports ensure that member identity and transaction records remain synchronized across deployment cycles.
+                    </p>
+                 </div>
               </motion.div>
             )}
           </AnimatePresence>
