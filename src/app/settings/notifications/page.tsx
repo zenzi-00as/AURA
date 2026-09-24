@@ -37,6 +37,7 @@ import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { UserNotificationSettings } from "@/lib/types";
+import { useFcm } from "@/hooks/use-fcm";
 
 const SETTING_GROUPS = [
   {
@@ -88,6 +89,7 @@ export default function NotificationSettingsPage() {
   const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser, profile } = useAuthContext();
+  const { registerPush, isRegistering } = useFcm();
   const [isSaving, setIsSaving] = useState(false);
   
   const [settings, setSettings] = useState<UserNotificationSettings>({
@@ -109,7 +111,7 @@ export default function NotificationSettingsPage() {
     ledFlash: false,
     lockScreenPreview: true,
     emailNotifications: true,
-    pushNotifications: true,
+    pushNotifications: false,
     dndSchedule: false,
     notificationPreview: true,
     muteIndividualChats: false,
@@ -123,8 +125,14 @@ export default function NotificationSettingsPage() {
     }
   }, [profile]);
 
-  const toggleSetting = (id: keyof UserNotificationSettings) => {
-    setSettings(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleSetting = async (id: keyof UserNotificationSettings) => {
+    const newValue = !settings[id];
+    setSettings(prev => ({ ...prev, [id]: newValue }));
+
+    // Trigger FCM registration if pushNotifications is enabled
+    if (id === 'pushNotifications' && newValue) {
+      await registerPush();
+    }
   };
 
   const handleSave = async () => {
@@ -154,7 +162,7 @@ export default function NotificationSettingsPage() {
         </div>
         <Button 
           onClick={handleSave} 
-          disabled={isSaving}
+          disabled={isSaving || isRegistering}
           className="h-10 px-4 rounded-xl fuchsia-gradient text-white font-bold text-xs"
         >
           {isSaving ? <Loader2 size={16} className="animate-spin" /> : <div className="flex items-center gap-2"><Save size={16} /> Save</div>}
@@ -184,6 +192,7 @@ export default function NotificationSettingsPage() {
                     <span className="text-sm font-medium text-white">{item.label}</span>
                   </div>
                   <Switch 
+                    disabled={isRegistering && item.id === 'pushNotifications'}
                     checked={settings[item.id as keyof UserNotificationSettings] as boolean} 
                     onCheckedChange={() => toggleSetting(item.id as keyof UserNotificationSettings)}
                     className="data-[state=checked]:bg-[#C93CFF]"
