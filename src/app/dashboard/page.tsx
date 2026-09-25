@@ -196,7 +196,7 @@ export default function Dashboard() {
                       <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-primary">
                             <Users size={12} />
-                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-white">1,240</span>
+                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-primary">1,240</span>
                          </div>
                          <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
