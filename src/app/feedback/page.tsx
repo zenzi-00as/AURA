@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageSquare, Send, CheckCircle2, Star } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, CheckCircle2, Star, Sparkles } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,46 +33,53 @@ export default function FeedbackPage() {
     if (!message.trim() || rating === 0) return;
     
     setIsLoading(true);
-    // Simulate API call
+    // Simulate API call synchronization
     setTimeout(() => {
       setIsLoading(false);
       setIsSubmitted(true);
-      toast({
-        title: t('feedback'),
-        description: t('feedback_success'),
-      });
     }, 1500);
   };
 
   if (isSubmitted) {
     return (
-      <div className="flex-1 flex flex-col bg-background items-center justify-center p-8 text-center space-y-6">
+      <div className="flex-1 flex flex-col bg-background items-center justify-center p-8 text-center space-y-10 min-h-screen-safe relative overflow-hidden">
+        <div className="absolute inset-0 z-0 hero-radial opacity-40" />
+        
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="w-20 h-20 rounded-[28px] bg-primary/10 flex items-center justify-center text-primary"
+          transition={{ type: "spring", damping: 12 }}
+          className="relative z-10 w-24 h-24 rounded-[32px] premium-gradient flex items-center justify-center text-white shadow-2xl neon-glow"
         >
-          <CheckCircle2 size={40} />
+          <CheckCircle2 size={48} />
         </motion.div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-foreground">Thank you!</h2>
-          <p className="text-muted-foreground font-light leading-relaxed">
+        
+        <div className="relative z-10 space-y-4">
+          <h2 className="text-4xl font-bold text-white tracking-tighter">Materialized!</h2>
+          <p className="text-white/60 font-light leading-relaxed max-w-[280px] mx-auto italic">
             {t('feedback_success')}
           </p>
         </div>
-        <Button 
-          onClick={() => router.push('/profile')}
-          className="w-full h-14 rounded-2xl premium-gradient text-white font-medium text-lg shadow-lg shadow-primary/20"
-        >
-          Back to Profile
-        </Button>
+
+        <div className="relative z-10 w-full max-w-xs pt-8">
+          <Button 
+            onClick={() => router.push('/profile')}
+            className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg shadow-xl shadow-primary/20 active:scale-95 transition-all"
+          >
+            Back to Profile
+          </Button>
+        </div>
+
+        <div className="absolute bottom-12 left-0 right-0 text-center opacity-20">
+          <p className="text-[10px] text-white uppercase tracking-[0.5em] font-black">Aura Feedback Node Synchronized</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-12 transition-colors">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
