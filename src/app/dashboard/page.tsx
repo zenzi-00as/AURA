@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -189,23 +190,23 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
           {/* Dashboard Hero / Welcome Node */}
           <div className="px-2 mb-6">
-             <div className="p-8 rounded-[40px] glass-card border-white/10 relative overflow-hidden group">
+             <div className="p-6 rounded-[32px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
                 <div className="relative z-10">
-                   <div className="flex gap-8">
-                      <div className="space-y-2">
-                         <div className="flex items-center gap-2.5 text-primary">
-                            <Users size={20} />
-                            <span className="text-2xl font-black uppercase tabular-nums tracking-widest">1,240</span>
+                   <div className="flex gap-6">
+                      <div className="space-y-1.5">
+                         <div className="flex items-center gap-2 text-primary">
+                            <Users size={18} />
+                            <span className="text-xl font-black uppercase tabular-nums tracking-widest">1,240</span>
                          </div>
-                         <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
+                         <p className="text-[8px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
-                      <div className="space-y-2">
-                         <div className="flex items-center gap-2.5 text-[#00FF88]">
-                            <Globe size={20} />
-                            <span className="text-2xl font-black uppercase tabular-nums tracking-widest">Global Sync</span>
+                      <div className="space-y-1.5">
+                         <div className="flex items-center gap-2 text-[#00FF88]">
+                            <Globe size={18} />
+                            <span className="text-xl font-black uppercase tabular-nums tracking-widest">Global Sync</span>
                          </div>
-                         <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
+                         <p className="text-[8px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
                    </div>
                 </div>
