@@ -21,6 +21,7 @@ import {
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
+import { CURRENT_TERMS_VERSION } from "@/lib/constants";
 import {
   Select,
   SelectContent,
@@ -62,15 +63,11 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
-      logger.info('Auth Session Detected', { uid: user.uid });
       setIsRedirecting(true);
-      if (onboardingCompleted) {
-        router.replace("/dashboard");
-      } else {
-        router.replace("/onboarding");
-      }
+      // Let AuthGuard handle the final destination (Terms -> Onboarding -> Dashboard)
+      router.replace("/dashboard");
     }
-  }, [user, authLoading, onboardingCompleted, router, isRedirecting]);
+  }, [user, authLoading, router, isRedirecting]);
 
   useEffect(() => {
     return () => {
@@ -100,7 +97,7 @@ export default function AuthPage() {
     switch (code) {
       case 'auth/invalid-credential':
       case 'auth/invalid-verification-code':
-        return "The verification code is invalid or this verification session has expired. Please request a new code.";
+        return "The verification code is invalid or this verification session has expired.";
       case 'auth/code-expired':
         return "This verification code has expired. Please request a new code.";
       case 'auth/too-many-requests':
@@ -125,9 +122,19 @@ export default function AuthPage() {
       if (step === "details") {
         if (!email.includes("@")) throw new Error("Invalid Email Identity");
         if (phone.length !== currentCountry.maxLength) {
-          throw new Error(`Invalid Phone. Expected ${currentCountry.maxLength} digits for ${currentCountry.name}.`);
+          throw new Error(`Invalid Phone digits for ${currentCountry.name}.`);
         }
-        if (!agreedToTerms) throw new Error("Terms required to synchronize");
+        
+        // Controlled Warning instead of Crash
+        if (!agreedToTerms) {
+          toast({ 
+            title: "Aura Terms required", 
+            description: "Please acknowledge the Terms and Privacy Guard to synchronize your identity.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
 
         logger.info('Initiating Phone Auth', { correlationId });
         initRecaptcha();
@@ -156,6 +163,9 @@ export default function AuthPage() {
               email: email,
               phoneNumber: countryCode + phone,
               onboardingCompleted: false,
+              termsAccepted: true,
+              termsAcceptedAt: serverTimestamp(),
+              termsVersion: CURRENT_TERMS_VERSION,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
               usage: {
@@ -193,6 +203,7 @@ export default function AuthPage() {
   const handleGoogleLogin = async () => {
     if (!auth || !db) return;
     if (isLoading || isRedirecting) return;
+    
     setIsLoading(true);
     const correlationId = logger.generateCorrelationId();
 
@@ -215,6 +226,11 @@ export default function AuthPage() {
             photoUrl: authedUser.photoURL || "",
             loginMethod: "google",
             onboardingCompleted: false,
+            // If they checked the box on the Auth page, record it. 
+            // If not, the TermsGuard will catch them post-login.
+            termsAccepted: agreedToTerms,
+            termsAcceptedAt: agreedToTerms ? serverTimestamp() : null,
+            termsVersion: agreedToTerms ? CURRENT_TERMS_VERSION : null,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             plan: 'free',
@@ -292,7 +308,7 @@ export default function AuthPage() {
                       placeholder="Email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#2563FF] focus:ring-0"
+                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white focus:border-[#2563FF] focus:ring-0 shadow-none"
                     />
                   </div>
 
@@ -305,7 +321,7 @@ export default function AuthPage() {
                           setPhone(""); 
                         }}
                       >
-                        <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white">
+                        <SelectTrigger className="h-14 bg-white/[0.045] border-white/10 rounded-2xl text-white shadow-none">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-2xl">
@@ -323,7 +339,7 @@ export default function AuthPage() {
                           setPhone(val);
                         }
                       }}
-                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1"
+                      className="h-14 bg-white/[0.045] border-white/10 rounded-2xl px-6 text-white flex-1 shadow-none"
                     />
                   </div>
 
@@ -398,7 +414,7 @@ export default function AuthPage() {
                     placeholder="000000"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="h-20 bg-white/[0.045] border-white/10 rounded-[28px] text-3xl tracking-[0.6em] font-bold text-center text-white"
+                    className="h-20 bg-white/[0.045] border-white/10 rounded-[28px] text-3xl tracking-[0.6em] font-bold text-center text-white shadow-none"
                   />
                 </div>
                 <button 

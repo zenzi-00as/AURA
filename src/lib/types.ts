@@ -90,6 +90,11 @@ export type UserProfile = {
   notificationSettings?: UserNotificationSettings;
   isDemoUser?: boolean;
   isSuperFunder?: boolean;
+  
+  // Terms Acceptance Node
+  termsAccepted?: boolean;
+  termsAcceptedAt?: any;
+  termsVersion?: string | null;
 };
 
 export type Message = {

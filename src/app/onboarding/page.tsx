@@ -20,6 +20,7 @@ import { OrientationSelector } from "@/components/onboarding/OrientationSelector
 import { InterestedInSelector } from "@/components/onboarding/InterestedInSelector";
 import { useTranslation } from "@/context/LanguageContext";
 import { triggerAiVerification } from "@/actions/verification";
+import { CURRENT_TERMS_VERSION } from "@/lib/constants";
 
 const POSITION_OPTIONS = ["Top", "Bottom", "Versatile", "Not specified"];
 const ROOM_OPTIONS = ["Yes", "No"];
@@ -43,7 +44,7 @@ export default function Onboarding() {
   const { formatPrice } = useCurrency();
   const db = useFirestore();
   const { storage, auth } = initializeFirebase();
-  const { user, loading: authLoading, profile } = useAuthContext();
+  const { user, loading: authLoading, profile, needsTermsAcceptance } = useAuthContext();
   
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,14 +73,22 @@ export default function Onboarding() {
     
     if (!user) {
       router.replace('/auth');
-    } else if (profile?.onboardingCompleted) {
+      return;
+    } 
+    
+    if (needsTermsAcceptance) {
+      router.replace('/auth/terms');
+      return;
+    }
+
+    if (profile?.onboardingCompleted) {
       router.replace('/dashboard');
     }
 
     if (profile?.location && step === 1) {
       setStep(2);
     }
-  }, [user, profile, authLoading, router, step]);
+  }, [user, profile, authLoading, needsTermsAcceptance, router, step]);
 
   const handleLocationEnable = () => {
     if (!navigator.geolocation) {
@@ -159,7 +168,6 @@ export default function Onboarding() {
     
     const currentUser = auth.currentUser;
 
-    // Idempotency check: Don't run if onboarding already finalized
     const existingSnap = await getDoc(doc(db, "users", currentUser.uid));
     if (existingSnap.exists() && existingSnap.data()?.onboardingCompleted) {
        router.replace("/dashboard");
@@ -208,20 +216,16 @@ export default function Onboarding() {
         lastActive: serverTimestamp(),
         isOnline: true,
         onboardingCompleted: true,
-        welcomeSent: true, // Marker for system welcome
+        welcomeSent: true,
         updatedAt: serverTimestamp(),
-        dailyChatCount: 0,
-        dailyMediaCount: 0,
-        superLikeBalance: 0,
-        plan: 'Free',
-        incognitoMode: false,
-        isSuspended: false,
-        isAdmin: false
+        // Terms verification Node
+        termsAccepted: true,
+        termsVersion: CURRENT_TERMS_VERSION,
+        termsAcceptedAt: profile?.termsAcceptedAt || serverTimestamp()
       };
 
       batch.set(userRef, profileData, { merge: true });
       
-      // Materialize System Welcome Conversation
       const systemRoomId = `system_${currentUser.uid}`;
       batch.set(doc(db, "chatRooms", systemRoomId), {
         id: systemRoomId,
@@ -247,7 +251,6 @@ export default function Onboarding() {
 
       await batch.commit();
 
-      // TRIGGER: Hardware-locked AI Verification flow if image was uploaded
       if (verificationPath) {
         await triggerAiVerification(currentUser.uid).catch(e => console.error("Onboarding AI trigger fault:", e));
       }
@@ -283,7 +286,7 @@ export default function Onboarding() {
     (step === 6 && formData.interestedIn.length === 0) || 
     (step === 7 && (!formData.position || !formData.room));
 
-  if (authLoading || !user || profile?.onboardingCompleted) {
+  if (authLoading || !user || profile?.onboardingCompleted || needsTermsAcceptance) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen relative overflow-hidden bg-background">
         <motion.div 
@@ -415,7 +418,7 @@ export default function Onboarding() {
                     placeholder="Share your desires and interests..." 
                     value={formData.bio} 
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })} 
-                    className="h-full bg-transparent border-none p-4 text-base text-white placeholder:text-white/20 focus:ring-0 resize-none" 
+                    className="h-full bg-transparent border-none p-4 text-base text-white placeholder:text-white/20 focus:ring-0 resize-none shadow-none" 
                   />
                 </div>
               </div>
@@ -621,7 +624,7 @@ export default function Onboarding() {
       </div>
 
       <div className="px-8 pb-8 pt-2 relative z-10 flex flex-col gap-4">
-        {step > 1 && (
+        {step > 0 && (
           <motion.button 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}

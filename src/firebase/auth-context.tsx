@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -7,10 +8,11 @@ import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import { getEffectivePlan } from '@/lib/subscription-engine';
+import { CURRENT_TERMS_VERSION } from '@/lib/constants';
 
 /**
  * @fileOverview Central Authentication and Profile Synchronization Node.
- * Hardened with explicit nested listener cleanup to prevent memory leaks and hydration errors.
+ * Hardened with Terms Acceptance state machine and session persistence.
  */
 
 interface AuthContextType {
@@ -18,6 +20,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   onboardingCompleted: boolean;
+  needsTermsAcceptance: boolean;
   exitDemoMode: () => void;
   loginAsDemo: () => void;
   effectivePlan: string;
@@ -28,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   onboardingCompleted: false,
+  needsTermsAcceptance: false,
   exitDemoMode: () => {},
   loginAsDemo: () => {},
   effectivePlan: 'free',
@@ -37,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<(User & { isDemoUser?: boolean }) | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsTermsAcceptance, setNeedsTermsAcceptance] = useState(false);
 
   const loginAsDemo = () => {
     if (typeof window !== 'undefined') {
@@ -61,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Hydration-safe demo check
     const getDemoStatus = () => {
       if (typeof window === 'undefined') return false;
       if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') return false;
@@ -95,11 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         incognitoMode: false,
         isSuspended: false,
         isAdmin: true,
-        usage: { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: format(new Date(), 'yyyy-MM-dd') }
+        usage: { newChatsUsed: 0, likesUsed: 0, mediaUsed: 0, lastResetDate: format(new Date(), 'yyyy-MM-dd') },
+        termsAccepted: true,
+        termsVersion: CURRENT_TERMS_VERSION
       };
       setUser(demoUser);
       setProfile(demoProfile);
       setLoading(false);
+      setNeedsTermsAcceptance(false);
       return;
     }
 
@@ -112,7 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let unsubscribeProfile: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
-      // Clear nested listener immediately on auth change
       if (unsubscribeProfile) {
         unsubscribeProfile();
         unsubscribeProfile = null;
@@ -125,7 +131,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
             
-            // Daily Limit Usage Reset Logic
+            // Validate Terms Node
+            const hasValidTerms = data.termsAccepted === true && data.termsVersion === CURRENT_TERMS_VERSION;
+            setNeedsTermsAcceptance(!hasValidTerms);
+
             const today = format(new Date(), 'yyyy-MM-dd');
             if (data.usage?.lastResetDate && data.usage.lastResetDate !== today) {
               updateDoc(userRef, {
@@ -140,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile(data);
           } else {
             setProfile(null);
+            setNeedsTermsAcceptance(true);
           }
           setLoading(false);
         });
@@ -147,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
       } else {
         setProfile(null);
+        setNeedsTermsAcceptance(false);
         setLoading(false);
       }
     });
@@ -162,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     loading,
     onboardingCompleted: !!profile?.onboardingCompleted,
+    needsTermsAcceptance,
     exitDemoMode,
     loginAsDemo,
     effectivePlan: getEffectivePlan(profile)
