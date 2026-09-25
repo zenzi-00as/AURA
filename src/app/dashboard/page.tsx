@@ -8,42 +8,17 @@ import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { SuperFundPrompt } from "@/components/aura/SuperFundPrompt";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Check, Search, Lock, Loader2 } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Search, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
-import { useFirestore } from "@/firebase";
 import { useAuthContext } from "@/firebase/auth-context";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { getPlanConfig } from "@/lib/subscription-engine";
-import { cn } from "@/lib/utils";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { getDiscoveryNodes, updateLocationGeohash } from "@/actions/discovery";
-
-const DEMO_USERS: UserProfile[] = [
-  {
-    uid: 'demo-1',
-    name: 'Julian',
-    age: 24,
-    bio: 'Architectural designer with a passion for brutalist minimalism and early morning espresso.',
-    photoUrl: 'https://picsum.photos/seed/aura-demo-1/600/800',
-    distance: '1.2km away',
-    isOnline: true,
-    verificationStatus: 'Verified',
-    onboardingCompleted: true,
-    lastActive: new Date(),
-    phoneNumber: '+1000000000',
-    gender: 'Man',
-    orientation: 'Gay',
-    interestedIn: ['Men'],
-    superLikeBalance: 0,
-    incognitoMode: false,
-    isSuspended: false,
-    isAdmin: false
-  }
-];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -112,6 +87,9 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col min-h-screen bg-[#05070D] relative transition-colors overflow-hidden">
+        {/* Support Onboarding Prompt */}
+        <SuperFundPrompt />
+
         <header className="px-4 h-20 flex justify-between items-center sticky top-0 bg-[#080A10E0] backdrop-blur-[18px] z-20 border-b border-white/5 safe-top">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center">
@@ -121,14 +99,17 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/super-fund')} className="h-10 px-5 rounded-full premium-gradient border-2 border-primary flex items-center gap-2 group transition-all shadow-[0_0_10px_rgba(0,87,255,0.15)]">
+            <button 
+              onClick={() => router.push('/super-fund')} 
+              className="h-10 px-5 rounded-full premium-gradient border-2 border-primary flex items-center gap-2 group transition-all shadow-[0_0_10px_rgba(0,87,255,0.15)] active:scale-95"
+            >
               <Sparkles size={16} className="text-white" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
             </button>
 
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60">
+                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
                   <SlidersHorizontal size={18} />
                 </button>
               </SheetTrigger>
@@ -142,7 +123,7 @@ export default function Dashboard() {
                     </div>
                     <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
                   </div>
-                  <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg">
+                  <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg shadow-xl shadow-primary/20">
                     Apply Filters
                   </Button>
                 </div>

@@ -2,66 +2,69 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X, Heart, ChevronRight } from "lucide-react";
+import { Sparkles, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+
+/**
+ * @fileOverview Aura Super Fund Information Prompt.
+ * Features a visual arrow node pointing to the Support trigger.
+ * Hardened to materialize on every application entry.
+ */
 
 export function SuperFundPrompt() {
   const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Session storage check to prevent repetitive interruptions
-    const dismissed = sessionStorage.getItem("aura_fund_dismissed");
-    if (!dismissed) {
-      const timer = setTimeout(() => setIsVisible(true), 5000);
-      return () => clearTimeout(timer);
-    }
+    // Materialize the prompt after a short synchronization delay for impact
+    const timer = setTimeout(() => setIsVisible(true), 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDismiss = () => {
-    sessionStorage.setItem("aura_fund_dismissed", "true");
     setIsVisible(false);
   };
 
   return (
     <AnimatePresence>
       {isVisible && (
-        <div className="fixed inset-x-0 top-[100px] z-[60] flex justify-center px-6 pointer-events-none">
+        <div className="fixed inset-x-0 top-[76px] z-[60] flex justify-end px-4 pointer-events-none">
           <motion.div
-            initial={{ y: -40, opacity: 0, scale: 0.9 }}
+            initial={{ y: -10, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -20, opacity: 0, scale: 0.9 }}
-            className="pointer-events-auto w-full max-w-[320px] bg-black border border-primary/30 rounded-[32px] p-6 shadow-2xl relative overflow-hidden"
+            exit={{ y: -5, opacity: 0, scale: 0.95 }}
+            className="pointer-events-auto w-full max-w-[260px] bg-[#11141C] border border-primary/40 rounded-[24px] p-5 shadow-2xl relative overflow-visible"
           >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10" />
+            {/* Visual Arrow Node pointing to Support Button */}
+            <div className="absolute -top-1.5 right-20 w-3.5 h-3.5 bg-[#11141C] border-t border-l border-primary/40 rotate-45 z-0" />
             
-            <div className="space-y-4 relative z-10">
+            <div className="space-y-3 relative z-10">
               <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
-                    <Sparkles size={20} className="text-white" />
+                 <div className="w-8 h-8 rounded-xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
+                    <Sparkles size={16} className="text-white" />
                  </div>
                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-bold text-white">Support Aura ✨</h4>
-                    <p className="text-[10px] text-white/40 uppercase tracking-widest">Help us grow</p>
+                    <h4 className="text-[11px] font-bold text-white uppercase tracking-tight">Super Fund</h4>
+                    <p className="text-[8px] text-white/30 uppercase tracking-[0.2em]">Community Node</p>
                  </div>
               </div>
 
-              <p className="text-xs text-white/60 leading-relaxed font-light">
-                Help Aura remain a safe haven for LGBTQ+ connections with a small Super Fund contribution.
+              <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                Voluntary contributions help us build a safer Aura haven. Support our development mission.
               </p>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                  <Button 
                    onClick={() => { handleDismiss(); router.push('/super-fund'); }}
-                   className="flex-1 h-10 rounded-xl premium-gradient font-bold text-[10px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-1.5"
+                   className="flex-1 h-9 rounded-xl premium-gradient font-bold text-[9px] uppercase tracking-widest shadow-lg flex items-center justify-center gap-1.5"
                  >
-                    Support Now
-                    <ChevronRight size={14} className="shrink-0" />
+                    Explore
+                    <ChevronRight size={12} className="shrink-0" />
                  </Button>
                  <button 
                    onClick={handleDismiss}
-                   className="px-4 text-[10px] font-bold text-white/30 uppercase tracking-widest hover:text-white"
+                   className="px-3 text-[9px] font-bold text-white/30 uppercase tracking-widest hover:text-white transition-colors"
                  >
                     Later
                  </button>
@@ -70,9 +73,9 @@ export function SuperFundPrompt() {
 
             <button 
               onClick={handleDismiss}
-              className="absolute top-4 right-4 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-white/20"
+              className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors"
             >
-              <X size={12} />
+              <X size={10} />
             </button>
           </motion.div>
         </div>
