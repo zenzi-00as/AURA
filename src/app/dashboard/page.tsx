@@ -189,21 +189,21 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-2 pt-2 pb-32 relative z-10">
           {/* Dashboard Hero / Welcome Node */}
           <div className="px-2 mb-3">
-             <div className="p-2 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
+             <div className="p-2 pt-2 pb-4 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
-                <div className="relative z-10 pl-5">
-                   <div className="flex gap-5">
-                      <div className="space-y-0.5">
-                         <div className="flex items-center gap-1.5 text-primary">
-                            <Users size={12} />
-                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-primary">1,240</span>
+                <div className="relative z-10 pl-4">
+                   <div className="flex gap-6">
+                      <div className="space-y-1">
+                         <div className="flex items-center gap-2 text-primary">
+                            <Users size={14} />
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest text-[#0057FF]">1,240</span>
                          </div>
                          <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
-                      <div className="space-y-0.5">
-                         <div className="flex items-center gap-1.5 text-[#00FF88]">
-                            <Globe size={12} />
-                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-[#00FF88]">Global Sync</span>
+                      <div className="space-y-1">
+                         <div className="flex items-center gap-2 text-[#00FF88]">
+                            <Globe size={14} />
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest text-[#00FF88]">Global Sync</span>
                          </div>
                          <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
@@ -220,7 +220,7 @@ export default function Dashboard() {
           </div>
 
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center">
+            <div className="flex h-[60vh] items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="animate-spin text-primary" size={32} />
                 <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Synchronizing Profiles...</p>
