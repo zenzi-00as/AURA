@@ -194,13 +194,13 @@ export default function AboutPage() {
         {/* Version Info & Legal Trust */}
         <div className="pt-8 text-center space-y-4 pb-12">
           <div className="flex flex-col gap-2">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.5.0</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.6.0</p>
             <p className="text-[9px] text-muted-foreground/60 italic font-light">Crafted with care by the Aura Collective.</p>
           </div>
           <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-border pt-6">
             <button onClick={() => router.push('/terms')} className="hover:text-foreground transition-colors">Terms of Service</button>
             <button onClick={() => router.push('/privacy')} className="hover:text-foreground transition-colors">Privacy Policy</button>
-            <button className="hover:text-foreground transition-colors">Cookies</button>
+            <button onClick={() => router.push('/cookies')} className="hover:text-foreground transition-colors">Cookies</button>
           </div>
           <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/40">
             <ShieldCheck size={10} />
