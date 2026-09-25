@@ -56,7 +56,9 @@ export type UserProfile = {
   uid: string;
   name: string;
   email?: string;
-  phoneNumber: string;
+  emailVerified?: boolean;
+  profilePhoneNumber?: string;
+  phoneNumber?: string; // Legacy field support
   age: number;
   bio: string;
   gender: string;
@@ -77,7 +79,7 @@ export type UserProfile = {
     lat: number;
     lng: number;
   } | null;
-  geohash?: string; // SCALABILITY: Added for high-fidelity discovery
+  geohash?: string;
   distance?: string; 
   distanceKm?: number;
   lastActive: any; 

@@ -2,13 +2,13 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation";
 import { useAuthContext } from '@/firebase/auth-context';
 import { Loader2 } from 'lucide-react';
 
 /**
  * @fileOverview Aura Authentication & Synchronization Guard.
- * Hardened to enforce onboarding and terms acceptance state.
+ * Hardened to enforce email verification, onboarding and terms acceptance state.
  */
 
 interface AuthGuardProps {
@@ -19,7 +19,7 @@ interface AuthGuardProps {
 export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, onboardingCompleted, needsTermsAcceptance } = useAuthContext();
+  const { user, loading, onboardingCompleted, needsTermsAcceptance, isEmailVerified } = useAuthContext();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
@@ -33,21 +33,28 @@ export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps
     }
 
     if (user) {
-      // 2. Terms Acceptance Perimeter (Prioritize over Onboarding)
-      if (needsTermsAcceptance && pathname !== '/auth/terms') {
+      // 2. Email Verification Perimeter (Highest Priority)
+      if (!isEmailVerified && pathname !== '/auth/verify-email' && pathname !== '/auth') {
+        setIsRedirecting(true);
+        router.replace('/auth/verify-email');
+        return;
+      }
+
+      // 3. Terms Acceptance Perimeter
+      if (isEmailVerified && needsTermsAcceptance && pathname !== '/auth/terms') {
         setIsRedirecting(true);
         router.replace('/auth/terms');
         return;
       }
 
-      // 3. Onboarding Perimeter
-      if (requireOnboarding && !onboardingCompleted && pathname !== '/onboarding' && pathname !== '/auth/terms') {
+      // 4. Onboarding Perimeter
+      if (isEmailVerified && !needsTermsAcceptance && requireOnboarding && !onboardingCompleted && pathname !== '/onboarding' && pathname !== '/auth/terms') {
         setIsRedirecting(true);
         router.replace('/onboarding');
         return;
       }
     }
-  }, [user, loading, onboardingCompleted, needsTermsAcceptance, requireOnboarding, router, pathname, isRedirecting]);
+  }, [user, loading, onboardingCompleted, needsTermsAcceptance, isEmailVerified, requireOnboarding, router, pathname, isRedirecting]);
 
   if (loading || isRedirecting) {
     return (

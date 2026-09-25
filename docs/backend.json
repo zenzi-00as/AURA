@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -8,6 +9,8 @@
         "uid": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
+        "emailVerified": { "type": "boolean" },
+        "profilePhoneNumber": { "type": "string" },
         "phoneNumber": { "type": "string" },
         "age": { "type": "number" },
         "bio": { "type": "string" },
@@ -50,9 +53,12 @@
         "isOnline": { "type": "boolean" },
         "photoUrl": { "type": "string" },
         "profilePhotos": { "type": "array", "items": { "type": "string" }, "maxItems": 2 },
-        "onboardingCompleted": { "type": "boolean" }
+        "onboardingCompleted": { "type": "boolean" },
+        "termsAccepted": { "type": "boolean" },
+        "termsAcceptedAt": { "type": "string" },
+        "termsVersion": { "type": "string" }
       },
-      "required": ["uid", "name", "age", "phoneNumber"]
+      "required": ["uid", "name", "age", "email"]
     },
     "Purchase": {
       "title": "Purchase",

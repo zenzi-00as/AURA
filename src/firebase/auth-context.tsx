@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, reload } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
@@ -12,7 +12,7 @@ import { CURRENT_TERMS_VERSION } from '@/lib/constants';
 
 /**
  * @fileOverview Central Authentication and Profile Synchronization Node.
- * Hardened with Terms Acceptance state machine and session persistence.
+ * Hardened with Email Verification and Terms Acceptance state machine.
  */
 
 interface AuthContextType {
@@ -21,6 +21,7 @@ interface AuthContextType {
   loading: boolean;
   onboardingCompleted: boolean;
   needsTermsAcceptance: boolean;
+  isEmailVerified: boolean;
   exitDemoMode: () => void;
   loginAsDemo: () => void;
   effectivePlan: string;
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   onboardingCompleted: false,
   needsTermsAcceptance: false,
+  isEmailVerified: false,
   exitDemoMode: () => {},
   loginAsDemo: () => {},
   effectivePlan: 'free',
@@ -78,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (getDemoStatus()) {
-      const demoUser = { uid: 'demo-user', email: 'demo@aura.local', isDemoUser: true } as any;
+      const demoUser = { uid: 'demo-user', email: 'demo@aura.local', emailVerified: true, isDemoUser: true } as any;
       const demoProfile: UserProfile = {
         uid: 'demo-user',
         name: 'Artemis (Demo)',
@@ -94,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isDemoUser: true,
         isOnline: true,
         lastActive: new Date(),
-        phoneNumber: '+91 0000000000',
+        profilePhoneNumber: '+91 0000000000',
         superLikeBalance: 10,
         incognitoMode: false,
         isSuspended: false,
@@ -174,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     onboardingCompleted: !!profile?.onboardingCompleted,
     needsTermsAcceptance,
+    isEmailVerified: !!user?.emailVerified,
     exitDemoMode,
     loginAsDemo,
     effectivePlan: getEffectivePlan(profile)
