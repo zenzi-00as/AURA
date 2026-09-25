@@ -192,16 +192,6 @@ export default function Dashboard() {
              <div className="p-6 rounded-[32px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
                 <div className="relative z-10 space-y-3">
-                   <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-2xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
-                         <Sparkles size={18} className="text-white" />
-                      </div>
-                      <div className="space-y-0.5">
-                         <h2 className="text-lg font-bold text-white tracking-tight">Discovery Stage</h2>
-                         <p className="text-[8px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Connections</p>
-                      </div>
-                   </div>
-                   
                    <p className="text-xs text-white/60 font-light leading-relaxed max-w-[280px] line-clamp-2">
                       Welcome back. Authenticity is celebrated here. Discover real auras within your current radius.
                    </p>
