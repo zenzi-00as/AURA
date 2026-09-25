@@ -71,7 +71,13 @@ export default function ChatList() {
 
   const usersQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, "users"), limit(100)) as Query<UserProfile>;
+    // CRITICAL: Synchronize with Security Rules list requirements
+    return query(
+      collection(db, "users"), 
+      where("onboardingCompleted", "==", true),
+      where("incognitoMode", "==", false),
+      limit(100)
+    ) as Query<UserProfile>;
   }, [db]);
 
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
