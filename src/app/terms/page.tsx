@@ -1,7 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Scale, ShieldCheck, Gavel, UserCheck, CreditCard, AlertTriangle, ShieldAlert } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Scale, 
+  ShieldCheck, 
+  Gavel, 
+  UserCheck, 
+  CreditCard, 
+  AlertTriangle, 
+  ShieldAlert,
+  HeartHandshake,
+  MessageSquare,
+  Globe
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TermsPage() {
@@ -16,24 +28,24 @@ export default function TermsPage() {
         <h1 className="text-xl font-semibold text-foreground">Terms of Service</h1>
       </header>
 
-      <div className="p-8 space-y-10 max-w-2xl mx-auto">
+      <div className="p-8 space-y-12 max-w-2xl mx-auto">
         <div className="space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
             <Scale size={24} />
           </div>
-          <h2 className="text-2xl font-bold text-foreground">Agreement to Terms</h2>
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">Legal Framework</h2>
           <p className="text-sm text-muted-foreground font-light leading-relaxed">
-            By accessing or using Aura, you agree to be bound by these Terms. If you do not agree, do not use the service. These terms are governed by the laws of India and international digital service standards.
+            Welcome to Aura. These Terms of Service ("Terms") constitute a legally binding agreement between you and Aura. By accessing our platform, you acknowledge that you have read, understood, and agreed to be synchronized with these standards.
           </p>
         </div>
 
-        <section className="space-y-8">
+        <section className="space-y-10">
           <div className="flex items-start gap-4">
             <UserCheck className="text-primary mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">1. Eligibility & Identity</h3>
+              <h3 className="font-semibold text-foreground">1. Eligibility & Identity Authenticity</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                You must be at least 18 years of age to create an account. You represent that all information provided is accurate. Impersonation of any person or entity is strictly prohibited and will result in immediate suspension.
+                You must be at least 18 years of age. Aura is a space for authentic human interaction; impersonation or the use of automated "bot" accounts is strictly prohibited. We reserve the right to request identity re-verification at any stage to maintain the integrity of our community.
               </p>
             </div>
           </div>
@@ -41,19 +53,29 @@ export default function TermsPage() {
           <div className="flex items-start gap-4">
             <ShieldCheck className="text-primary mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">2. Identity Guard Protocol</h3>
+              <h3 className="font-semibold text-foreground">2. Biometric Identity Guard Protocol</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Aura uses AI-powered biometric verification to ensure community safety. You agree to provide a genuine selfie for verification. You acknowledge that our Identity Guard may store anonymized hash data of your verification for security audits.
+                Aura utilizes advanced AI to cross-reference bio-signals for verification. You agree that your verification photo will be processed into a mathematical "biometric hash." While original images are purged according to our privacy policy, the hash node remains synchronized with your UID to prevent duplicate or fraudulent account creation.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-4">
-            <Gavel className="text-primary mt-1 shrink-0" size={20} />
+            <HeartHandshake className="text-primary mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">3. Conduct Standards</h3>
+              <h3 className="font-semibold text-foreground">3. Safety & Interaction Disclaimer</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Harassment, hate speech, bullying, and unauthorized commercial activity are prohibited. You are solely responsible for your interactions. Aura reserves the right to investigate and terminate accounts that violate our community ethos.
+                Aura is a discovery platform, not a safety service. You are solely responsible for your interactions. We strongly advise meeting in public, notifying trusted contacts of your plans, and never sharing financial details. Aura does not conduct criminal background checks on its members.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <MessageSquare className="text-primary mt-1 shrink-0" size={20} />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-foreground">4. User-Generated Content & Conduct</h3>
+              <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                You retain ownership of your content but grant Aura a worldwide, non-exclusive license to host it. Prohibited conduct includes: hate speech, harassment, commercial solicitation, and sharing non-consensual sexual imagery. Violations trigger an immediate and definitive purge of your identity node.
               </p>
             </div>
           </div>
@@ -61,9 +83,9 @@ export default function TermsPage() {
           <div className="flex items-start gap-4">
             <CreditCard className="text-primary mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">4. Membership & Subscriptions</h3>
+              <h3 className="font-semibold text-foreground">5. Subscriptions & Financial Transactions</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                Subscriptions (Elite, Elite Plus) grant access to premium features. Fees are non-refundable except where required by law. Aura utilizes Razorpay for secure payment processing; your financial data is never stored on Aura servers.
+                Elite and Elite Plus memberships are synchronized through Razorpay. Fees include applicable GST (18%). All purchases are final and non-refundable. Cancellations of recurring plans must be performed through your membership hub 24 hours prior to the next billing cycle.
               </p>
             </div>
           </div>
@@ -71,33 +93,34 @@ export default function TermsPage() {
           <div className="flex items-start gap-4">
             <ShieldAlert className="text-primary mt-1 shrink-0" size={20} />
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">5. Termination</h3>
+              <h3 className="font-semibold text-foreground">6. Account Termination</h3>
               <p className="text-sm text-muted-foreground font-light leading-relaxed">
-                We may suspend or terminate your access to Aura at our sole discretion, without notice, for conduct that violates these Terms or is harmful to other users or our business interests.
+                Aura reserves the right to suspend or delete any account for any reason, including prolonged inactivity or suspected breach of these Terms. Upon deletion, your social graph is dismantled according to our stateless architecture policy.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="space-y-4 pt-4 border-t border-border">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <AlertTriangle size={18} className="text-amber-500" />
-            Indian Law & Compliance
-          </h3>
-          <p className="text-xs text-muted-foreground font-light leading-relaxed">
-            In accordance with the Information Technology Act, 2000 and the Digital Personal Data Protection Act, 2023 (DPDP), Aura acts as a Data Fiduciary. We implement robust security practices to protect your data. Disputes shall be subject to the exclusive jurisdiction of the courts in India.
-          </p>
+        <section className="space-y-6 pt-6 border-t border-border">
+          <div className="flex items-center gap-3 text-amber-500">
+            <AlertTriangle size={20} />
+            <h3 className="font-semibold text-foreground">Dispute Resolution & Jurisdiction</h3>
+          </div>
+          <div className="p-6 bg-muted/30 rounded-3xl border border-border space-y-4">
+            <p className="text-xs text-muted-foreground font-light leading-relaxed">
+              These Terms are governed by the laws of India. Any disputes arising from your use of Aura shall be subject to mandatory individual arbitration in Bengaluru, Karnataka. You waive your right to participate in a class-action lawsuit.
+            </p>
+            <p className="text-xs text-muted-foreground font-light leading-relaxed">
+              Aura acts as a "Data Fiduciary" under the Digital Personal Data Protection Act, 2023. We maintain a Grievance Officer node to address your concerns within 72 hours of report synchronization.
+            </p>
+          </div>
         </section>
 
-        <section className="glass-card p-6 rounded-3xl border border-border space-y-4">
-          <h4 className="text-sm font-semibold text-foreground uppercase tracking-widest">Limitation of Liability</h4>
-          <p className="text-xs text-muted-foreground font-light leading-relaxed">
-            Aura is provided "as is". We make no warranties regarding the accuracy of member profiles or the availability of the service. We are not liable for any indirect or consequential damages arising from your use of the platform.
-          </p>
-        </section>
-
-        <div className="pt-8 text-center">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Version 2.6.0 • Last Updated: March 2024</p>
+        <div className="pt-8 text-center pb-12">
+          <div className="inline-flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium border border-border px-4 py-2 rounded-full">
+            <Globe size={10} />
+            Aura Protocol v2.6.5 • Updated Oct 2024
+          </div>
         </div>
       </div>
     </div>
