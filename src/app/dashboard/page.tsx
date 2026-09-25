@@ -121,7 +121,7 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/super-fund')} className="h-10 px-5 rounded-full premium-gradient border border-primary/50 flex items-center gap-2 group transition-all shadow-[0_0_10px_rgba(0,87,255,0.15)]">
+            <button onClick={() => router.push('/super-fund')} className="h-10 px-5 rounded-full premium-gradient border-2 border-primary flex items-center gap-2 group transition-all shadow-[0_0_10px_rgba(0,87,255,0.15)]">
               <Sparkles size={16} className="text-white" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
             </button>
