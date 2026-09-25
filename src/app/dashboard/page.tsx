@@ -223,7 +223,7 @@ export default function Dashboard() {
             <div className="flex h-64 items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="animate-spin text-primary" size={32} />
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Synchronizing Auras...</p>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Synchronizing Profiles...</p>
               </div>
             </div>
           ) : discoveryItems.length > 0 ? (
