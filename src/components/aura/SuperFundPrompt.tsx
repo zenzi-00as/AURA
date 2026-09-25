@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 /**
  * @fileOverview Aura Super Fund Information Prompt.
  * Features a visual arrow node pointing to the Support trigger.
- * Hardened to materialize on every application entry.
+ * Hardened to materialize once per session upon initial application entry.
  */
 
 export function SuperFundPrompt() {
@@ -17,9 +17,18 @@ export function SuperFundPrompt() {
   const router = useRouter();
 
   useEffect(() => {
-    // Materialize the prompt after a short synchronization delay for impact
-    const timer = setTimeout(() => setIsVisible(true), 1200);
-    return () => clearTimeout(timer);
+    // Session-based synchronization: only materialize once per app entry/session
+    const hasShownThisSession = sessionStorage.getItem('aura_sf_prompt_session_shown');
+    
+    if (!hasShownThisSession) {
+      // Materialize the prompt after a short synchronization delay for impact
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+        sessionStorage.setItem('aura_sf_prompt_session_shown', 'true');
+      }, 1200);
+      
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleDismiss = () => {
