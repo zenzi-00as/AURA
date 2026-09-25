@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -14,7 +15,7 @@ import { FirestorePermissionError } from '../errors';
 /**
  * @fileOverview A high-fidelity hook for real-time Firestore collection synchronization.
  * Refined to definitively handle permission denials vs. other synchronization faults.
- * Hardened to avoid unsafe internal property access (_query).
+ * Hardened to avoid unsafe internal property access.
  */
 
 export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
@@ -42,7 +43,7 @@ export function useCollection<T = DocumentData>(initialQuery: Query<T> | null) {
         setError(null);
       },
       async (serverError: FirestoreError) => {
-        // Only emit a permission error if the code explicitly states it
+        // High-fidelity permission denial tracking
         if (serverError.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
             path: 'collection/query', 

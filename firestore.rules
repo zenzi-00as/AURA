@@ -48,7 +48,9 @@ service cloud.firestore {
         resource.data.fromUserId == request.auth.uid || 
         resource.data.toUserId == request.auth.uid
       );
-      allow create, update, delete: if false; 
+      // Fixed: Allow creation of likes if auth matches sender
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.fromUserId;
+      allow update, delete: if false; 
     }
 
     match /matches/{matchId} {
@@ -63,7 +65,10 @@ service cloud.firestore {
       
       match /messages/{messageId} {
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
-        allow create: if false; 
+        // Fixed: Allow authorized message creation
+        allow create: if isAuthenticated() && 
+          request.auth.uid == request.resource.data.senderId && 
+          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
       }
     }
 
@@ -79,11 +84,11 @@ service cloud.firestore {
 
     match /superFunds/{fundId} {
       allow read: if isAuthenticated();
+      // Verified funds are handled via server context, allow reading public leaderboard
       allow create: if false; 
     }
 
     match /reports/{reportId} {
-      // Reporter can only create their own report and can't change status
       allow create: if isAuthenticated() && 
                    request.resource.data.reporterId == request.auth.uid &&
                    request.resource.data.status == 'Pending';

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -70,15 +71,15 @@ export default function ChatList() {
   const { data: rooms, loading: roomsLoading } = useCollection<ChatRoom>(roomsQuery);
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    // CRITICAL: Synchronize with Security Rules list requirements
+    // SECURITY: Ensure authUser is initialized before attempting collection list
+    if (!db || !authUser) return null;
     return query(
       collection(db, "users"), 
       where("onboardingCompleted", "==", true),
       where("incognitoMode", "==", false),
       limit(100)
     ) as Query<UserProfile>;
-  }, [db]);
+  }, [db, authUser?.uid]);
 
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
 
@@ -89,7 +90,6 @@ export default function ChatList() {
       const profileMap = new Map(profiles.map(p => [p.uid, p]));
       
       const realItems = rooms.map(room => {
-        // Safe access guard for participants array
         const participants = Array.isArray(room.participants) ? room.participants : [];
         const otherId = participants.find(id => id !== (authUser?.uid || ''));
         const otherUser = otherId ? profileMap.get(otherId) : null;

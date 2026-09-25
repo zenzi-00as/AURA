@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo } from "react";
@@ -24,6 +25,7 @@ export default function WhoLikesYouPage() {
   const elite = isElite(currentUserProfile);
 
   const likesQuery = useMemoFirebase(() => {
+    // SECURITY: Ensure authUser is initialized before attempting to list likes
     if (!db || !authUser) return null;
     return query(
       collection(db, "likes"),
@@ -31,20 +33,20 @@ export default function WhoLikesYouPage() {
       orderBy("createdAt", "desc"),
       limit(50)
     ) as Query<LikeRecord>;
-  }, [db, authUser]);
+  }, [db, authUser?.uid]);
 
   const { data: rawLikes, loading: likesLoading } = useCollection<LikeRecord>(likesQuery);
 
   const usersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    // CRITICAL: Synchronize with Security Rules list requirements
+    // SECURITY: Ensure authUser is initialized before attempting discovery query
+    if (!db || !authUser) return null;
     return query(
       collection(db, "users"),
       where("onboardingCompleted", "==", true),
       where("incognitoMode", "==", false),
       limit(100)
     ) as Query<UserProfile>;
-  }, [db]);
+  }, [db, authUser?.uid]);
 
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
 
