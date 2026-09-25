@@ -41,7 +41,8 @@ export default function SupportPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState<'agent' | 'faq'>('agent');
+  // High-fidelity entry node: Default to FAQ
+  const [activeTab, setActiveTab] = useState<'agent' | 'faq'>('faq');
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     { role: 'bot', content: "Welcome to Aura Support. I am your AI Assistant. How can I synchronize with your needs today?" }
@@ -93,16 +94,16 @@ export default function SupportPage() {
         </div>
         <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
            <button 
-             onClick={() => setActiveTab('agent')}
-             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'agent' ? "bg-primary text-white shadow-lg" : "text-white/40")}
-           >
-             AI Agent
-           </button>
-           <button 
              onClick={() => setActiveTab('faq')}
              className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'faq' ? "bg-primary text-white shadow-lg" : "text-white/40")}
            >
              FAQ
+           </button>
+           <button 
+             onClick={() => setActiveTab('agent')}
+             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'agent' ? "bg-primary text-white shadow-lg" : "text-white/40")}
+           >
+             AI Agent
            </button>
         </div>
       </header>
