@@ -28,13 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="min-h-screen-safe overflow-x-hidden">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20">
+      <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 min-h-screen-safe flex flex-col overflow-x-hidden">
         <div className="aura-bg-container" aria-hidden="true">
           <div className="aura-noise" />
           <div className="aura-blob-blue w-[600px] h-[600px] absolute top-[-10%] left-[-10%]" />
@@ -48,7 +48,7 @@ export default function RootLayout({
             <ThemeProvider>
               <LanguageProvider>
                 <CurrencyProvider>
-                  <main className="min-h-screen-safe flex flex-col w-full relative transition-opacity duration-300">
+                  <main className="flex-1 flex flex-col w-full relative transition-opacity duration-300">
                     {children}
                   </main>
                   <Toaster />
