@@ -122,7 +122,7 @@ export default function TermsAcceptancePage() {
                 onCheckedChange={(c) => setAgreed(c === true)}
                 className="h-5 w-5 mt-0.5 border-white/20 data-[state=checked]:bg-[#2563FF]"
               />
-              <label htmlFor="sync-terms" className="text-[11px] text-white/40 leading-relaxed">
+              <label htmlFor="sync-terms" className="text-[11px] text-white/40 leading-relaxed pt-0.5">
                 I agree to the <Link href="/terms" className="text-white hover:text-[#2563FF] font-bold">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-white hover:text-[#2563FF] font-bold">Privacy Policy</Link>.
               </label>
             </div>
