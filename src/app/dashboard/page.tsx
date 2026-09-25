@@ -187,26 +187,26 @@ export default function Dashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
-          {/* Dashboard Hero / Welcome Node */}
-          <div className="px-2 mb-8">
-             <div className="p-8 rounded-[40px] glass-card border-white/10 relative overflow-hidden group">
+          {/* Dashboard Hero / Welcome Node - SIZE DECREASED */}
+          <div className="px-2 mb-6">
+             <div className="p-6 rounded-[32px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
-                <div className="relative z-10 space-y-4">
+                <div className="relative z-10 space-y-3">
                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
-                         <Sparkles size={20} className="text-white" />
+                      <div className="w-9 h-9 rounded-2xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
+                         <Sparkles size={18} className="text-white" />
                       </div>
                       <div className="space-y-0.5">
-                         <h2 className="text-xl font-bold text-white tracking-tight">Discovery Stage</h2>
-                         <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Connections</p>
+                         <h2 className="text-lg font-bold text-white tracking-tight">Discovery Stage</h2>
+                         <p className="text-[8px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Connections</p>
                       </div>
                    </div>
                    
-                   <p className="text-sm text-white/60 font-light leading-relaxed max-w-[240px]">
+                   <p className="text-xs text-white/60 font-light leading-relaxed max-w-[220px]">
                       Welcome back. Authenticity is celebrated here. Discover real auras within your current radius.
                    </p>
 
-                   <div className="pt-2 flex gap-4 border-t border-white/5 mt-4">
+                   <div className="pt-2 flex gap-4 border-t border-white/5 mt-2">
                       <div className="space-y-1">
                          <div className="flex items-center gap-1.5 text-primary">
                             <Users size={12} />
