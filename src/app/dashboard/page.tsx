@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -115,14 +114,14 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col min-h-screen bg-[#05070D] relative transition-colors overflow-hidden">
         <header className="px-4 h-20 flex justify-between items-center sticky top-0 bg-[#080A10E0] backdrop-blur-[18px] z-20 border-b border-white/5 safe-top">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center neon-glow">
+            <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
             </div>
             <h1 className="text-xl font-bold tracking-tight text-white">{t('discovery')}</h1>
           </div>
           
           <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/super-fund')} className="h-10 px-5 rounded-full premium-gradient border border-white/10 flex items-center gap-2 group transition-all neon-glow">
+            <button onClick={() => router.push('/super-fund')} className="h-10 px-5 rounded-full premium-gradient border border-white/10 flex items-center gap-2 group transition-all">
               <Sparkles size={16} className="text-white" />
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
             </button>
@@ -143,7 +142,7 @@ export default function Dashboard() {
                     </div>
                     <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
                   </div>
-                  <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg neon-glow">
+                  <Button onClick={() => { setActiveFilters({ distance: distance[0], ageRange }); setIsOpen(false); }} className="w-full h-16 rounded-[28px] blue-gradient text-white font-bold text-lg">
                     Apply Filters
                   </Button>
                 </div>
