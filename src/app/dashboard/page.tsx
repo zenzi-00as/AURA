@@ -191,12 +191,8 @@ export default function Dashboard() {
           <div className="px-2 mb-6">
              <div className="p-6 rounded-[32px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
-                <div className="relative z-10 space-y-3">
-                   <p className="text-xs text-white/60 font-light leading-relaxed max-w-[280px] line-clamp-2">
-                      Welcome back. Authenticity is celebrated here. Discover real auras within your current radius.
-                   </p>
-
-                   <div className="pt-2 flex gap-4 border-t border-white/5 mt-2">
+                <div className="relative z-10">
+                   <div className="flex gap-4">
                       <div className="space-y-1">
                          <div className="flex items-center gap-1.5 text-primary">
                             <Users size={12} />
