@@ -279,7 +279,7 @@ export default function AuthPage() {
                   onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
                   className="h-5 w-5 mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
                 />
-                <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed pt-0.5">
+                <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed pt-1">
                   I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
                 </label>
               </div>

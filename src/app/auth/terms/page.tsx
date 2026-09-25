@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "navigation";
 import { motion } from "framer-motion";
 import { Shield, Check, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -122,7 +122,7 @@ export default function TermsAcceptancePage() {
                 onCheckedChange={(c) => setAgreed(c === true)}
                 className="h-5 w-5 mt-0.5 border-white/20 data-[state=checked]:bg-[#2563FF]"
               />
-              <label htmlFor="sync-terms" className="text-[11px] text-white/40 leading-relaxed pt-0.5">
+              <label htmlFor="sync-terms" className="text-[11px] text-white/40 leading-relaxed pt-1">
                 I agree to the <Link href="/terms" className="text-white hover:text-[#2563FF] font-bold">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-white hover:text-[#2563FF] font-bold">Privacy Policy</Link>.
               </label>
             </div>
