@@ -395,7 +395,7 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border-2 border-primary text-left relative overflow-hidden group">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
