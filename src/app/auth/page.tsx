@@ -36,7 +36,7 @@ export default function AuthPage() {
   const router = useRouter();
   const auth = useAuth();
   const db = useFirestore();
-  const { user, loading: authLoading } = useAuthContext();
+  const { user, loading: authLoading, loginAsDemo } = useAuthContext();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -307,12 +307,19 @@ export default function AuthPage() {
               <span>Continue with Google</span>
             </Button>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 flex flex-col gap-4">
               <button 
                 onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
                 className="text-sm text-white/40 hover:text-white transition-colors"
               >
                 {mode === "signin" ? "New to Aura? Create an account" : "Already have an account? Sign in"}
+              </button>
+
+              <button 
+                onClick={loginAsDemo}
+                className="text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-[0.2em] font-bold"
+              >
+                Continue as Guest
               </button>
             </div>
           </div>
