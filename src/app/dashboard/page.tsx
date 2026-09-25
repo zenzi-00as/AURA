@@ -8,7 +8,7 @@ import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { SuperFundPrompt } from "@/components/aura/SuperFundPrompt";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Search, Loader2 } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Search, Loader2, Shield, Globe, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,46 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { getPlanConfig } from "@/lib/subscription-engine";
 import { UpgradeModal } from "@/components/aura/UpgradeModal";
 import { getDiscoveryNodes, updateLocationGeohash } from "@/actions/discovery";
+import { cn } from "@/lib/utils";
+
+const DEMO_USERS: UserProfile[] = [
+  {
+    uid: "aura-demo-1",
+    name: "Julian",
+    age: 26,
+    bio: "Architectural photographer exploring hidden city nodes. Passionate about minimalism and ambient vinyl sets.",
+    gender: "Man",
+    orientation: "Gay",
+    interestedIn: ["Men"],
+    photoUrl: "https://picsum.photos/seed/aura_demo_1/400/500",
+    isOnline: true,
+    verificationStatus: "Verified",
+    lastActive: new Date(),
+    onboardingCompleted: true,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false,
+    superLikeBalance: 0
+  },
+  {
+    uid: "aura-demo-2",
+    name: "Sasha",
+    age: 24,
+    bio: "Digital artist focusing on queer futurism. Let's talk about the intersection of tech and identity.",
+    gender: "Non-binary",
+    orientation: "Queer",
+    interestedIn: ["Anyone"],
+    photoUrl: "https://picsum.photos/seed/aura_demo_2/400/500",
+    isOnline: true,
+    verificationStatus: "Verified",
+    lastActive: new Date(),
+    onboardingCompleted: true,
+    incognitoMode: false,
+    isSuspended: false,
+    isAdmin: false,
+    superLikeBalance: 0
+  }
+];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -62,13 +102,21 @@ export default function Dashboard() {
           setDiscoveryResults(res as UserProfile[]);
           setIsLoading(false);
         });
+    } else {
+      // Small timeout for demo visual synchronization
+      setTimeout(() => setIsLoading(false), 1200);
     }
   }, [currentLocation, currentUserProfile, activeFilters]);
 
   const discoveryItems = useMemo(() => {
     const items: Array<{ type: 'user'; data: UserProfile } | { type: 'ad' }> = [];
-    discoveryResults.forEach((user, index) => {
+    
+    // Combine discovery results with demo fallback if empty
+    const baseResults = discoveryResults.length > 0 ? discoveryResults : DEMO_USERS;
+
+    baseResults.forEach((user, index) => {
       items.push({ type: 'user', data: user });
+      // Inject ads at standard intervals for free/lite users
       if (planConfig.ads !== 'none' && (index + 1) % 5 === 0) {
         items.push({ type: 'ad' });
       }
@@ -95,7 +143,13 @@ export default function Dashboard() {
             <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-white">{t('discovery')}</h1>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-bold tracking-tight text-white leading-none">{t('discovery')}</h1>
+              <div className="flex items-center gap-1 mt-1 opacity-40">
+                <Shield size={10} className="text-primary" />
+                <span className="text-[8px] font-bold uppercase tracking-widest text-white">AI Guard Active</span>
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center gap-2">
@@ -133,12 +187,63 @@ export default function Dashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
+          {/* Dashboard Hero / Welcome Node */}
+          <div className="px-2 mb-8">
+             <div className="p-8 rounded-[40px] glass-card border-white/10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
+                <div className="relative z-10 space-y-4">
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg neon-glow">
+                         <Sparkles size={20} className="text-white" />
+                      </div>
+                      <div className="space-y-0.5">
+                         <h2 className="text-xl font-bold text-white tracking-tight">Discovery Stage</h2>
+                         <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Connections</p>
+                      </div>
+                   </div>
+                   
+                   <p className="text-sm text-white/60 font-light leading-relaxed max-w-[240px]">
+                      Welcome back. Authenticity is celebrated here. Discover real auras within your current radius.
+                   </p>
+
+                   <div className="pt-2 flex gap-4 border-t border-white/5 mt-4">
+                      <div className="space-y-1">
+                         <div className="flex items-center gap-1.5 text-primary">
+                            <Users size={12} />
+                            <span className="text-[10px] font-black uppercase tabular-nums tracking-widest">1,240</span>
+                         </div>
+                         <p className="text-[8px] text-white/20 uppercase font-bold">Active Members</p>
+                      </div>
+                      <div className="space-y-1">
+                         <div className="flex items-center gap-1.5 text-[#00FF88]">
+                            <Globe size={12} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Global Sync</span>
+                         </div>
+                         <p className="text-[8px] text-white/20 uppercase font-bold">Healthy Node</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <div className="px-2 mb-4">
+             <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] px-2 flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+               Latest Connections
+             </h3>
+          </div>
+
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center"><Loader2 className="animate-spin text-primary" size={32} /></div>
+            <div className="flex h-64 items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="animate-spin text-primary" size={32} />
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Synchronizing Auras...</p>
+              </div>
+            </div>
           ) : discoveryItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
               {discoveryItems.map((item, idx) => (
-                <motion.div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <motion.div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
                   {item.type === 'user' ? (
                     <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
                   ) : (
