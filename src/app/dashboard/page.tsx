@@ -202,7 +202,7 @@ export default function Dashboard() {
                       </div>
                    </div>
                    
-                   <p className="text-xs text-white/60 font-light leading-relaxed max-w-[220px]">
+                   <p className="text-xs text-white/60 font-light leading-relaxed max-w-[280px] line-clamp-2">
                       Welcome back. Authenticity is celebrated here. Discover real auras within your current radius.
                    </p>
 
