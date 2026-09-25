@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -70,13 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const getDemoStatus = () => {
       if (typeof window === 'undefined') return false;
-      if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') return false;
-      if (process.env.NODE_ENV === 'production') return false;
-      try {
-        return sessionStorage.getItem('aura_demo_active') === 'true';
-      } catch (e) {
-        return false;
+      if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production') {
+        try {
+          return sessionStorage.getItem('aura_demo_active') === 'true';
+        } catch (e) {
+          return false;
+        }
       }
+      return false;
     };
 
     if (getDemoStatus()) {
@@ -126,9 +126,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unsubscribeProfile = null;
       }
 
-      setUser(authUser);
       if (authUser) {
+        // High-fidelity refresh to capture emailVerified status updates
+        try {
+          await reload(authUser);
+        } catch (e) {
+          console.warn("[AUTH] Auto-refresh session failed", e);
+        }
+
+        setUser(authUser);
         const userRef = doc(db, 'users', authUser.uid);
+        
         unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
@@ -137,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const hasValidTerms = data.termsAccepted === true && data.termsVersion === CURRENT_TERMS_VERSION;
             setNeedsTermsAcceptance(!hasValidTerms);
 
+            // Usage Reset Logic
             const today = format(new Date(), 'yyyy-MM-dd');
             if (data.usage?.lastResetDate && data.usage.lastResetDate !== today) {
               updateDoc(userRef, {
@@ -158,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
       } else {
+        setUser(null);
         setProfile(null);
         setNeedsTermsAcceptance(false);
         setLoading(false);

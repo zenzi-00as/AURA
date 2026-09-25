@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, RefreshCcw, LogOut, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, LogOut, Loader2, CheckCircle2, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useAuth } from "@/firebase";
@@ -13,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const { user, loading } = useAuthContext();
+  const { user, loading, isEmailVerified } = useAuthContext();
   const auth = useAuth();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -23,10 +22,10 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth");
-    } else if (!loading && user?.emailVerified) {
+    } else if (!loading && isEmailVerified) {
       router.replace("/dashboard");
     }
-  }, [user, loading, router]);
+  }, [user, loading, isEmailVerified, router]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -42,13 +41,13 @@ export default function VerifyEmailPage() {
     try {
       await reload(auth.currentUser);
       if (auth.currentUser.emailVerified) {
-        toast({ title: "Email Verified", description: "Welcome to Aura." });
-        router.replace("/onboarding");
+        toast({ title: "Email Verified", description: "Your identity node is now synchronized." });
+        // The Guard will handle the redirect on next render
       } else {
-        toast({ title: "Not Verified", description: "Please check your email and click the verification link." });
+        toast({ title: "Not Verified", description: "Verification link not yet acknowledged. Please check your inbox." });
       }
     } catch (e) {
-      toast({ variant: "destructive", title: "Refresh Failed", description: "Could not update status." });
+      toast({ variant: "destructive", title: "Refresh Failed", description: "Could not synchronize verification status." });
     } finally {
       setIsRefreshing(false);
     }
@@ -88,9 +87,9 @@ export default function VerifyEmailPage() {
             <Mail size={40} className="text-white" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-white tracking-tighter">Verify Email</h2>
+            <h2 className="text-3xl font-bold text-white tracking-tighter">Verify Identity</h2>
             <p className="text-white/60 font-light leading-relaxed">
-              We've sent a verification link to <span className="text-white font-medium">{user.email}</span>. Please verify your address to continue.
+              A verification link has been dispatched to <span className="text-white font-medium">{user.email}</span>. Please acknowledge it to continue.
             </p>
           </div>
         </div>

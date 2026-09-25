@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Loader2, Sparkles, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles, Mail, Lock, Eye, EyeOff, Chrome } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, useFirestore } from "@/firebase";
@@ -15,9 +14,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
 import { CURRENT_TERMS_VERSION } from "@/lib/constants";
@@ -28,6 +29,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   
@@ -38,7 +40,8 @@ export default function AuthPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!authLoading && user && !isRedirecting) {
+    // If user is already authenticated and verified, redirect to dashboard
+    if (!authLoading && user && user.emailVerified && !isRedirecting) {
       setIsRedirecting(true);
       router.replace("/dashboard");
     }
@@ -53,14 +56,14 @@ export default function AuthPage() {
       return;
     }
 
-    if (password.length < 6) {
-      toast({ variant: "destructive", title: "Weak Password", description: "Password must be at least 6 characters." });
+    if (password.length < 8) {
+      toast({ variant: "destructive", title: "Weak Password", description: "Password must be at least 8 characters." });
       return;
     }
 
     if (mode === "signup" && !agreedToTerms) {
       toast({ 
-        title: "Aura Terms required", 
+        title: "Aura Terms Required", 
         description: "Please acknowledge the Terms and Privacy Guard to synchronize your identity.",
         variant: "destructive"
       });
@@ -77,12 +80,13 @@ export default function AuthPage() {
         const authedUser = result.user;
 
         if (authedUser) {
-          // Send verification email immediately
+          // Send verification link immediately
           await sendEmailVerification(authedUser);
           
           logger.info('Email Sign Up Success', { correlationId, uid: authedUser.uid });
           const userRef = doc(db, "users", authedUser.uid);
           
+          // Initial Profile Node Creation
           await setDoc(userRef, {
             uid: authedUser.uid,
             email: email,
@@ -107,7 +111,7 @@ export default function AuthPage() {
             lastActive: serverTimestamp()
           });
 
-          toast({ title: "Account Created", description: "Verification email sent. Please check your inbox." });
+          toast({ title: "Account Created", description: "Verification link sent. Please check your inbox." });
           router.push("/auth/verify-email");
         }
       } else {
@@ -128,10 +132,52 @@ export default function AuthPage() {
       if (error.code === 'auth/email-already-in-use') message = "This email is already in use.";
       if (error.code === 'auth/invalid-credential') message = "Invalid email or password.";
       if (error.code === 'auth/user-not-found') message = "No account found with this email.";
+      if (error.code === 'auth/too-many-requests') message = "Too many attempts. Try again later.";
       
       toast({ variant: "destructive", title: "Authentication Error", description: message });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!auth || !db) return;
+    setIsGoogleLoading(true);
+    const correlationId = logger.generateCorrelationId();
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const authedUser = result.user;
+
+      if (authedUser) {
+        logger.info('Google Sign In Success', { correlationId, uid: authedUser.uid });
+        const userRef = doc(db, "users", authedUser.uid);
+        
+        // Use setDoc with merge to preserve existing profile if returning user
+        await setDoc(userRef, {
+          uid: authedUser.uid,
+          email: authedUser.email,
+          updatedAt: serverTimestamp(),
+          // Default fields if new user
+          lastActive: serverTimestamp(),
+          isOnline: true,
+        }, { merge: true });
+
+        // Google users are verified by default
+        router.replace("/dashboard");
+      }
+    } catch (error: any) {
+      logger.error('Google Auth Fault', { 
+        category: 'AUTH_ERROR', 
+        correlationId, 
+        errorMessage: error.message 
+      });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({ variant: "destructive", title: "Google Sign-In Error", description: "Could not synchronize with Google." });
+      }
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -204,7 +250,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
                 <Input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="Min. 6 characters"
+                  placeholder="Min. 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-14 bg-white/[0.045] border-white/10 rounded-2xl pl-12 pr-12 text-white focus:border-[#2563FF] focus:ring-0 shadow-none"
@@ -233,10 +279,10 @@ export default function AuthPage() {
             )}
           </div>
 
-          <div className="pt-4 space-y-6">
+          <div className="pt-4 space-y-4">
             <Button 
               onClick={handleAuth}
-              disabled={isLoading || isRedirecting}
+              disabled={isLoading || isRedirecting || isGoogleLoading}
               className="w-full h-[58px] rounded-full blue-gradient text-white font-bold text-base shadow-2xl neon-glow transition-all active:scale-95 flex items-center justify-between px-8 border-none"
             >
               {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={22} className="text-white" />}
@@ -244,7 +290,17 @@ export default function AuthPage() {
               <ArrowRight size={20} className="text-white" />
             </Button>
 
-            <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading || isRedirecting || isGoogleLoading}
+              className="w-full h-[58px] rounded-full bg-white/5 border-white/10 text-white font-bold text-base flex items-center justify-center gap-3 hover:bg-white/10"
+            >
+              {isGoogleLoading ? <Loader2 className="animate-spin" /> : <Chrome size={22} />}
+              <span>Continue with Google</span>
+            </Button>
+
+            <div className="text-center pt-2">
               <button 
                 onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
                 className="text-sm text-white/40 hover:text-white transition-colors"

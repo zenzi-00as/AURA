@@ -1,8 +1,7 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthContext } from '@/firebase/auth-context';
 import { Loader2 } from 'lucide-react';
 
@@ -34,6 +33,7 @@ export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps
 
     if (user) {
       // 2. Email Verification Perimeter (Highest Priority)
+      // Note: Google users have emailVerified: true by default.
       if (!isEmailVerified && pathname !== '/auth/verify-email' && pathname !== '/auth') {
         setIsRedirecting(true);
         router.replace('/auth/verify-email');
@@ -48,7 +48,8 @@ export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps
       }
 
       // 4. Onboarding Perimeter
-      if (isEmailVerified && !needsTermsAcceptance && requireOnboarding && !onboardingCompleted && pathname !== '/onboarding' && pathname !== '/auth/terms') {
+      if (isEmailVerified && !needsTermsAcceptance && requireOnboarding && !onboardingCompleted && 
+          pathname !== '/onboarding' && pathname !== '/auth/terms' && pathname !== '/auth/verify-email') {
         setIsRedirecting(true);
         router.replace('/onboarding');
         return;
@@ -58,7 +59,7 @@ export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps
 
   if (loading || isRedirecting) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen">
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#050816] min-h-screen">
         <div className="w-20 h-20 rounded-[28px] blue-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
           <span className="text-3xl font-bold text-white tracking-tighter">A</span>
         </div>
