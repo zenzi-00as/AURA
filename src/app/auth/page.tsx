@@ -173,7 +173,14 @@ export default function AuthPage() {
         correlationId, 
         errorMessage: error.message 
       });
-      if (error.code !== 'auth/popup-closed-by-user') {
+
+      if (error.code === 'auth/unauthorized-domain') {
+        toast({ 
+          variant: "destructive", 
+          title: "Domain Restricted", 
+          description: "Google Sign-In is not available from this development domain. Please add this hostname to Firebase Console → Authorized domains." 
+        });
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         toast({ variant: "destructive", title: "Google Sign-In Error", description: "Could not synchronize with Google." });
       }
     } finally {
@@ -270,7 +277,7 @@ export default function AuthPage() {
                   id="terms" 
                   checked={agreedToTerms} 
                   onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                  className="h-5 w-5 mt-0.5 border-white/20 data-[state=checked]:bg-[#2563FF]"
+                  className="h-5 w-5 mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
                 />
                 <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed">
                   I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
