@@ -8,7 +8,7 @@ import { NativeAdCard } from "@/components/aura/NativeAdCard";
 import { BottomNav } from "@/components/aura/BottomNav";
 import { SuperFundPrompt } from "@/components/aura/SuperFundPrompt";
 import { UserProfile } from "@/lib/types";
-import { SlidersHorizontal, Sparkles, Search, Loader2, Shield, Globe, Users } from "lucide-react";
+import { SlidersHorizontal, Search, Loader2, Shield, Globe, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -157,7 +157,7 @@ export default function Dashboard() {
               onClick={() => router.push('/super-fund')} 
               className="h-10 px-5 rounded-full premium-gradient border-2 border-primary flex items-center gap-2 group transition-all shadow-[0_0_10px_rgba(0,87,255,0.15)] active:scale-95"
             >
-              <Sparkles size={16} className="text-white" />
+              <span className="text-white group-hover:animate-pulse">✨</span>
               <span className="text-[10px] font-bold text-white uppercase tracking-widest hidden sm:block">Support</span>
             </button>
 
@@ -188,24 +188,24 @@ export default function Dashboard() {
 
         <div className="flex-1 overflow-y-auto px-2 py-6 pb-32 relative z-10">
           {/* Dashboard Hero / Welcome Node */}
-          <div className="px-2 mb-4">
-             <div className="p-4 rounded-[28px] glass-card border-white/10 relative overflow-hidden group">
+          <div className="px-2 mb-3">
+             <div className="p-3 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
                 <div className="relative z-10">
                    <div className="flex gap-4">
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-primary">
-                            <Users size={16} />
-                            <span className="text-lg font-black uppercase tabular-nums tracking-widest">1,240</span>
+                            <Users size={14} />
+                            <span className="text-base font-bold uppercase tabular-nums tracking-widest">1,240</span>
                          </div>
-                         <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
+                         <p className="text-[6px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-[#00FF88]">
-                            <Globe size={16} />
-                            <span className="text-lg font-black uppercase tabular-nums tracking-widest">Global Sync</span>
+                            <Globe size={14} />
+                            <span className="text-base font-bold uppercase tabular-nums tracking-widest">Global Sync</span>
                          </div>
-                         <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
+                         <p className="text-[6px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
                    </div>
                 </div>
