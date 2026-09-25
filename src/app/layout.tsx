@@ -47,7 +47,7 @@ export default function RootLayout({
             <ThemeProvider>
               <LanguageProvider>
                 <CurrencyProvider>
-                  <main className="flex-1 flex flex-col w-full relative transition-opacity duration-300">
+                  <main className="min-h-screen-safe flex-1 flex flex-col w-full relative transition-opacity duration-300">
                     {children}
                   </main>
                   <Toaster />

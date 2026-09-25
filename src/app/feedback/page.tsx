@@ -78,7 +78,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors">
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors min-h-screen-safe">
       <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -122,7 +121,7 @@ export default function SuperFundPage() {
 
   if (showSuccess) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background min-h-screen">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background min-h-screen-safe">
         <motion.div 
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -146,7 +145,7 @@ export default function SuperFundPage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors min-h-screen">
+      <div className="flex-1 flex flex-col bg-background pb-32 transition-colors min-h-screen-safe">
         <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
           <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
             <ArrowLeft size={22} />
@@ -185,7 +184,7 @@ export default function SuperFundPage() {
                       className={cn(
                         "h-12 rounded-xl text-xs font-bold transition-all border",
                         selectedAmount === amt 
-                          ? "premium-gradient border-primary text-white neon-glow" 
+                          ? "premium-gradient border-2 border-primary text-white neon-glow" 
                           : "bg-white/5 border-white/5 text-white/60"
                       )}
                     >

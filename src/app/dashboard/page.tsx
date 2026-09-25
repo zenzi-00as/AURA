@@ -86,7 +86,7 @@ export default function Dashboard() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col min-h-screen bg-[#05070D] relative transition-colors overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-screen-safe bg-[#05070D] relative transition-colors overflow-hidden">
         {/* Support Onboarding Prompt */}
         <SuperFundPrompt />
 
