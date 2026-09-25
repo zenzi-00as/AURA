@@ -241,9 +241,9 @@ export default function AuthPage() {
 
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em]">Secret Key</label>
+                <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em]">Password</label>
                 {mode === "signin" && (
-                  <button onClick={handleForgotPassword} className="text-[9px] font-bold text-white/40 uppercase hover:text-white transition-colors">Forgot?</button>
+                  <button onClick={handleForgotPassword} className="text-[9px] font-bold text-white/40 uppercase hover:text-white transition-colors">Forgot Password?</button>
                 )}
               </div>
               <div className="relative">
