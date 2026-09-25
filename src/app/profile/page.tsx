@@ -24,7 +24,8 @@ import {
   Minus,
   Zap,
   Eye,
-  Clock
+  Clock,
+  Headphones
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -689,6 +690,7 @@ function ProfileContent() {
           {[ 
             { label: t('settings'), path: '/settings', icon: Settings }, 
             { label: t('about'), path: '/about', icon: Info }, 
+            { label: t('support'), path: '/support', icon: Headphones }, 
             { label: t('feedback'), path: '/feedback', icon: MessageSquare } 
           ].map((item) => (
             <button key={item.path} onClick={() => router.push(item.path)} className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between hover:bg-primary/5 transition-colors">
