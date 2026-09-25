@@ -196,14 +196,14 @@ export default function Dashboard() {
                       <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-primary">
                             <Users size={14} />
-                            <span className="text-base font-bold uppercase tabular-nums tracking-widest">1,240</span>
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest">1,240</span>
                          </div>
                          <p className="text-[6px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
                       <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-[#00FF88]">
                             <Globe size={14} />
-                            <span className="text-base font-bold uppercase tabular-nums tracking-widest">Global Sync</span>
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest">Global Sync</span>
                          </div>
                          <p className="text-[6px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
