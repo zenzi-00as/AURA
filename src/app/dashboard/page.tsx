@@ -189,7 +189,7 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-2 pt-2 pb-32 relative z-10">
           {/* Dashboard Hero / Welcome Node */}
           <div className="px-2 mb-3">
-             <div className="p-2 pt-2 pb-4 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
+             <div className="p-2 pt-2 pb-2 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
                 <div className="relative z-10 pl-4">
                    <div className="flex gap-6">
