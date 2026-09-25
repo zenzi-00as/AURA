@@ -203,7 +203,7 @@ export default function Dashboard() {
                       <div className="space-y-0.5">
                          <div className="flex items-center gap-1.5 text-[#00FF88]">
                             <Globe size={12} />
-                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-white">Global Sync</span>
+                            <span className="text-[11px] font-bold uppercase tabular-nums tracking-widest text-[#00FF88]">Global Sync</span>
                          </div>
                          <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
