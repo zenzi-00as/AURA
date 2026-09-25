@@ -185,7 +185,7 @@ export default function SuperFundPage() {
                       className={cn(
                         "h-12 rounded-xl text-xs font-bold transition-all border",
                         selectedAmount === amt 
-                          ? "premium-gradient border-transparent text-white neon-glow" 
+                          ? "premium-gradient border-primary text-white neon-glow" 
                           : "bg-white/5 border-white/5 text-white/60"
                       )}
                     >
