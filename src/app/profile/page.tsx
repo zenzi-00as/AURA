@@ -395,7 +395,7 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group shadow-[0_0_30px_rgba(0,87,255,0.4)]">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border border-white/10 text-left relative overflow-hidden group">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
@@ -406,7 +406,6 @@ function ProfileContent() {
                       <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
                     </div>
                   </div>
-                  <div className="absolute inset-0 border-2 border-white/10 rounded-[32px] animate-pulse pointer-events-none" />
                 </motion.button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-[#070709] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
@@ -732,6 +731,10 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
   return (
     <AuthGuard>
       <Suspense fallback={null}>
