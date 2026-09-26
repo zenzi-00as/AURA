@@ -1,10 +1,9 @@
-
 'use server';
 
 /**
  * @fileOverview Geospatial Discovery Node.
  * Calibrates geohashes for scalable proximity queries.
- * Hardened to exclude blocked relationships.
+ * Hardened to exclude blocked relationships and Incognito members.
  */
 
 import { initializeFirebase } from "@/firebase/init";
@@ -44,6 +43,7 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
     const q = query(
       collection(db, "users"),
       where("onboardingCompleted", "==", true),
+      // INCOGNITO GUARD: Exclude users in private browsing mode
       where("incognitoMode", "==", false),
       where("geohash", ">=", hash),
       where("geohash", "<=", hash + "~"),

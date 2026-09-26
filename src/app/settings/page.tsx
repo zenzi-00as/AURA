@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -42,12 +41,13 @@ import { useTheme } from "@/context/ThemeContext";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
 import { useCollection, useFirestore, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
-import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { BlockedUser } from "@/lib/types";
 import { getPlanConfig } from "@/lib/subscription-engine";
 import { deleteAuraAccountData } from "@/actions/account";
 import { useFcm } from "@/hooks/use-fcm";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -83,7 +83,7 @@ export default function SettingsPage() {
         pushEnabled: profile.notificationSettings?.pushEnabled ?? true,
         privateProfile: false,
         incognito: !!profile.incognitoMode,
-        onlineStatus: !!profile.isOnline
+        onlineStatus: profile.showOnlineStatus ?? true
       });
     }
   }, [profile]);
@@ -101,8 +101,14 @@ export default function SettingsPage() {
   const handleToggle = async (key: string, value: boolean) => {
     if (!db || !authUser) return;
 
+    // INCOGNITO ELITE PLUS GUARD
     if (key === 'incognito' && !planConfig.incognito) {
-      toast({ title: "Elite Plus Required", description: "Incognito mode is an Elite Plus benefit." });
+      toast({ 
+        title: "Elite Plus Required", 
+        description: "Incognito mode is an exclusive Elite Plus benefit.",
+        variant: "destructive"
+      });
+      router.push('/profile?tab=eliteplus');
       return;
     }
 
@@ -117,7 +123,7 @@ export default function SettingsPage() {
         });
       } else {
         const updateKey = key === 'incognito' ? 'incognitoMode' : 
-                        key === 'onlineStatus' ? 'isOnline' : key;
+                        key === 'onlineStatus' ? 'showOnlineStatus' : key;
         
         await updateDoc(doc(db, "users", authUser.uid), {
           [updateKey]: value,
@@ -125,9 +131,9 @@ export default function SettingsPage() {
         });
       }
       setSettings(prev => ({ ...prev, [key]: value }));
-      toast({ title: "Preference Updated" });
-    } catch (e) {
-      console.error("Toggle Fault:", e);
+      toast({ title: "Preference Synchronized" });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Sync Fault", description: e.message });
     }
   };
 
@@ -222,7 +228,10 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><User size={18} /></div>
-                <h3 className="font-medium text-foreground">Show Online Status</h3>
+                <div className="text-left space-y-0.5">
+                  <h3 className="font-medium text-foreground">Show Online Status</h3>
+                  <p className="text-[10px] text-muted-foreground font-light">Let others see when you're active.</p>
+                </div>
               </div>
               <Switch checked={settings.onlineStatus} onCheckedChange={(v) => handleToggle('onlineStatus', v)} />
             </div>
@@ -234,7 +243,7 @@ export default function SettingsPage() {
                     <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><UserX size={18} /></div>
                     <div className="text-left">
                       <h3 className="font-medium text-foreground">{t('blocked_users')}</h3>
-                      <p className="text-xs text-muted-foreground font-light">Manage restrictions.</p>
+                      <p className="text-xs text-muted-foreground font-light">Manage restricted relationships.</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />

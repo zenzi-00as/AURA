@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { BadgeCheck, MapPin, Lock, Heart, MessageSquare, X, Loader2, MoreVertical, ShieldAlert, UserX, Flag } from "lucide-react";
+import { BadgeCheck, MapPin, Lock, Heart, MessageSquare, X, Loader2, MoreVertical, ShieldAlert, UserX, Flag, Circle } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
 import { useAuthContext } from "@/firebase/auth-context";
 import { getPlanConfig } from "@/lib/subscription-engine";
@@ -58,6 +58,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   const [isReporting, setIsReporting] = useState(false);
 
   const blurPhotos = planConfig.profilePhotos === 'blurred';
+  const showOnline = user.showOnlineStatus !== false && user.isOnline;
 
   const handleInteraction = async (type: InteractionType) => {
     if (!currentUser || isLoading || isLiked) return;
@@ -137,6 +138,13 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
             {user.photoUrl ? <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} /> : <div className="w-full h-full bg-muted" />}
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+            
+            {showOnline && (
+              <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md pl-1.5 pr-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00FF88] shadow-[0_0_8px_#00FF88]" />
+                <span className="text-[8px] font-black text-white uppercase tracking-widest">Online</span>
+              </div>
+            )}
           </div>
         </SheetTrigger>
 
@@ -157,10 +165,18 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             >
               <header className="px-8 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
                   <div className="flex items-center gap-2">
-                    <SheetTitle className="text-sm font-bold text-foreground">{user.name}, {user.age}</SheetTitle>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <SheetTitle className="text-sm font-bold text-foreground m-0">{user.name}, {user.age}</SheetTitle>
+                        {showOnline && <div className="w-1.5 h-1.5 rounded-full bg-[#00FF88] shadow-[0_0_8px_#00FF88]" />}
+                      </div>
+                      <span className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest leading-none mt-0.5">
+                        {showOnline ? "Active Presence" : "Offline"}
+                      </span>
+                    </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><MoreVertical size={14} /></button>
+                          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground ml-2"><MoreVertical size={14} /></button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
                           <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500"><UserX size={16} /> Block User</DropdownMenuItem>

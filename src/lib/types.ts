@@ -1,4 +1,3 @@
-
 export type VerificationStatus = 'Verified' | 'Pending' | 'Rejected' | 'unverified';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending' | 'free';
 export type PlanType = 'free' | 'elite' | 'elite_plus';
@@ -64,9 +63,11 @@ export type UserProfile = {
   verification?: VerificationData;
   subscription?: UserSubscription;
   usage?: UserUsage;
+  plan?: PlanType;
   superLikeBalance: number;
   spotlightExpiry?: any;
   incognitoMode: boolean;
+  showOnlineStatus?: boolean;
   isSuspended: boolean;
   isAdmin: boolean;
   location?: {

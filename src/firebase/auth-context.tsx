@@ -11,7 +11,7 @@ import { CURRENT_TERMS_VERSION } from '@/lib/constants';
 
 /**
  * @fileOverview Central Authentication and Profile Synchronization Node.
- * Hardened with Email Verification and Terms Acceptance state machine.
+ * Hardened with Email Verification, Terms Acceptance, and Real-time Presence.
  */
 
 interface AuthContextType {
@@ -127,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (authUser) {
-        // High-fidelity refresh to capture emailVerified status updates
         try {
           await reload(authUser);
         } catch (e) {
@@ -140,12 +139,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
-            
-            // Validate Terms Node
             const hasValidTerms = data.termsAccepted === true && data.termsVersion === CURRENT_TERMS_VERSION;
             setNeedsTermsAcceptance(!hasValidTerms);
 
-            // Usage Reset Logic
             const today = format(new Date(), 'yyyy-MM-dd');
             if (data.usage?.lastResetDate && data.usage.lastResetDate !== today) {
               updateDoc(userRef, {
@@ -165,7 +161,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
-        updateDoc(userRef, { isOnline: true, lastActive: serverTimestamp() }).catch(() => {});
+        // Online Status Lifecycle Handling
+        const updatePresence = (online: boolean) => {
+          updateDoc(userRef, { 
+            isOnline: online, 
+            lastActive: serverTimestamp() 
+          }).catch(() => {});
+        };
+
+        updatePresence(true);
+
+        const handleVisibilityChange = () => {
+          updatePresence(document.visibilityState === 'visible');
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', () => updatePresence(true));
+        window.addEventListener('blur', () => updatePresence(false));
+
+        return () => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          updatePresence(false);
+        };
       } else {
         setUser(null);
         setProfile(null);

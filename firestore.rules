@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,12 +25,14 @@ service cloud.firestore {
 
       allow create: if isOwner(userId);
       
-      // Extended update rule to allow notification settings synchronization
+      // HARDENED UPDATE RULE: Protect privileged fields + Incognito validation
       allow update: if isOwner(userId) && 
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'plan', 'isAdmin', 'superLikeBalance', 'usage', 'isSuperFunder', 
           'spotlightExpiry', 'subscription', 'verificationStatus', 'verification'
-        ]);
+        ]) &&
+        // INCOGNITO ENFORCEMENT: Only Elite Plus members can enable Incognito Mode
+        (request.resource.data.incognitoMode == false || resource.data.plan == 'elite_plus');
         
       allow update, delete: if isAdmin();
       
@@ -61,7 +62,7 @@ service cloud.firestore {
     match /chatRooms/{roomId} {
       allow read: if isAuthenticated() && request.auth.uid in resource.data.participants;
       allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participants;
-      allow update: if isAuthenticated() && request.auth.uid in request.resource.data.participants;
+      allow update: if isAuthenticated() && request.auth.uid in resource.data.participants;
       
       match /messages/{messageId} {
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
