@@ -15,7 +15,13 @@ import {
   Zap, 
   Lock,
   Globe,
-  Loader2
+  Loader2,
+  PurpleIcon,
+  MapPin,
+  ShoppingBag,
+  Target,
+  HandHeart,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +39,37 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const QUICK_AMOUNTS = [10, 25, 50, 100, 250, 500, 1000, 2500];
 
+const COMING_SOON_FEATURES = [
+  {
+    id: "exclusive",
+    title: "Aura Exclusive",
+    desc: "Monetize your creativity. Share exclusive posts and set your own access price with full privacy protection.",
+    icon: (props: any) => <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400" {...props}><Heart className="fill-current" size={20} /></div>,
+    badge: "Creator Economy"
+  },
+  {
+    id: "discovery_plans",
+    title: "Discovery Plans",
+    desc: "Plan your next connection. Specify meetup intentions, time, and location while maintaining absolute privacy.",
+    icon: (props: any) => <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary" {...props}><Target size={20} /></div>,
+    badge: "Intentionality"
+  },
+  {
+    id: "meetspot",
+    title: "Aura MeetSpot",
+    desc: "Discover safe, queer-friendly public venues like cafes and parks for your high-fidelity real-world meetups.",
+    icon: (props: any) => <div className="w-10 h-10 rounded-xl bg-[#00FF88]/20 flex items-center justify-center text-[#00FF88]" {...props}><MapPin size={20} /></div>,
+    badge: "Safety First"
+  },
+  {
+    id: "marketplace",
+    title: "Aura Marketplace",
+    desc: "Curated shopping for the community. Purchase products directly through Aura with secure hardware-locked payments.",
+    icon: (props: any) => <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500" {...props}><ShoppingBag size={20} /></div>,
+    badge: "Community Commerce"
+  }
+];
+
 export default function SuperFundPage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -49,7 +86,6 @@ export default function SuperFundPage() {
 
   // Leaderboard Query: All verified funds, top 50
   const fundsQuery = useMemoFirebase(() => {
-    // SECURITY: Ensure authUser is initialized before attempting to query public funds
     if (!db || !authUser) return null;
     return query(
       collection(db, "superFunds"),
@@ -89,16 +125,11 @@ export default function SuperFundPage() {
         };
 
         try {
-          // 1. Create Fund Record
           await addDoc(collection(db, "superFunds"), fundData);
-
-          // 2. Update User Badge Status
           await updateDoc(doc(db, "users", authUser.uid), {
             isSuperFunder: true,
             updatedAt: serverTimestamp()
           });
-
-          // 3. Create Notification
           await addDoc(collection(db, "notifications"), {
             userId: authUser.uid,
             title: "Super Fund Synchronized ✨",
@@ -107,7 +138,6 @@ export default function SuperFundPage() {
             timestamp: serverTimestamp(),
             read: false
           });
-
           setShowSuccess(true);
         } catch (e) {
           toast({ variant: "destructive", title: "Sync Fault", description: "Payment successful, but record sync failed. Contact support." });
@@ -150,7 +180,7 @@ export default function SuperFundPage() {
           <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
             <ArrowLeft size={22} />
           </button>
-          <h1 className="text-xl font-bold text-white">Super Fund</h1>
+          <h1 className="text-xl font-bold text-white">Aura Community</h1>
         </header>
 
         <div className="p-8 space-y-12">
@@ -163,7 +193,7 @@ export default function SuperFundPage() {
             >
               <Sparkles size={32} className="text-white" />
             </motion.div>
-            <h2 className="text-4xl font-bold tracking-tighter text-white">Support Aura ✨</h2>
+            <h2 className="text-4xl font-bold tracking-tighter text-white">Super Fund ✨</h2>
             <p className="text-sm text-white/40 font-light leading-relaxed max-w-[280px] mx-auto italic">
               Voluntary contributions help us build, maintain, and evolve the connection experience for the entire community.
             </p>
@@ -279,6 +309,84 @@ export default function SuperFundPage() {
                      <p className="text-sm text-white/30 italic">Be the first to support Aura.</p>
                   </div>
                 )}
+             </div>
+          </section>
+
+          {/* Coming Soon Section */}
+          <section className="space-y-8 pt-8">
+            <div className="text-center space-y-2">
+               <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Community Horizon</h3>
+               <h2 className="text-2xl font-bold text-white">Coming Soon...</h2>
+               <p className="text-xs text-white/40 font-light max-w-[240px] mx-auto">High-fidelity features currently being materialized for the Aura Collective.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               {COMING_SOON_FEATURES.map((feature, i) => (
+                 <motion.div 
+                   key={feature.id}
+                   initial={{ opacity: 0, y: 10 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ delay: i * 0.1 }}
+                   className="glass-card p-6 rounded-[32px] border border-white/5 space-y-6 relative overflow-hidden group"
+                 >
+                    <div className="flex justify-between items-start">
+                       <feature.icon className="group-hover:scale-110 transition-transform duration-500" />
+                       <span className="text-[7px] font-black text-white/30 uppercase tracking-widest border border-white/10 px-2 py-1 rounded-full group-hover:border-primary/40 group-hover:text-primary transition-colors">
+                          {feature.badge}
+                       </span>
+                    </div>
+                    <div className="space-y-2">
+                       <h4 className="text-base font-bold text-white">{feature.title}</h4>
+                       <p className="text-xs text-white/40 leading-relaxed font-light">{feature.desc}</p>
+                    </div>
+                    <div className="pt-2 flex items-center gap-2 text-[8px] font-black text-primary uppercase tracking-widest">
+                       <Zap size={10} className="animate-pulse" />
+                       <span>Development Active</span>
+                    </div>
+                 </motion.div>
+               ))}
+            </div>
+          </section>
+
+          {/* Community Impact Commitment */}
+          <section className="glass-card p-8 rounded-[40px] border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent space-y-8 relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
+             
+             <div className="space-y-3 relative z-10">
+                <div className="flex items-center gap-3">
+                   <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg">
+                      <HandHeart size={24} />
+                   </div>
+                   <div className="space-y-0.5">
+                      <h3 className="text-lg font-bold text-white">Community Impact</h3>
+                      <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Global Commitment</p>
+                   </div>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                   <div className="p-6 rounded-[28px] bg-white/5 border border-white/5 space-y-3">
+                      <div className="flex justify-between items-center">
+                         <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Donation Node</span>
+                         <span className="text-xl font-black text-white">20%</span>
+                      </div>
+                      <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                        Upon the successful launch of Aura Exclusive and Discovery Plans, 20% of eligible community funds will be definitively allocated toward verified global LGBTQ+ charitable causes.
+                      </p>
+                   </div>
+
+                   <div className="flex items-center gap-3 px-1">
+                      <div className="flex items-center gap-2 text-[#00FF88]">
+                         <ShieldCheck size={14} />
+                         <span className="text-[8px] font-black uppercase tracking-widest">Transparent Records</span>
+                      </div>
+                      <div className="w-1 h-1 rounded-full bg-white/20" />
+                      <div className="flex items-center gap-2 text-white/30">
+                         <EyeOff size={14} />
+                         <span className="text-[8px] font-black uppercase tracking-widest">Pending Activation</span>
+                      </div>
+                   </div>
+                </div>
              </div>
           </section>
 
