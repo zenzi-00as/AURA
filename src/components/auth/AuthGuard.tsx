@@ -59,13 +59,13 @@ export function AuthGuard({ children, requireOnboarding = true }: AuthGuardProps
 
   if (loading || isRedirecting) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#050816] min-h-screen">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen">
         <div className="w-20 h-20 rounded-[28px] blue-gradient flex items-center justify-center aura-glow aura-pulse shadow-xl shadow-primary/20 mb-6">
           <span className="text-3xl font-bold text-white tracking-tighter">A</span>
         </div>
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-6 h-6 text-primary animate-spin" />
-          <p className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">Synchronizing Aura</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Synchronizing Aura</p>
         </div>
       </div>
     );

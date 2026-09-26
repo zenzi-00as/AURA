@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -179,7 +178,7 @@ export default function ChatRoomPage() {
   };
 
   if (roomLoading) {
-    return <div className="flex h-screen-safe items-center justify-center bg-[#070709]"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
+    return <div className="flex h-screen-safe items-center justify-center bg-background"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
   }
 
   const isSystemChat = room?.isSystem || idParam?.startsWith('system_');
@@ -187,16 +186,16 @@ export default function ChatRoomPage() {
 
   return (
     <AuthGuard>
-      <div className="flex flex-col h-screen-safe bg-[#070709] overflow-hidden">
-        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-2xl z-30 safe-top">
+      <div className="flex flex-col h-screen-safe bg-background overflow-hidden">
+        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-border bg-background/40 backdrop-blur-2xl z-30 safe-top">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-white/40 hover:text-white p-2 -ml-2"><ArrowLeft size={22} /></button>
+            <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground p-2 -ml-2"><ArrowLeft size={22} /></button>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-white">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
+                <span className="font-semibold text-sm text-foreground">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
                 {(isSystemChat || otherUser?.verificationStatus === 'Verified') && <BadgeCheck size={16} className="text-primary" />}
               </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-white/20">
+              <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40">
                 {isSystemChat ? "Official System" : (otherUser?.isOnline && !otherUser.incognitoMode && !isBlocked ? "Active" : "Offline")}
               </span>
             </div>
@@ -204,9 +203,9 @@ export default function ChatRoomPage() {
           {!isSystemChat && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40"><MoreVertical size={18} /></button>
+                <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><MoreVertical size={18} /></button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#11141C] border-white/10 text-white rounded-2xl">
+              <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
                 {!isBlockedByMe && (
                   <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500">
                     <UserX size={16} /> Block User
@@ -237,22 +236,22 @@ export default function ChatRoomPage() {
             return (
               <motion.div key={msg.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                 <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
-                  <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", isMe ? "premium-gradient text-white rounded-br-none" : "bg-white/5 text-white rounded-bl-none border border-white/10")}>
+                  <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", isMe ? "premium-gradient text-white rounded-br-none" : "bg-muted text-foreground rounded-bl-none border border-border")}>
                     {msg.isMedia ? (
                       <div onClick={() => !isExpired && handleMediaClick(msg)} className={cn("relative rounded-2xl overflow-hidden cursor-pointer", (isExpired || !msg.mediaUrl) && "opacity-40 grayscale")}>
                          {msg.mediaUrl ? (
                            <img src={msg.mediaUrl} alt="" className={cn("max-w-full max-h-[300px] object-cover", isExpired && "blur-2xl")} />
                          ) : (
-                           <div className="w-[200px] h-[150px] bg-black/40 flex flex-col items-center justify-center gap-2">
-                             <Lock size={24} className="text-white/20" />
-                             <span className="text-[10px] text-white/20 font-bold uppercase">Expired Packet</span>
+                           <div className="w-[200px] h-[150px] bg-background/40 flex flex-col items-center justify-center gap-2">
+                             <Lock size={24} className="text-muted-foreground/20" />
+                             <span className="text-[10px] text-muted-foreground/20 font-bold uppercase">Expired Packet</span>
                            </div>
                          )}
                          {isExpired && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><Lock size={20} className="text-white/60" /></div>}
                       </div>
                     ) : <p className="text-sm leading-relaxed font-light">{msg.text}</p>}
                   </div>
-                  {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-white/20" />}</div>}
+                  {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-muted-foreground/20" />}</div>}
                 </div>
               </motion.div>
             );
@@ -261,7 +260,7 @@ export default function ChatRoomPage() {
         </div>
 
         {!isSystemChat && (
-          <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-black/60 backdrop-blur-3xl border-t border-white/5 z-20">
+          <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-background/60 backdrop-blur-3xl border-t border-border z-20">
             <div className="flex items-center gap-3 w-full h-14">
               <Input 
                 value={input} 
@@ -269,7 +268,7 @@ export default function ChatRoomPage() {
                 onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} 
                 placeholder={isBlocked ? "Interaction restricted" : "Message..."} 
                 disabled={isBlocked}
-                className="flex-1 h-12 bg-white/5 border-none rounded-[28px] px-6 text-sm text-white disabled:opacity-20" 
+                className="flex-1 h-12 bg-muted border-none rounded-[28px] px-6 text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-20 shadow-none focus:ring-0" 
               />
               <button 
                 onClick={handleSendText} 
@@ -284,32 +283,32 @@ export default function ChatRoomPage() {
 
         {/* Moderation Dialogs */}
         <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
-          <AlertDialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px]">
+          <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px]">
             <AlertDialogHeader>
               <AlertDialogTitle>Block this user?</AlertDialogTitle>
-              <AlertDialogDescription className="text-white/60">
+              <AlertDialogDescription>
                 They will no longer be able to message you. Existing messages remain private but no new interactions can occur.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-white/5 border-white/10 text-white">Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white">Block</AlertDialogAction>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white border-none">Block</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
         <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-          <DialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px] p-8">
+          <DialogContent className="bg-popover border-border text-foreground rounded-[32px] p-8">
             <DialogHeader>
               <DialogTitle>Report User</DialogTitle>
-              <DialogDescription className="text-white/60">Help us keep Aura safe. Our team will review the reports.</DialogDescription>
+              <DialogDescription>Help us keep Aura safe. Our team will review the reports.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <Select value={reportCategory} onValueChange={setReportCategory}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-12">
+                <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12">
                   <SelectValue placeholder="Select Reason" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-xl">
+                <SelectContent className="bg-popover border-border text-foreground rounded-xl">
                   {REPORT_CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
@@ -319,11 +318,11 @@ export default function ChatRoomPage() {
                 placeholder="Tell us more (optional)" 
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
-                className="bg-white/5 border-white/10 rounded-xl min-h-[100px] resize-none"
+                className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground"
               />
             </div>
             <DialogFooter>
-              <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl">
+              <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl text-white">
                 {isReporting ? <Loader2 className="animate-spin" /> : "Submit Report"}
               </Button>
             </DialogFooter>

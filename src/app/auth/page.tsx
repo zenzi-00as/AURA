@@ -204,22 +204,22 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-[#050816] overflow-y-auto">
+    <div className="flex-1 flex flex-col px-8 pt-12 pb-12 relative min-h-screen bg-background overflow-y-auto">
       <div className="absolute inset-0 z-0 hero-radial" />
       
       <header className="mb-10 relative z-10 flex flex-col items-center text-center">
-        <div className="w-12 h-12 rounded-2xl blue-gradient border border-white/10 flex items-center justify-center shadow-2xl neon-glow mb-8">
+        <div className="w-12 h-12 rounded-2xl blue-gradient border border-border flex items-center justify-center shadow-2xl neon-glow mb-8">
           <span className="text-white font-bold text-xl">A</span>
         </div>
         <div className="flex flex-col gap-3">
           <motion.h1 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-bold text-white tracking-tighter leading-tight"
+            className="text-4xl font-bold text-foreground tracking-tighter leading-tight"
           >
             {mode === "signin" ? "Welcome back" : "Join Aura"}
           </motion.h1>
-          <p className="text-white/60 font-light text-lg">
+          <p className="text-muted-foreground font-light text-lg">
             {mode === "signin" ? "Sign in to your presence." : "Create your digital identity."}
           </p>
         </div>
@@ -233,38 +233,38 @@ export default function AuthPage() {
         >
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em] px-1">Email Identity</label>
+              <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-1">Email Identity</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} />
                 <Input 
                   type="email" 
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-14 bg-white/[0.045] border-white/10 rounded-2xl pl-12 pr-6 text-white focus:border-[#2563FF] focus:ring-0 shadow-none"
+                  className="h-14 bg-muted border-border rounded-2xl pl-12 pr-6 text-foreground focus:border-primary focus:ring-0 shadow-none"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-bold text-[#2563FF] uppercase tracking-[0.2em]">Password</label>
+                <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Password</label>
                 {mode === "signin" && (
-                  <button onClick={handleForgotPassword} className="text-[9px] font-bold text-white/40 uppercase hover:text-white transition-colors">Forgot Password?</button>
+                  <button onClick={handleForgotPassword} className="text-[9px] font-bold text-muted-foreground uppercase hover:text-foreground transition-colors">Forgot Password?</button>
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} />
                 <Input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="Min. 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 bg-white/[0.045] border-white/10 rounded-2xl pl-12 pr-12 text-white focus:border-[#2563FF] focus:ring-0 shadow-none"
+                  className="h-14 bg-muted border-border rounded-2xl pl-12 pr-12 text-foreground focus:border-primary focus:ring-0 shadow-none"
                 />
                 <button 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -277,10 +277,10 @@ export default function AuthPage() {
                   id="terms" 
                   checked={agreedToTerms} 
                   onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
-                  className="h-5 w-5 mt-1 border-white/20 data-[state=checked]:bg-[#2563FF]"
+                  className="h-5 w-5 mt-1 border-border data-[state=checked]:bg-primary"
                 />
-                <label htmlFor="terms" className="text-xs text-white/40 leading-relaxed pt-1">
-                  I acknowledge the <Link href="/terms" className="text-white hover:text-[#2563FF]">Terms</Link> and <Link href="/privacy" className="text-white hover:text-[#2563FF]">Privacy Guard</Link>.
+                <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed pt-1">
+                  I acknowledge the <Link href="/terms" className="text-foreground hover:text-primary">Terms</Link> and <Link href="/privacy" className="text-foreground hover:text-primary">Privacy Guard</Link>.
                 </label>
               </div>
             )}
@@ -301,7 +301,7 @@ export default function AuthPage() {
               variant="outline"
               onClick={handleGoogleSignIn}
               disabled={isLoading || isRedirecting || isGoogleLoading}
-              className="w-full h-[58px] rounded-full bg-white/5 border-white/10 text-white font-bold text-base flex items-center justify-center gap-3 hover:bg-white/10"
+              className="w-full h-[58px] rounded-full bg-muted border-border text-foreground font-bold text-base flex items-center justify-center gap-3 hover:bg-muted/80"
             >
               {isGoogleLoading ? <Loader2 className="animate-spin" /> : <Chrome size={22} />}
               <span>Continue with Google</span>
@@ -310,14 +310,14 @@ export default function AuthPage() {
             <div className="text-center pt-2 flex flex-col gap-4">
               <button 
                 onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="text-sm text-white/40 hover:text-white transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {mode === "signin" ? "New to Aura? Create an account" : "Already have an account? Sign in"}
               </button>
 
               <button 
                 onClick={loginAsDemo}
-                className="text-[10px] text-white/20 hover:text-white transition-colors uppercase tracking-[0.2em] font-bold"
+                className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors uppercase tracking-[0.2em] font-bold"
               >
                 Continue as Guest
               </button>
@@ -327,7 +327,7 @@ export default function AuthPage() {
       </div>
 
       <div className="mt-auto py-8 text-center">
-        <p className="text-[10px] text-white/20 uppercase tracking-[0.5em] font-bold">Premium • Private • Real</p>
+        <p className="text-[10px] text-muted-foreground/40 uppercase tracking-[0.5em] font-bold">Premium • Private • Real</p>
       </div>
     </div>
   );

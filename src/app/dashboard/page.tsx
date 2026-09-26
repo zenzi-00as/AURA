@@ -134,20 +134,20 @@ export default function Dashboard() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col min-h-screen-safe bg-[#05070D] relative transition-colors overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-screen-safe bg-background relative transition-colors overflow-hidden">
         {/* Support Onboarding Prompt */}
         <SuperFundPrompt />
 
-        <header className="px-4 h-20 flex justify-between items-center sticky top-0 bg-[#080A10E0] backdrop-blur-[18px] z-20 border-b border-white/5 safe-top">
+        <header className="px-4 h-20 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-[18px] z-20 border-b border-border safe-top">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl blue-gradient flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
             </div>
             <div className="flex flex-col">
-              <h1 className="text-xl font-bold tracking-tight text-white leading-none">{t('discovery')}</h1>
+              <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">{t('discovery')}</h1>
               <div className="flex items-center gap-1 mt-1 opacity-40">
                 <Shield size={10} className="text-primary" />
-                <span className="text-[8px] font-bold uppercase tracking-widest text-white">AI Guard Active</span>
+                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground">AI Guard Active</span>
               </div>
             </div>
           </div>
@@ -163,16 +163,16 @@ export default function Dashboard() {
 
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+                <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                   <SlidersHorizontal size={18} />
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-[#05070D] text-white rounded-t-[40px] px-8 pt-10 pb-12 outline-none border-t border-white/10">
+              <SheetContent side="bottom" className="bg-background text-foreground rounded-t-[40px] px-8 pt-10 pb-12 outline-none border-t border-border">
                 <SheetHeader className="mb-8"><SheetTitle className="text-2xl font-bold">Discovery Filters</SheetTitle></SheetHeader>
                 <div className="space-y-10">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Max Radius</Label>
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Max Radius</Label>
                       <span className="text-primary font-bold text-sm">{distance[0]} km</span>
                     </div>
                     <Slider value={distance} onValueChange={handleDistanceChange} max={100} step={1} />
@@ -187,25 +187,24 @@ export default function Dashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto px-2 pt-2 pb-32 relative z-10">
-          {/* Dashboard Hero / Welcome Node */}
           <div className="px-2 mb-3">
-             <div className="p-2 pt-2 pb-2 rounded-[24px] glass-card border-white/10 relative overflow-hidden group">
+             <div className="p-2 pt-2 pb-2 rounded-[24px] glass-card border-border relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
                 <div className="relative z-10 pl-4">
                    <div className="flex gap-6">
                       <div className="space-y-1">
                          <div className="flex items-center gap-2 text-primary">
                             <Users size={14} />
-                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest text-[#0057FF]">1,240</span>
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest">1,240</span>
                          </div>
-                         <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Active Members</p>
+                         <p className="text-[7px] text-muted-foreground uppercase font-bold tracking-[0.2em]">Active Members</p>
                       </div>
                       <div className="space-y-1">
                          <div className="flex items-center gap-2 text-[#00FF88]">
                             <Globe size={14} />
-                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest text-[#00FF88]">Global Sync</span>
+                            <span className="text-xs font-bold uppercase tabular-nums tracking-widest">Global Sync</span>
                          </div>
-                         <p className="text-[7px] text-white/30 uppercase font-bold tracking-[0.2em]">Healthy Node</p>
+                         <p className="text-[7px] text-muted-foreground uppercase font-bold tracking-[0.2em]">Healthy Node</p>
                       </div>
                    </div>
                 </div>
@@ -213,7 +212,7 @@ export default function Dashboard() {
           </div>
 
           <div className="px-2 mb-4">
-             <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] px-2 flex items-center gap-2">
+             <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.3em] px-2 flex items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                Latest Connections
              </h3>
@@ -223,7 +222,7 @@ export default function Dashboard() {
             <div className="flex h-[60vh] items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="animate-spin text-primary" size={32} />
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Synchronizing Profiles...</p>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Synchronizing Profiles...</p>
               </div>
             </div>
           ) : discoveryItems.length > 0 ? (
@@ -240,8 +239,8 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="py-20 text-center space-y-4">
-              <Search size={48} className="mx-auto text-white/10" />
-              <p className="text-white/40 text-sm font-light">Quiet in the Aura. Expand filters.</p>
+              <Search size={48} className="mx-auto text-muted-foreground/20" />
+              <p className="text-muted-foreground text-sm font-light">Quiet in the Aura. Expand filters.</p>
             </div>
           )}
         </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -106,20 +105,20 @@ export default function NotificationSettingsPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-12 transition-colors min-h-screen-safe overflow-x-hidden">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-30 safe-top">
-        <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-30 safe-top">
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
-        <h1 className="text-xl font-semibold text-white">Notifications</h1>
+        <h1 className="text-xl font-semibold text-foreground">Notifications</h1>
       </header>
 
       <div className="p-6 space-y-10">
         <section className="space-y-6">
-          <div className="p-6 rounded-[32px] bg-white/5 border border-white/10 space-y-4">
+          <div className="p-6 rounded-[32px] bg-card border border-border space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <h3 className="font-bold text-lg">Push Notifications</h3>
-                <p className="text-xs text-white/40">Control push notifications from Aura.</p>
+                <h3 className="font-bold text-lg text-foreground">Push Notifications</h3>
+                <p className="text-xs text-muted-foreground">Control push notifications from Aura.</p>
               </div>
               <Switch 
                 disabled={isLoading || isRegistering}
@@ -153,7 +152,7 @@ export default function NotificationSettingsPage() {
 
         <section className="space-y-4">
           <div className="px-2">
-            <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Alert Categories</h2>
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Alert Categories</h2>
           </div>
 
           <div className={cn(
@@ -166,13 +165,13 @@ export default function NotificationSettingsPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.03 }}
-                className="p-5 rounded-[28px] bg-white/5 border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+                className="p-5 rounded-[28px] bg-card border border-border flex items-center justify-between group active:scale-[0.98] transition-all shadow-sm"
               >
                 <div className="flex items-center gap-4">
-                  <div className={cn("w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center transition-colors", cat.color)}>
+                  <div className={cn("w-10 h-10 rounded-xl bg-background flex items-center justify-center transition-colors", cat.color)}>
                     <cat.icon size={18} />
                   </div>
-                  <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{cat.label}</span>
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{cat.label}</span>
                 </div>
                 <Switch 
                   disabled={!settings.pushEnabled || isLoading}
@@ -186,7 +185,7 @@ export default function NotificationSettingsPage() {
         </section>
 
         <div className="pt-8 text-center pb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border text-[9px] font-black text-muted-foreground uppercase tracking-[0.4em]">
             Aura Activity Guard v2.5.0
           </div>
         </div>

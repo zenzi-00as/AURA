@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -112,7 +111,7 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         onClick={() => handleInteraction('like')}
         className={cn(
           "h-12 w-14 rounded-2xl flex items-center justify-center transition-all shrink-0 border",
-          isLiked ? "bg-primary text-white border-transparent" : "bg-white/5 border-white/10 text-white/40"
+          isLiked ? "bg-primary text-white border-transparent" : "bg-muted border-border text-muted-foreground"
         )}
       >
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Heart size={20} />}
@@ -131,47 +130,47 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   return (
     <>
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-      <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-[#11141C] border border-white/10 rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col">
+      <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-card border border-border rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col">
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
-            {user.photoUrl ? <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} /> : <div className="w-full h-full bg-[#0B0F18]" />}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+            {user.photoUrl ? <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} /> : <div className="w-full h-full bg-muted" />}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
           </div>
         </SheetTrigger>
 
         <div className="p-3 flex-1 flex flex-col space-y-2">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h3 className="text-sm font-bold text-white truncate max-w-[100px]">{user.name}, {user.age}</h3>
+            <h3 className="text-sm font-bold text-card-foreground truncate max-w-[100px]">{user.name}, {user.age}</h3>
             {user.verificationStatus === 'Verified' && <BadgeCheck size={14} className="text-primary" />}
           </div>
-          <div className="flex items-center gap-1 text-[9px] text-white/50 font-bold uppercase"><MapPin size={10} className="text-primary" />{user.distance || "Nearby"}</div>
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold uppercase"><MapPin size={10} className="text-primary" />{user.distance || "Nearby"}</div>
           <div className="pt-2 mt-auto">{interactionButtons}</div>
         </div>
 
-        <SheetContent side="bottom" className="bg-[#05070D] border-white/10 text-white rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+        <SheetContent side="bottom" className="bg-background border-border text-foreground rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
           <div className="h-full flex flex-col">
-            <header className="px-8 h-20 flex items-center justify-between border-b border-white/5 bg-[#080A10E0] backdrop-blur-xl shrink-0">
+            <header className="px-8 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
                 <div className="flex items-center gap-2">
-                   <SheetTitle className="text-sm font-bold text-white">{user.name}, {user.age}</SheetTitle>
+                   <SheetTitle className="text-sm font-bold text-foreground">{user.name}, {user.age}</SheetTitle>
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40"><MoreVertical size={14} /></button>
+                        <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><MoreVertical size={14} /></button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#11141C] border-white/10 text-white rounded-2xl">
+                      <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
                         <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500"><UserX size={16} /> Block User</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2"><Flag size={16} /> Report User</DropdownMenuItem>
                       </DropdownMenuContent>
                    </DropdownMenu>
                 </div>
-                <button onClick={() => setIsDetailOpen(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60"><X size={20} /></button>
+                <button onClick={() => setIsDetailOpen(false)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><X size={20} /></button>
             </header>
             <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
               <div className="aspect-[3/4] w-full rounded-[40px] overflow-hidden glass-card relative shadow-2xl">
-                {user.photoUrl && !blurPhotos ? <img src={user.photoUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-6"><Lock size={48} className="text-primary/20" /><p className="text-sm text-white/60 font-light">Join Elite Plus to unlock full identity photos.</p></div>}
+                {user.photoUrl && !blurPhotos ? <img src={user.photoUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-6"><Lock size={48} className="text-primary/20" /><p className="text-sm text-muted-foreground font-light">Join Elite Plus to unlock full identity photos.</p></div>}
               </div>
-              <p className="text-lg text-white font-light leading-relaxed">{user.bio}</p>
+              <p className="text-lg text-foreground font-light leading-relaxed">{user.bio}</p>
             </div>
-            <div className="p-8 border-t border-white/5 bg-[#05070D] shrink-0 safe-bottom">{interactionButtons}</div>
+            <div className="p-8 border-t border-border bg-background shrink-0 safe-bottom">{interactionButtons}</div>
           </div>
         </SheetContent>
       </motion.div>
@@ -182,32 +181,32 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
 
     {/* Moderation Dialogs */}
     <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
-      <AlertDialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px]">
+      <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Block this user?</AlertDialogTitle>
-          <AlertDialogDescription className="text-white/60">
+          <AlertDialogDescription>
             Blocked users cannot contact you or interact with your profile. You will no longer see each other in Discovery.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-white/5 border-white/10 text-white">Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white">Block</AlertDialogAction>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white border-none">Block</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
 
     <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-      <DialogContent className="bg-[#11141C] border-white/10 text-white rounded-[32px] p-8">
+      <DialogContent className="bg-popover border-border text-foreground rounded-[32px] p-8">
         <DialogHeader>
           <DialogTitle>Report User</DialogTitle>
-          <DialogDescription className="text-white/60">Help us keep Aura safe. Your report is strictly private.</DialogDescription>
+          <DialogDescription>Help us keep Aura safe. Your report is strictly private.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <Select value={reportCategory} onValueChange={setReportCategory}>
-            <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-12">
+            <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12">
               <SelectValue placeholder="Select Reason" />
             </SelectTrigger>
-            <SelectContent className="bg-[#11141C] border-white/10 text-white rounded-xl">
+            <SelectContent className="bg-popover border-border text-foreground rounded-xl">
               {REPORT_CATEGORIES.map(cat => (
                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
               ))}
@@ -217,11 +216,11 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
             placeholder="Tell us more (optional)" 
             value={reportDescription}
             onChange={(e) => setReportDescription(e.target.value)}
-            className="bg-white/5 border-white/10 rounded-xl min-h-[100px] resize-none"
+            className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground"
           />
         </div>
         <DialogFooter>
-          <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl">
+          <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl text-white">
             {isReporting ? <Loader2 className="animate-spin" /> : "Submit Report"}
           </Button>
         </DialogFooter>
