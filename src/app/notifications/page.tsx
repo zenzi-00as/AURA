@@ -125,11 +125,11 @@ export default function NotificationsPage() {
                       transition={{ duration: 0.1, delay: idx * 0.01 }}
                       className={cn(
                         "p-4 flex items-center gap-4 group active:scale-[0.98] transition-all rounded-[24px] border",
-                        !notif.read ? "bg-card border-primary/40 shadow-sm" : "bg-card/50 border-border opacity-70"
+                        !notif.read ? "bg-card border-primary/40 shadow-sm" : "bg-card border-border"
                       )}
                     >
                       <div className={cn(
-                        "w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 border border-border/10",
+                        "w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 border border-border/20",
                         colorClasses
                       )}>
                         <Icon size={20} />
@@ -139,13 +139,13 @@ export default function NotificationsPage() {
                           <div className="flex items-center gap-1.5 min-w-0">
                             <h3 className={cn(
                               "truncate text-sm transition-colors",
-                              !notif.read ? "text-foreground font-bold" : "text-foreground/70 font-normal"
+                              !notif.read ? "text-foreground font-bold" : "text-muted-foreground"
                             )}>{notif.title}</h3>
                             {!notif.read && (
                               <span className="bg-primary/20 text-primary text-[7px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-[0_0_8px_rgba(0,87,255,0.2)]">NEW</span>
                             )}
                           </div>
-                          <span className="text-[10px] text-muted-foreground/60 font-medium shrink-0 ml-2">{timeStr}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
                         </div>
                         <p className={cn(
                           "text-[11px] leading-snug line-clamp-2",
@@ -165,7 +165,7 @@ export default function NotificationsPage() {
                   transition={{ duration: 0.1 }}
                   className="flex flex-col items-center justify-center py-20 text-center space-y-4"
                 >
-                  <div className="w-16 h-16 rounded-3xl bg-muted border border-border flex items-center justify-center text-muted-foreground/40">
+                  <div className="w-16 h-16 rounded-3xl bg-muted border border-border flex items-center justify-center text-muted-foreground">
                     <Bell size={32} />
                   </div>
                   <div className="space-y-1">
