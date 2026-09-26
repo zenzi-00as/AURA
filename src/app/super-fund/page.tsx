@@ -370,7 +370,7 @@ export default function SuperFundPage() {
                          <span className="text-xl font-black text-white">20%</span>
                       </div>
                       <p className="text-[11px] text-white/60 leading-relaxed font-light">
-                        Upon the successful launch of Aura Exclusive and Discovery Plans, 20% of eligible community funds will be definitively allocated toward any charitable causes. Donations will start once these two checkpoints are reached.
+                        In line with our mission of community empowerment, 20% of eligible platform funds are dedicated to supporting various charitable causes. This commitment activates definitively once our primary developmental milestones are achieved.
                       </p>
                    </div>
 
