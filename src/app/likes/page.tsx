@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo } from "react";
@@ -61,13 +60,13 @@ export default function WhoLikesYouPage() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background pb-32 transition-colors min-h-screen">
-        <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-white/5 safe-top">
+        <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
           <div className="flex justify-between items-center">
             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20">
                 <Heart size={18} className="text-white" />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-white">Interested</h1>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">Interested</h1>
             </motion.div>
           </div>
         </header>
@@ -79,12 +78,12 @@ export default function WhoLikesYouPage() {
               animate={{ opacity: 1, y: 0 }}
               className="glass-card p-10 rounded-[40px] text-center space-y-8 border-primary/20 bg-primary/5"
             >
-              <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center neon-glow">
+              <div className="w-20 h-20 rounded-[32px] premium-gradient mx-auto flex items-center justify-center shadow-2xl neon-glow">
                 <Lock size={32} className="text-white" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-white tracking-tight">Reveal Your Admirers</h2>
-                <p className="text-sm text-white/60 font-light leading-relaxed">
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">Reveal Your Admirers</h2>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">
                   {admirers.length} people have connected with your Aura. Upgrade to Aura Elite Plus to see who they are and like them back.
                 </p>
               </div>
@@ -98,12 +97,12 @@ export default function WhoLikesYouPage() {
             </motion.div>
           ) : admirers.length === 0 ? (
             <div className="py-20 text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-white/5 border border-white/5 mx-auto flex items-center justify-center text-white/20">
+              <div className="w-20 h-20 rounded-full bg-muted border border-border mx-auto flex items-center justify-center text-muted-foreground/40">
                 <Compass size={40} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white">No synchronicity yet</h3>
-                <p className="text-xs text-white/40 font-light max-w-[200px] mx-auto">Continue discovering to attract new connections into your Aura.</p>
+                <h3 className="text-lg font-bold text-foreground">No synchronicity yet</h3>
+                <p className="text-xs text-muted-foreground font-light max-w-[200px] mx-auto">Continue discovering to attract new connections into your Aura.</p>
               </div>
               <Button onClick={() => router.push('/dashboard')} variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest">
                 Go to Discovery
