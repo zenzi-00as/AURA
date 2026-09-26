@@ -1,0 +1,11 @@
+name = "aura"
+compatibility_date = "2024-03-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".next"
+
+[vars]
+# Add non-secret staging variables here
+ENVIRONMENT = "staging"
+
+# Secrets like RAZORPAY_KEY_SECRET and GEMINI_API_KEY 
+# must be added via 'wrangler pages secret put' or the dashboard.

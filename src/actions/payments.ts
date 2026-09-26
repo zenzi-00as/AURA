@@ -1,15 +1,14 @@
 'use server';
 
 /**
- * @fileOverview Hardened Razorpay interaction node.
- * Definitively verifies signatures and order metadata server-side to prevent entitlement spoofing.
- * Standardized with Aura Monitoring Protocol.
+ * @fileOverview Edge-compatible Razorpay interaction node.
+ * Updated to use 'node:crypto' for Cloudflare compatibility.
  */
 
 import { initializeFirebase } from "@/firebase/init";
 import { doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "firebase/firestore";
 import Razorpay from "razorpay";
-import crypto from "crypto";
+import crypto from "node:crypto"; // Definitively use node:crypto for Edge compatibility
 import { validateServerEnv } from "@/lib/env-validation";
 import { logger } from "@/lib/logger";
 
@@ -63,6 +62,7 @@ export async function verifyRazorpayPayment(data: {
   const secret = env.razorpaySecret;
   const body = data.razorpay_order_id + "|" + data.razorpay_payment_id;
 
+  // Use node:crypto Hmac for Cloudflare nodejs_compat support
   const expectedSignature = crypto
     .createHmac("sha256", secret)
     .update(body.toString())
