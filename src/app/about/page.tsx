@@ -194,7 +194,7 @@ export default function AboutPage() {
         {/* Version Info & Legal Trust */}
         <div className="pt-8 text-center space-y-4 pb-12">
           <div className="flex flex-col gap-2">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.6.0</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Aura Identity Services v2.5.0</p>
             <p className="text-[9px] text-muted-foreground/60 italic font-light">Crafted with care by the Aura Collective.</p>
           </div>
           <div className="flex justify-center gap-6 text-[10px] text-muted-foreground/80 font-medium border-t border-border pt-6">

@@ -119,7 +119,7 @@ export default function TermsPage() {
         <div className="pt-8 text-center pb-12">
           <div className="inline-flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium border border-border px-4 py-2 rounded-full">
             <Globe size={10} />
-            Aura Protocol v2.6.5 • Updated Oct 2024
+            Aura Protocol v2.5.0 • Updated Oct 2024
           </div>
         </div>
       </div>

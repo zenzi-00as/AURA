@@ -116,7 +116,7 @@ export default function PrivacyPage() {
         <div className="pt-8 text-center pb-12">
           <div className="inline-flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">
             <Globe size={10} />
-            Aura Security Node v2.6.5 • Stateless Security Protocol
+            Aura Security Node v2.5.0 • Stateless Security Protocol
           </div>
         </div>
       </div>
