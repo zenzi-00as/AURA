@@ -102,7 +102,6 @@ export default function SettingsPage() {
   const handleToggle = async (key: string, value: boolean) => {
     if (!db || !authUser || !profile) return;
 
-    // INCOGNITO ELITE PLUS GUARD
     if (key === 'incognito' && !planConfig.incognito) {
       toast({ 
         title: "Elite Plus Required", 
@@ -113,7 +112,6 @@ export default function SettingsPage() {
       return;
     }
 
-    // Optimistic UI update
     setSettings(prev => ({ ...prev, [key]: value }));
 
     try {
@@ -136,7 +134,6 @@ export default function SettingsPage() {
       }
       toast({ title: "Preference Synchronized" });
     } catch (e: any) {
-      // Rollback UI
       setSettings(prev => ({ ...prev, [key]: !value }));
       toast({ variant: "destructive", title: "Sync Fault", description: "Failed to synchronize setting. Please try again." });
     }
@@ -205,7 +202,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-12 transition-colors duration-300">
-      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
         <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
           <ArrowLeft size={22} />
         </button>
@@ -256,7 +253,7 @@ export default function SettingsPage() {
               </DialogTrigger>
               <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
                 <DialogHeader className="space-y-3">
-                  <DialogTitle className="text-2xl font-semibold">{t('blocked_users')}</DialogTitle>
+                  <DialogTitle className="text-2xl font-semibold text-foreground">{t('blocked_users')}</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
                    {blockedLoading ? (
@@ -265,8 +262,8 @@ export default function SettingsPage() {
                      </div>
                    ) : blockedUsers?.length ? blockedUsers.map(user => (
                      <div key={user.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted border border-border">
-                        <span className="text-sm font-medium">{user.name}</span>
-                        <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)}>Unblock</Button>
+                        <span className="text-sm font-medium text-foreground">{user.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)} className="text-primary hover:text-primary/80">Unblock</Button>
                      </div>
                    )) : <p className="text-center text-muted-foreground py-10">Clear list.</p>}
                 </div>
@@ -316,7 +313,7 @@ export default function SettingsPage() {
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
-                <DialogHeader><DialogTitle className="text-2xl font-semibold text-center">{t('language')}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle className="text-2xl font-semibold text-center text-foreground">{t('language')}</DialogTitle></DialogHeader>
                 <div className="grid grid-cols-1 gap-2 py-4">
                   {LANGUAGES.map((lang) => (
                     <button key={`lang-${lang.code}`} onClick={() => { setLanguage(lang.code); setIsLanguageOpen(false); }} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${language === lang.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}><span className="flex items-center gap-3"><span>{lang.flag}</span><span className="font-medium">{lang.name}</span></span>{language === lang.code && <Check size={18} />}</button>
@@ -333,7 +330,7 @@ export default function SettingsPage() {
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-6 sm:p-8">
-                <DialogHeader><DialogTitle className="text-2xl font-semibold text-center">Currency</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle className="text-2xl font-semibold text-center text-foreground">Currency</DialogTitle></DialogHeader>
                 <div className="grid grid-cols-1 gap-2 py-4">
                   {CURRENCIES.map((curr) => (
                     <button key={`curr-${curr.code}`} onClick={() => { setCurrency(curr.code); setIsCurrencyOpen(false); }} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${currency.code === curr.code ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"}`}><span className="flex items-center gap-3"><span>{curr.flag}</span><span className="font-medium">{curr.name}</span></span>{currency.code === curr.code && <Check size={18} />}</button>
@@ -370,7 +367,7 @@ export default function SettingsPage() {
                     <AlertTriangle size={40} />
                   </div>
                   <div className="text-center space-y-2">
-                    <DialogTitle className="text-3xl font-bold tracking-tight">Delete your Aura?</DialogTitle>
+                    <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">Delete your Aura?</DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
                       Your profile and associated personal data will be permanently purged. This action cannot be undone.
                     </DialogDescription>
@@ -385,7 +382,7 @@ export default function SettingsPage() {
                       placeholder="DELETE" 
                       value={deleteConfirmText} 
                       onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      className="h-14 bg-background border-rose-500/20 text-center font-bold text-lg tracking-[0.2em]"
+                      className="h-14 bg-background border-rose-500/20 text-center font-bold text-lg tracking-[0.2em] text-foreground"
                     />
                   </div>
                 </div>
@@ -410,7 +407,7 @@ export default function SettingsPage() {
                     variant="ghost" 
                     onClick={() => setIsDeleteOpen(false)}
                     disabled={isDeleting}
-                    className="w-full h-12 text-[10px] font-bold uppercase tracking-widest"
+                    className="w-full h-12 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
                   >
                     Cancel
                   </Button>
@@ -422,8 +419,8 @@ export default function SettingsPage() {
 
         <Dialog open={isSignOutDialogOpen} onOpenChange={setIsSignOutDialogOpen}>
           <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
-            <DialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="space-y-2 text-center"><DialogTitle className="text-2xl font-semibold">{t('sign_out')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">Secure redirect in progress.</DialogDescription></div></DialogHeader>
-            <div className="py-6 flex flex-col items-center justify-center space-y-4"><div className="relative w-24 h-24 flex items-center justify-center"><svg className="w-full h-full transform -rotate-90"><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted/20" /><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={276} strokeDashoffset={276 - (276 * signOutCountdown) / 5} className="text-primary transition-all duration-1000 ease-linear" /></svg><span className="absolute text-3xl font-bold">{signOutCountdown}</span></div><p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Secure Redirect</p></div>
+            <DialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="space-y-2 text-center"><DialogTitle className="text-2xl font-semibold text-foreground">{t('sign_out')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">Secure redirect in progress.</DialogDescription></div></DialogHeader>
+            <div className="py-6 flex flex-col items-center justify-center space-y-4"><div className="relative w-24 h-24 flex items-center justify-center"><svg className="w-full h-full transform -rotate-90"><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted/20" /><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={276} strokeDashoffset={276 - (276 * signOutCountdown) / 5} className="text-primary transition-all duration-1000 ease-linear" /></svg><span className="absolute text-3xl font-bold text-foreground">{signOutCountdown}</span></div><p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Secure Redirect</p></div>
           </DialogContent>
         </Dialog>
       </div>

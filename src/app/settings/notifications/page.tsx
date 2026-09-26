@@ -91,7 +91,6 @@ export default function NotificationSettingsPage() {
         }
       });
     } catch (err: any) {
-      // Rollback UI
       setSettings(settings);
       toast({ 
         variant: "destructive", 
@@ -168,7 +167,7 @@ export default function NotificationSettingsPage() {
                 className="p-5 rounded-[28px] bg-card border border-border flex items-center justify-between group active:scale-[0.98] transition-all shadow-sm"
               >
                 <div className="flex items-center gap-4">
-                  <div className={cn("w-10 h-10 rounded-xl bg-background flex items-center justify-center transition-colors", cat.color)}>
+                  <div className={cn("w-10 h-10 rounded-xl bg-muted flex items-center justify-center transition-colors", cat.color)}>
                     <cat.icon size={18} />
                   </div>
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{cat.label}</span>

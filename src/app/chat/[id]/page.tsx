@@ -69,7 +69,6 @@ export default function ChatRoomPage() {
   const [isSending, setIsSending] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<Message | null>(null);
 
-  // Moderation state
   const [isBlockAlertOpen, setIsBlockAlertOpen] = useState(false);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportCategory, setReportCategory] = useState("");
@@ -98,7 +97,6 @@ export default function ChatRoomPage() {
   const otherUserRef = useMemoFirebase(() => (db && otherUid && otherUid !== 'system') ? doc(db, "users", otherUid) : null, [db, otherUid]);
   const { data: otherUser } = useDoc<UserProfile>(otherUserRef as any);
 
-  // Real-time block check
   useEffect(() => {
     if (!db || !authUser || !otherUid || otherUid === 'system') return;
     
@@ -116,13 +114,11 @@ export default function ChatRoomPage() {
   const messagesQuery = useMemoFirebase(() => (db && roomId && roomId !== "") ? query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc")) : null, [db, roomId]);
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
-  // High-fidelity UI expiration filtering
   const activeMessages = useMemo(() => {
     if (!messages) return [];
     const now = new Date();
     return messages.filter(m => {
       if (!m.expiresAt) {
-        // Fallback for transition/system messages: check timestamp
         const ts = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
         return (now.getTime() - ts.getTime()) < 24 * 60 * 60 * 1000;
       }
@@ -207,12 +203,12 @@ export default function ChatRoomPage() {
     <AuthGuard>
       <PrivacyObscure active={!isSystemChat}>
         <div 
-          className="flex flex-col h-screen-safe bg-background overflow-hidden"
+          className="flex flex-col h-screen-safe bg-background overflow-hidden transition-colors"
           onContextMenu={(e) => !isSystemChat && e.preventDefault()}
         >
           <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-border bg-background/40 backdrop-blur-2xl z-30 safe-top">
             <div className="flex items-center gap-3">
-              <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground p-2 -ml-2"><ArrowLeft size={22} /></button>
+              <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground p-2 -ml-2 transition-colors"><ArrowLeft size={22} /></button>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-sm text-foreground">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
@@ -226,15 +222,15 @@ export default function ChatRoomPage() {
             {!isSystemChat && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><MoreVertical size={18} /></button>
+                  <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"><MoreVertical size={18} /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
+                <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl shadow-xl">
                   {!isBlockedByMe && (
-                    <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500">
+                    <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-destructive focus:text-destructive">
                       <UserX size={16} /> Block User
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2">
+                  <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2 text-foreground">
                     <Flag size={16} /> Report User
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -251,9 +247,9 @@ export default function ChatRoomPage() {
             </div>
 
             {isBlocked && (
-              <div className="mx-auto bg-rose-500/10 border border-rose-500/20 px-4 py-2 rounded-full flex items-center gap-2">
-                <ShieldAlert size={14} className="text-rose-500" />
-                <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">
+              <div className="mx-auto bg-destructive/10 border border-destructive/20 px-4 py-2 rounded-full flex items-center gap-2">
+                <ShieldAlert size={14} className="text-destructive" />
+                <span className="text-[10px] font-bold text-destructive uppercase tracking-widest">
                   {isBlockedByMe ? "You have blocked this user" : "Interaction restricted"}
                 </span>
               </div>
@@ -266,7 +262,7 @@ export default function ChatRoomPage() {
               return (
                 <motion.div key={msg.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
-                    <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden relative", isMe ? "premium-gradient text-white rounded-br-none" : "bg-muted text-foreground rounded-bl-none border border-border")}>
+                    <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden relative transition-all", isMe ? "premium-gradient text-white rounded-br-none" : "bg-muted text-foreground rounded-bl-none border border-border")}>
                       {msg.isMedia ? (
                         <div 
                           onClick={() => !isExpired && handleMediaClick(msg)} 
@@ -291,7 +287,7 @@ export default function ChatRoomPage() {
                         </div>
                       ) : <p className="text-sm leading-relaxed font-light">{msg.text}</p>}
                     </div>
-                    {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-muted-foreground/20" />}</div>}
+                    {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-muted-foreground/40" />}</div>}
                   </div>
                 </motion.div>
               );
@@ -308,12 +304,12 @@ export default function ChatRoomPage() {
                   onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} 
                   placeholder={isBlocked ? "Interaction restricted" : "Message..."} 
                   disabled={isBlocked}
-                  className="flex-1 h-12 bg-muted border-none rounded-[28px] px-6 text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-20 shadow-none focus:ring-0" 
+                  className="flex-1 h-12 bg-muted border-none rounded-[28px] px-6 text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-20 shadow-none focus:ring-0 focus-visible:ring-0" 
                 />
                 <button 
                   onClick={handleSendText} 
                   disabled={!input.trim() || isSending || isBlocked} 
-                  className="w-12 h-12 rounded-full premium-gradient shrink-0 flex items-center justify-center disabled:opacity-20"
+                  className="w-12 h-12 rounded-full premium-gradient shrink-0 flex items-center justify-center disabled:opacity-20 transition-all hover:scale-105 active:scale-95"
                 >
                   {isSending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
                 </button>
@@ -321,18 +317,17 @@ export default function ChatRoomPage() {
             </div>
           )}
 
-          {/* Moderation Dialogs */}
           <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
             <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px]">
               <AlertDialogHeader>
-                <AlertDialogTitle>Block this user?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-foreground">Block this user?</AlertDialogTitle>
+                <AlertDialogDescription className="text-muted-foreground">
                   They will no longer be able to message you. Existing messages remain private but no new interactions can occur.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white border-none">Block</AlertDialogAction>
+                <AlertDialogCancel className="text-muted-foreground hover:text-foreground">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onBlock} className="bg-destructive hover:bg-destructive/90 text-white border-none">Block</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -340,12 +335,12 @@ export default function ChatRoomPage() {
           <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
             <DialogContent className="bg-popover border-border text-foreground rounded-[32px] p-8">
               <DialogHeader>
-                <DialogTitle>Report User</DialogTitle>
-                <DialogDescription>Help us keep Aura safe. Our team will review the reports.</DialogDescription>
+                <DialogTitle className="text-foreground">Report User</DialogTitle>
+                <DialogDescription className="text-muted-foreground">Help us keep Aura safe. Our team will review this conversation.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <Select value={reportCategory} onValueChange={setReportCategory}>
-                  <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12">
+                  <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12 focus:ring-primary focus:ring-1">
                     <SelectValue placeholder="Select Reason" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border text-foreground rounded-xl">
@@ -358,7 +353,7 @@ export default function ChatRoomPage() {
                   placeholder="Tell us more (optional)" 
                   value={reportDescription}
                   onChange={(e) => setReportDescription(e.target.value)}
-                  className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground"
+                  className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground focus:ring-primary focus:ring-1"
                 />
               </div>
               <DialogFooter>

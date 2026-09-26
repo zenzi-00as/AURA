@@ -37,10 +37,10 @@
   }
 
   .light {
-    --background: 0 0% 100%;
+    --background: 210 20% 98%;
     --foreground: 224 40% 3%;
     
-    --card: 220 14% 96%;
+    --card: 0 0% 100%;
     --card-foreground: 224 40% 3%;
     
     --popover: 0 0% 100%;
@@ -61,7 +61,7 @@
     --destructive: 345 100% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 220 13% 85%;
+    --border: 220 13% 88%;
     --input: 220 13% 94%;
     --ring: 220 100% 50%;
   }
@@ -122,11 +122,7 @@
   }
 
   .glass-card {
-    @apply border border-border rounded-[28px] shadow-2xl bg-card;
-  }
-
-  .dark .glass-card {
-    background: linear-gradient(145deg, rgba(25,30,42,0.95), rgba(10,13,20,0.98));
+    @apply border border-border rounded-[28px] shadow-2xl bg-card text-card-foreground;
   }
 
   .premium-gradient {

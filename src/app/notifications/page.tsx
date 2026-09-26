@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo } from "react";
@@ -20,12 +19,10 @@ export default function NotificationsPage() {
   const router = useRouter();
 
   const notifsQuery = useMemoFirebase(() => {
-    // SECURITY: Ensure authUser is initialized before attempting to query notifications
     if (!db || !authUser) return null;
     return query(
       collection(db, "notifications"),
       where("userId", "==", authUser.uid),
-      // Inequality filters on types require specific ordering or JS-side filtering for simplicity
       orderBy("timestamp", "desc"),
       limit(50)
     ) as Query<Notification>;
@@ -33,12 +30,10 @@ export default function NotificationsPage() {
 
   const { data: rawNotifications, loading } = useCollection<Notification>(notifsQuery);
 
-  // Filter out system message notifications in memory to maintain simple query indices
   const notifications = useMemo(() => {
     return rawNotifications.filter(n => n.type !== 'message');
   }, [rawNotifications]);
 
-  // Mark-as-read effect optimized with a non-blocking batch execution
   useEffect(() => {
     if (db && notifications && notifications.length > 0) {
       const unreadNotifs = notifications.filter(n => !n.read);
@@ -70,10 +65,10 @@ export default function NotificationsPage() {
   const getColor = (type: string) => {
     switch (type) {
       case 'verification': return "text-emerald-400 bg-emerald-400/10";
-      case 'proximity': return "text-amber-400 bg-emerald-400/10";
-      case 'message': return "text-[#C93CFF] bg-[#C93CFF]/10";
-      case 'welcome': return "text-[#C93CFF] bg-[#C93CFF]/10";
-      default: return "text-[#8F8F8F] bg-[#151515]";
+      case 'proximity': return "text-amber-400 bg-amber-400/10";
+      case 'message': return "text-primary bg-primary/10";
+      case 'welcome': return "text-primary bg-primary/10";
+      default: return "text-muted-foreground bg-muted";
     }
   };
 
@@ -81,23 +76,23 @@ export default function NotificationsPage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background pb-32 aura-doodle min-h-screen">
-        <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-white/5 safe-top">
+      <div className="flex-1 flex flex-col bg-background pb-32 min-h-screen transition-colors duration-300">
+        <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20 relative">
                 <Bell size={18} className="text-white" />
                 {hasUnread && (
                   <div className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C93CFF] border-2 border-[#05070D] shadow-[0_0_8px_#C93CFF]"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary border-2 border-background shadow-[0_0_8px_hsl(var(--primary))]"></span>
                   </div>
                 )}
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-white">{t('activity')}</h1>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">{t('activity')}</h1>
             </div>
             <button 
               onClick={() => router.push('/settings/notifications')} 
-              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+              className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <Settings size={18} />
             </button>
@@ -108,7 +103,7 @@ export default function NotificationsPage() {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={`notif-skeleton-${i}`} className="h-20 w-full rounded-[18px] bg-[#0F0F0F] animate-pulse border border-[#2A2A2A]" />
+                <div key={`notif-skeleton-${i}`} className="h-20 w-full rounded-[18px] bg-muted animate-pulse border border-border" />
               ))}
             </div>
           ) : (
@@ -129,12 +124,12 @@ export default function NotificationsPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.1, delay: idx * 0.01 }}
                       className={cn(
-                        "aura-card p-4 flex items-center gap-4 group active:scale-[0.98]",
-                        !notif.read ? "aura-card-unread" : "aura-card-read"
+                        "p-4 flex items-center gap-4 group active:scale-[0.98] transition-all rounded-[24px] border",
+                        !notif.read ? "bg-card border-primary/20 shadow-sm" : "bg-card/50 border-border opacity-70"
                       )}
                     >
                       <div className={cn(
-                        "w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 border border-[#2A2A2A]",
+                        "w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 border border-border",
                         colorClasses
                       )}>
                         <Icon size={20} />
@@ -144,17 +139,17 @@ export default function NotificationsPage() {
                           <div className="flex items-center gap-1.5 min-w-0">
                             <h3 className={cn(
                               "truncate text-sm transition-colors",
-                              !notif.read ? "text-white font-bold" : "text-[#8F8F8F] font-normal"
+                              !notif.read ? "text-foreground font-bold" : "text-muted-foreground font-normal"
                             )}>{notif.title}</h3>
                             {!notif.read && (
-                              <span className="bg-[#C93CFF]/20 text-[#C93CFF] text-[7px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter aura-glow-purple">NEW</span>
+                              <span className="bg-primary/20 text-primary text-[7px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-[0_0_8px_rgba(0,87,255,0.2)]">NEW</span>
                             )}
                           </div>
-                          <span className="text-[10px] text-[#8F8F8F] font-medium shrink-0 ml-2">{timeStr}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
                         </div>
                         <p className={cn(
                           "text-[11px] leading-snug line-clamp-2",
-                          !notif.read ? "text-white font-semibold" : "text-[#8F8F8F] font-light"
+                          !notif.read ? "text-foreground font-medium" : "text-muted-foreground font-light"
                         )}>
                           {notif.body}
                         </p>
@@ -170,12 +165,12 @@ export default function NotificationsPage() {
                   transition={{ duration: 0.1 }}
                   className="flex flex-col items-center justify-center py-20 text-center space-y-4"
                 >
-                  <div className="w-16 h-16 rounded-3xl bg-[#0F0F0F] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F]">
+                  <div className="w-16 h-16 rounded-3xl bg-muted border border-border flex items-center justify-center text-muted-foreground">
                     <Bell size={32} />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-white font-medium">No alerts yet</p>
-                    <p className="text-sm text-[#8F8F8F] font-light">
+                    <p className="text-foreground font-medium">No alerts yet</p>
+                    <p className="text-sm text-muted-foreground font-light">
                       Check back later for updates on your activity.
                     </p>
                   </div>
