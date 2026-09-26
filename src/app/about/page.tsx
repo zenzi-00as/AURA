@@ -109,9 +109,10 @@ export default function AboutPage() {
             {features.map((feature, idx) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
                 className="glass-card p-6 rounded-[32px] space-y-4"
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -135,9 +136,10 @@ export default function AboutPage() {
             {coreValues.map((value, idx) => (
               <motion.div
                 key={value.title}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
                 className="glass-card p-6 rounded-[32px] flex items-start gap-5"
               >
                 <div className={`w-12 h-12 rounded-2xl bg-muted flex items-center justify-center ${value.color} shrink-0`}>
