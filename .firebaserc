@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "nextn",
+    "production": "nextn",
+    "staging": "aura-staging-37c73"
+  }
+}
