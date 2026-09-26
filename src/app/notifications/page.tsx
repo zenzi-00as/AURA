@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/aura/BottomNav";
-import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles, Settings } from "lucide-react";
+import { Bell, ShieldCheck, MapPin, MessageCircle, Sparkles, Settings, Heart } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { useCollection, useFirestore, useAuthContext, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, limit, Query, doc, writeBatch } from "firebase/firestore";
@@ -22,17 +22,13 @@ export default function NotificationsPage() {
     if (!db || !authUser) return null;
     return query(
       collection(db, "notifications"),
-      where("userId", "==", authUser.uid),
-      orderBy("timestamp", "desc"),
+      where("recipientId", "==", authUser.uid),
+      orderBy("createdAt", "desc"),
       limit(50)
     ) as Query<Notification>;
   }, [db, authUser?.uid]);
 
-  const { data: rawNotifications, loading } = useCollection<Notification>(notifsQuery);
-
-  const notifications = useMemo(() => {
-    return rawNotifications.filter(n => n.type !== 'message');
-  }, [rawNotifications]);
+  const { data: notifications, loading } = useCollection<Notification>(notifsQuery);
 
   useEffect(() => {
     if (db && notifications && notifications.length > 0) {
@@ -57,6 +53,9 @@ export default function NotificationsPage() {
       case 'verification': return ShieldCheck;
       case 'proximity': return MapPin;
       case 'message': return MessageCircle;
+      case 'like':
+      case 'super_like':
+      case 'match': return Heart;
       case 'welcome': return Sparkles;
       default: return Bell;
     }
@@ -67,7 +66,9 @@ export default function NotificationsPage() {
       case 'verification': return "text-primary bg-primary/10";
       case 'proximity': return "text-amber-500 bg-amber-500/10";
       case 'message': return "text-primary bg-primary/10";
-      case 'welcome': return "text-primary bg-primary/10";
+      case 'like':
+      case 'super_like': return "text-rose-500 bg-rose-500/10";
+      case 'match': return "text-[#C93CFF] bg-[#C93CFF]/10";
       default: return "text-muted-foreground bg-muted";
     }
   };
@@ -80,7 +81,7 @@ export default function NotificationsPage() {
         <header className="px-8 h-24 flex flex-col justify-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border safe-top">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg shadow-primary/20 relative">
+              <div className="w-10 h-10 rounded-2xl premium-gradient flex items-center justify-center shadow-lg relative">
                 <Bell size={18} className="text-white" />
                 {hasUnread && (
                   <div className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
@@ -112,21 +113,23 @@ export default function NotificationsPage() {
                 notifications.map((notif, idx) => {
                   const Icon = getIcon(notif.type);
                   const colorClasses = getColor(notif.type);
-                  const timeStr = notif.timestamp?.toDate 
-                    ? notif.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                  const timeStr = notif.createdAt?.toDate 
+                    ? notif.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
                     : "Just now";
 
                   return (
                     <motion.div
-                      key={notif.id || `notif-${idx}`}
+                      key={notif.id}
                       layout
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.1, delay: idx * 0.01 }}
                       className={cn(
                         "p-4 flex items-center gap-4 group active:scale-[0.98] transition-all rounded-[24px] border",
                         !notif.read ? "bg-card border-primary/40 shadow-sm" : "bg-card border-border"
                       )}
+                      onClick={() => {
+                        if (notif.roomId) router.push(`/chat/${notif.roomId}`);
+                      }}
                     >
                       <div className={cn(
                         "w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 border border-border/20",
@@ -141,9 +144,6 @@ export default function NotificationsPage() {
                               "truncate text-sm transition-colors",
                               !notif.read ? "text-foreground font-bold" : "text-muted-foreground"
                             )}>{notif.title}</h3>
-                            {!notif.read && (
-                              <span className="bg-primary/20 text-primary text-[7px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-[0_0_8px_rgba(0,87,255,0.2)]">NEW</span>
-                            )}
                           </div>
                           <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
                         </div>
@@ -158,23 +158,15 @@ export default function NotificationsPage() {
                   );
                 })
               ) : (
-                <motion.div 
-                  key="empty-notifs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.1 }}
-                  className="flex flex-col items-center justify-center py-20 text-center space-y-4"
-                >
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                   <div className="w-16 h-16 rounded-3xl bg-muted border border-border flex items-center justify-center text-muted-foreground">
                     <Bell size={32} />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-foreground font-medium">No alerts yet</p>
-                    <p className="text-sm text-muted-foreground font-light">
-                      Check back later for updates on your activity.
-                    </p>
+                    <p className="text-foreground font-medium">No activity node materialized</p>
+                    <p className="text-sm text-muted-foreground font-light">Interact with the Aura to see updates here.</p>
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           )}

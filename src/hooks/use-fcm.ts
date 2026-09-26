@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/firebase/auth-context';
 import { useMessaging, useFirestore } from '@/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
-import { doc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function useFcm() {
@@ -59,21 +59,30 @@ export function useFcm() {
         });
 
         if (token) {
-          const deviceRef = doc(db, 'users', user.uid, 'notificationDevices', token);
+          // Store in centralized fcmTokens subcollection
+          const deviceRef = doc(db, 'users', user.uid, 'fcmTokens', token);
           await setDoc(deviceRef, {
             token,
             platform: 'web',
-            enabled: true,
-            lastUpdated: serverTimestamp(),
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastUsedAt: serverTimestamp(),
             userAgent: navigator.userAgent
           });
+          
+          // Legacy support for notificationDevices
+          const legacyRef = doc(db, 'users', user.uid, 'notificationDevices', token);
+          await setDoc(legacyRef, {
+            token,
+            enabled: true,
+            lastUpdated: serverTimestamp()
+          }).catch(() => {});
           
           console.log('[AURA FCM] Node synchronized:', token);
         }
       }
     } catch (error: any) {
       console.error('[AURA FCM] Registration fault', error);
-      // Fail silently unless the user explicitly triggered this
     } finally {
       setIsRegistering(false);
     }
@@ -87,15 +96,17 @@ export function useFcm() {
       const token = await getToken(messaging, { vapidKey });
       
       if (token) {
-        // Logically disable the token rather than deleting to preserve session history
-        const deviceRef = doc(db, 'users', user.uid, 'notificationDevices', token);
-        await updateDoc(deviceRef, {
+        const deviceRef = doc(db, 'users', user.uid, 'fcmTokens', token);
+        await deleteDoc(deviceRef).catch(() => {});
+        
+        const legacyRef = doc(db, 'users', user.uid, 'notificationDevices', token);
+        await updateDoc(legacyRef, {
           enabled: false,
           lastUpdated: serverTimestamp()
         }).catch(() => {});
       }
     } catch (err) {
-      console.warn("[AURA FCM] Logical unregistration warning", err);
+      console.warn("[AURA FCM] Node purging warning", err);
     }
   }, [messaging, db, user]);
 

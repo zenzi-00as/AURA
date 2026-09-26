@@ -16,25 +16,34 @@ export interface UserUsage {
   lastResetDate: string;
 }
 
-export type UserNotificationSettings = {
-  // Master toggle
-  pushEnabled: boolean;
+/**
+ * Aura Centralized Settings Node
+ */
+export type UserSettings = {
+  incognito: boolean;
+  showOnlineStatus: boolean;
+  language: string;
+  currency: string;
+  updatedAt?: any;
+};
 
-  // Categories
-  newMessages: boolean;
-  newLikes: boolean;
-  superLikes: boolean;
+/**
+ * Aura Notification Preference Node
+ */
+export type UserNotificationPreferences = {
+  pushEnabled: boolean;
   newMatches: boolean;
   profileViews: boolean;
   verificationUpdates: boolean;
   membershipUpdates: boolean;
   paymentUpdates: boolean;
   spotlightUpdates: boolean;
-  auraUpdates: boolean;
-  securityAlerts: boolean;
-
-  // System
   updatedAt?: any;
+};
+
+export type PresenceData = {
+  isOnline: boolean;
+  lastSeen: any;
 };
 
 export type VerificationData = {
@@ -66,8 +75,18 @@ export type UserProfile = {
   plan?: PlanType;
   superLikeBalance: number;
   spotlightExpiry?: any;
-  incognitoMode: boolean;
+  
+  // NORMALIZED ARCHITECTURE
+  settings?: UserSettings;
+  notificationPreferences?: UserNotificationPreferences;
+  presence?: PresenceData;
+
+  // LEGACY COMPAT (To be phased out)
+  incognitoMode?: boolean;
   showOnlineStatus?: boolean;
+  isOnline?: boolean;
+  lastActive?: any;
+
   isSuspended: boolean;
   isAdmin: boolean;
   location?: {
@@ -77,14 +96,11 @@ export type UserProfile = {
   geohash?: string;
   distance?: string; 
   distanceKm?: number;
-  lastActive: any; 
-  isOnline: boolean;
   photoUrl?: string;
   profilePhotos?: string[];
   onboardingCompleted: boolean;
   welcomeSent?: boolean;
   updatedAt?: any;
-  notificationSettings?: UserNotificationSettings;
   isDemoUser?: boolean;
   isSuperFunder?: boolean;
   
@@ -99,7 +115,7 @@ export type Message = {
   senderId: string;
   text: string;
   timestamp: any;
-  expiresAt: any; // Mandatory for 24h retention
+  expiresAt: any;
   seen: boolean;
   isMedia?: boolean;
   mediaUrl?: string;
@@ -182,8 +198,6 @@ export type SuperFund = {
   status: 'verified' | 'pending';
 };
 
-export type ReportType = 'Harassment' | 'Spam' | 'Fake profile' | 'Scams' | 'Hate behavior' | 'Sexual exploitation' | 'Threats' | 'Inappropriate content' | 'Other';
-
 export type Report = {
   id: string;
   reporterId: string;
@@ -200,4 +214,14 @@ export type BlockedUser = {
   uid: string;
   name: string;
   blockedAt: any;
+  blockedBy: string;
+};
+
+export type FcmToken = {
+  id: string;
+  token: string;
+  platform: 'web' | 'ios' | 'android';
+  createdAt: any;
+  updatedAt: any;
+  lastUsedAt: any;
 };

@@ -32,9 +32,9 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
   const neighbors = ngeohash.neighbors(centerHash);
   const searchHashes = [centerHash, ...neighbors];
 
-  // Fetch blocked users to exclude from results
-  const blockedSnap = await getDocs(collection(db, "users", uid, "blockedUsers"));
-  const blockedIds = new Set(blockedSnap.docs.map(d => d.id));
+  // Fetch blocked users (both directions) to exclude from results
+  const blockedByMeSnap = await getDocs(collection(db, "users", uid, "blockedUsers"));
+  const blockedByMe = new Set(blockedByMeSnap.docs.map(d => d.id));
 
   const results: any[] = [];
   
@@ -43,8 +43,9 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
     const q = query(
       collection(db, "users"),
       where("onboardingCompleted", "==", true),
-      // INCOGNITO GUARD: Exclude users in private browsing mode
+      // INCOGNITO GUARD: Exclude users in private browsing mode (Legacy & New)
       where("incognitoMode", "==", false),
+      where("settings.incognito", "==", false),
       where("geohash", ">=", hash),
       where("geohash", "<=", hash + "~"),
       limit(20)
@@ -60,7 +61,7 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
   return results.filter((user, index, self) => 
     user.uid !== uid && 
     !user.isSuspended && 
-    !blockedIds.has(user.uid) &&
+    !blockedByMe.has(user.uid) &&
     self.findIndex(u => u.uid === user.uid) === index
   );
 }

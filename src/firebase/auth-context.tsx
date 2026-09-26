@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, onAuthStateChanged, reload } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
 import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsTermsAcceptance, setNeedsTermsAcceptance] = useState(false);
+  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
   const loginAsDemo = () => {
     if (typeof window !== 'undefined') {
@@ -94,7 +95,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         photoUrl: 'https://picsum.photos/seed/aura_demo/400/400',
         onboardingCompleted: true,
         isDemoUser: true,
-        isOnline: true,
+        settings: {
+          incognito: false,
+          showOnlineStatus: true,
+          language: 'en',
+          currency: 'INR'
+        },
+        notificationPreferences: {
+          pushEnabled: true,
+          newMatches: true,
+          profileViews: true,
+          verificationUpdates: true,
+          membershipUpdates: true,
+          paymentUpdates: true,
+          spotlightUpdates: true
+        },
+        presence: { isOnline: true, lastSeen: new Date() },
         lastActive: new Date(),
         profilePhoneNumber: '+91 0000000000',
         superLikeBalance: 10,
@@ -153,6 +169,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }).catch(() => {});
             }
             
+            // ATOMIC MIGRATION: Safely extend uninitialized settings
+            if (!data.settings || !data.notificationPreferences) {
+              updateDoc(userRef, {
+                settings: {
+                  incognito: data.incognitoMode ?? false,
+                  showOnlineStatus: data.showOnlineStatus ?? true,
+                  language: 'en',
+                  currency: 'INR'
+                },
+                notificationPreferences: {
+                  pushEnabled: true,
+                  newMatches: true,
+                  profileViews: true,
+                  verificationUpdates: true,
+                  membershipUpdates: true,
+                  paymentUpdates: true,
+                  spotlightUpdates: true
+                }
+              }).catch(() => {});
+            }
+
             setProfile(data);
           } else {
             setProfile(null);
@@ -174,35 +211,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Presence Synchronization Node - Separated to ensure document existence check
+  // REAL PRESENCE ENGINE
   useEffect(() => {
     const { db } = initializeFirebase();
     if (!db || !user || !profile || user.isDemoUser) return;
 
-    const userRef = doc(db, 'users', user.uid);
+    const presenceRef = doc(db, 'users', user.uid, 'presence', 'current');
 
     const updatePresence = async (online: boolean) => {
-      // DEFINITIVE GUARD: Ensure the profile document exists before writing presence signals
-      // This prevents rules evaluation faults during early lifecycle transitions
+      if (!profile.onboardingCompleted) return;
+      
       try {
-        const snap = await getDoc(userRef);
-        if (snap.exists()) {
-          updateDoc(userRef, { 
-            isOnline: online, 
-            lastActive: serverTimestamp() 
-          }).catch(() => {});
-        }
+        await setDoc(presenceRef, { 
+          isOnline: online, 
+          lastSeen: serverTimestamp() 
+        }, { merge: true });
+
+        // Update legacy fields for compatibility
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          isOnline: online,
+          lastActive: serverTimestamp()
+        }).catch(() => {});
       } catch (e) {
-        // Fail silently to prevent hydration noise
+        console.warn("[PRESENCE] Node sync warning", e);
       }
     };
 
     const handleVisibilityChange = () => {
-      updatePresence(document.visibilityState === 'visible');
+      const active = document.visibilityState === 'visible';
+      updatePresence(active);
+      
+      if (active) {
+        startHeartbeat();
+      } else {
+        stopHeartbeat();
+      }
     };
 
-    // Initial establish
+    const startHeartbeat = () => {
+      if (heartbeatInterval.current) return;
+      heartbeatInterval.current = setInterval(() => updatePresence(true), 3 * 60 * 1000); // 3m interval
+    };
+
+    const stopHeartbeat = () => {
+      if (heartbeatInterval.current) {
+        clearInterval(heartbeatInterval.current);
+        heartbeatInterval.current = null;
+      }
+    };
+
+    // Initialize presence
     updatePresence(true);
+    startHeartbeat();
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', () => updatePresence(true));
@@ -210,9 +271,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopHeartbeat();
       updatePresence(false);
     };
-  }, [user?.uid, !!profile]);
+  }, [user?.uid, profile?.onboardingCompleted]);
 
   const value = {
     user,

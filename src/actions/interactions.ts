@@ -7,7 +7,7 @@
  */
 
 import { initializeFirebase } from "@/firebase/init";
-import { doc, getDoc, updateDoc, increment, serverTimestamp, collection, runTransaction } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment, serverTimestamp, collection, runTransaction, addDoc } from "firebase/firestore";
 import { checkActionAllowed } from "@/lib/subscription-engine";
 import { checkIsBlocked } from "./moderation";
 import { logger } from "@/lib/logger";
@@ -42,13 +42,14 @@ export async function handleSecureLike(fromUid: string, toUid: string, type: 'li
 
       if (type === 'like') {
         const check = checkActionAllowed(profile, 'like');
-        if (!check.allowed) throw new Error("Daily like limit synchronized");
+        if (!check.allowed) throw new Error("Daily like limit reached");
         
         transaction.update(userRef, { 
           'usage.likesUsed': increment(1),
           updatedAt: serverTimestamp()
         });
       } else {
+        // SUPER LIKE: Server-controlled balance verification
         if ((profile.superLikeBalance || 0) <= 0) throw new Error("Insufficient Super Like credits");
         
         transaction.update(userRef, { 
@@ -67,6 +68,25 @@ export async function handleSecureLike(fromUid: string, toUid: string, type: 'li
         createdAt: serverTimestamp(),
         status: 'active'
       });
+
+      // Recipient Notification Logic
+      const targetRef = doc(db, "users", toUid);
+      const targetSnap = await transaction.get(targetRef);
+      if (targetSnap.exists()) {
+        const targetPrefs = targetSnap.data().notificationPreferences;
+        if (targetPrefs?.pushEnabled !== false) {
+           const notifRef = doc(collection(db, "notifications"));
+           transaction.set(notifRef, {
+             recipientId: toUid,
+             senderId: fromUid,
+             type: type,
+             title: type === 'super_like' ? "Super Match! ✦" : "New Interest",
+             body: `${profile.name} ${type === 'super_like' ? "Super Liked" : "Liked"} your Aura.`,
+             createdAt: serverTimestamp(),
+             read: false
+           });
+        }
+      }
 
       logger.info('Secure Interaction Recorded', { correlationId, type, fromUid, toUid });
       return { success: true };
@@ -130,6 +150,28 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
         lastTimestamp: serverTimestamp(),
         [`unreadCount.${otherUid}`]: increment(1)
       });
+
+      // Notification Center Dispatch
+      if (otherUid && !roomId.startsWith('system_')) {
+        const targetRef = doc(db, "users", otherUid);
+        const targetSnap = await transaction.get(targetRef);
+        if (targetSnap.exists()) {
+          const targetPrefs = targetSnap.data().notificationPreferences;
+          if (targetPrefs?.newMessages !== false) {
+             const notifRef = doc(collection(db, "notifications"));
+             transaction.set(notifRef, {
+               recipientId: otherUid,
+               senderId: fromUid,
+               type: "message",
+               roomId: roomId,
+               title: "New Message",
+               body: text.length > 50 ? text.substring(0, 47) + "..." : text,
+               createdAt: serverTimestamp(),
+               read: false
+             });
+          }
+        }
+      }
 
       logger.info('Secure Chat Synchronized', { correlationId, roomId, fromUid });
       return { success: true };

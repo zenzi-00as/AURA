@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
   Shield, 
@@ -17,11 +17,9 @@ import {
   User,
   Check,
   Palette,
-  Mail,
   Coins,
   EyeOff,
   Loader2,
-  AlertCircle,
   Settings
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -30,7 +28,6 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -42,7 +39,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
 import { useCollection, useFirestore, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
-import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc, serverTimestamp } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { BlockedUser } from "@/lib/types";
 import { getPlanConfig } from "@/lib/subscription-engine";
@@ -62,12 +59,13 @@ export default function SettingsPage() {
   const { registerPush, unregisterPush, isRegistering } = useFcm();
   
   const [settings, setSettings] = useState({
-    pushEnabled: true,
-    privateProfile: false,
     incognito: false,
-    onlineStatus: true
+    showOnlineStatus: true,
+    language: 'en',
+    currency: 'INR'
   });
-  
+
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [isBlockedListOpen, setIsBlockedListOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
@@ -79,13 +77,8 @@ export default function SettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setSettings({
-        pushEnabled: profile.notificationSettings?.pushEnabled ?? true,
-        privateProfile: false,
-        incognito: !!profile.incognitoMode,
-        onlineStatus: profile.showOnlineStatus ?? true
-      });
+    if (profile?.settings) {
+      setSettings(profile.settings);
     }
   }, [profile]);
 
@@ -99,43 +92,38 @@ export default function SettingsPage() {
 
   const { data: blockedUsers, loading: blockedLoading } = useCollection<BlockedUser>(blockedQuery);
 
-  const handleToggle = async (key: string, value: boolean) => {
-    if (!db || !authUser || !profile) return;
+  const handleToggle = async (key: keyof typeof settings, value: boolean) => {
+    if (!db || !authUser || !profile || isUpdating) return;
 
-    if (key === 'incognito' && !planConfig.incognito) {
+    // Entitlement Check: Incognito is Elite Plus
+    if (key === 'incognito' && value === true && effectivePlan !== 'elite_plus') {
       toast({ 
         title: "Elite Plus Required", 
-        description: "Incognito mode is an exclusive Elite Plus benefit.",
+        description: "Incognito mode is an exclusive luxury tier benefit.",
         variant: "destructive"
       });
       router.push('/profile?tab=eliteplus');
       return;
     }
 
+    const previousValue = settings[key];
     setSettings(prev => ({ ...prev, [key]: value }));
+    setIsUpdating(key);
 
     try {
-      if (key === 'pushEnabled') {
-        if (value) await registerPush();
-        else await unregisterPush();
-        
-        await updateDoc(doc(db, "users", authUser.uid), {
-          'notificationSettings.pushEnabled': value,
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        const updateKey = key === 'incognito' ? 'incognitoMode' : 
-                        key === 'onlineStatus' ? 'showOnlineStatus' : key;
-        
-        await updateDoc(doc(db, "users", authUser.uid), {
-          [updateKey]: value,
-          updatedAt: serverTimestamp()
-        });
-      }
-      toast({ title: "Preference Synchronized" });
+      await updateDoc(doc(db, "users", authUser.uid), {
+        [`settings.${key}`]: value,
+        // Sync legacy fields
+        ...(key === 'incognito' ? { incognitoMode: value } : {}),
+        ...(key === 'showOnlineStatus' ? { showOnlineStatus: value } : {}),
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Aura Synchronized" });
     } catch (e: any) {
-      setSettings(prev => ({ ...prev, [key]: !value }));
+      setSettings(prev => ({ ...prev, [key]: previousValue }));
       toast({ variant: "destructive", title: "Sync Fault", description: "Failed to synchronize setting. Please try again." });
+    } finally {
+      setIsUpdating(null);
     }
   };
 
@@ -181,19 +169,11 @@ export default function SettingsPage() {
       router.replace('/auth');
     } catch (e: any) {
       console.error("Deletion Error:", e);
-      if (e.code === 'auth/requires-recent-login') {
-        toast({ 
-          variant: "destructive", 
-          title: "Security Verification Required", 
-          description: "Please sign out and sign in again before deleting your account." 
-        });
-      } else {
-        toast({ 
-          variant: "destructive", 
-          title: "Deletion Synchronicity Fault", 
-          description: "Failed to purge all data nodes. Please try again." 
-        });
-      }
+      toast({ 
+        variant: "destructive", 
+        title: "Deletion Fault", 
+        description: "Account recently authenticated? Please sign in again to authorize deletion." 
+      });
       setIsDeleting(false);
     }
   };
@@ -221,10 +201,13 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><EyeOff size={18} /></div>
                 <div className="text-left space-y-0.5">
                    <h3 className="font-medium text-foreground">Incognito Mode</h3>
-                   {!planConfig.incognito && <p className="text-[8px] text-primary font-bold uppercase">Requires Elite Plus</p>}
+                   {effectivePlan !== 'elite_plus' && <p className="text-[8px] text-primary font-bold uppercase">Elite Plus Required</p>}
                 </div>
               </div>
-              <Switch checked={settings.incognito} onCheckedChange={(v) => handleToggle('incognito', v)} />
+              <div className="flex items-center gap-2">
+                {isUpdating === 'incognito' && <Loader2 className="animate-spin text-primary" size={14} />}
+                <Switch checked={settings.incognito} onCheckedChange={(v) => handleToggle('incognito', v)} disabled={isUpdating === 'incognito'} />
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border">
@@ -232,10 +215,13 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><User size={18} /></div>
                 <div className="text-left space-y-0.5">
                   <h3 className="font-medium text-foreground">Show Online Status</h3>
-                  <p className="text-[10px] text-muted-foreground font-light">Let others see when you're active.</p>
+                  <p className="text-[10px] text-muted-foreground font-light">Real-time presence signal.</p>
                 </div>
               </div>
-              <Switch checked={settings.onlineStatus} onCheckedChange={(v) => handleToggle('onlineStatus', v)} />
+              <div className="flex items-center gap-2">
+                {isUpdating === 'showOnlineStatus' && <Loader2 className="animate-spin text-primary" size={14} />}
+                <Switch checked={settings.showOnlineStatus} onCheckedChange={(v) => handleToggle('showOnlineStatus', v)} disabled={isUpdating === 'showOnlineStatus'} />
+              </div>
             </div>
 
             <Dialog open={isBlockedListOpen} onOpenChange={setIsBlockedListOpen}>
@@ -245,7 +231,7 @@ export default function SettingsPage() {
                     <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><UserX size={18} /></div>
                     <div className="text-left">
                       <h3 className="font-medium text-foreground">{t('blocked_users')}</h3>
-                      <p className="text-xs text-muted-foreground font-light">Manage restricted relationships.</p>
+                      <p className="text-xs text-muted-foreground font-light">Manage restrictions.</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />
@@ -265,7 +251,7 @@ export default function SettingsPage() {
                         <span className="text-sm font-medium text-foreground">{user.name}</span>
                         <Button variant="ghost" size="sm" onClick={() => handleUnblock(user.id, user.name)} className="text-primary hover:text-primary/80">Unblock</Button>
                      </div>
-                   )) : <p className="text-center text-muted-foreground py-10">Clear list.</p>}
+                   )) : <p className="text-center text-muted-foreground py-10">No users restricted.</p>}
                 </div>
               </DialogContent>
             </Dialog>
@@ -278,32 +264,21 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('general')}</h2>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border transition-colors">
+            <button 
+              onClick={() => router.push('/settings/notifications')}
+              className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors group"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
                   <Bell size={18} />
                 </div>
                 <div className="text-left space-y-0.5">
-                   <h3 className="font-medium text-foreground">Push Notifications</h3>
-                   <p className="text-[10px] text-muted-foreground font-light">Receive real-time Aura alerts.</p>
+                   <h3 className="font-medium text-foreground">Notification Settings</h3>
+                   <p className="text-[10px] text-muted-foreground font-light">Push & Alert preferences.</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {settings.pushEnabled && (
-                  <button 
-                    onClick={() => router.push('/settings/notifications')}
-                    className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors"
-                  >
-                    <Settings size={16} />
-                  </button>
-                )}
-                <Switch 
-                  disabled={isRegistering}
-                  checked={settings.pushEnabled} 
-                  onCheckedChange={(v) => handleToggle('pushEnabled', v)} 
-                />
-              </div>
-            </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
 
             <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
               <DialogTrigger asChild>
@@ -369,15 +344,15 @@ export default function SettingsPage() {
                   <div className="text-center space-y-2">
                     <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">Delete your Aura?</DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">
-                      Your profile and associated personal data will be permanently purged. This action cannot be undone.
+                      Your profile and associated data will be definitively purged. This action is irreversible.
                     </DialogDescription>
                   </div>
                 </DialogHeader>
 
                 <div className="py-8 space-y-4">
                   <div className="p-4 bg-muted/50 rounded-2xl border border-border space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Final Confirmation</label>
-                    <p className="text-[10px] text-muted-foreground px-1 italic">Type DELETE to definitively authorize this action.</p>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Final Authorization</label>
+                    <p className="text-[10px] text-muted-foreground px-1 italic">Type DELETE to definitively authorize this purge.</p>
                     <Input 
                       placeholder="DELETE" 
                       value={deleteConfirmText} 
@@ -392,16 +367,9 @@ export default function SettingsPage() {
                     onClick={handlePermanentDeletion} 
                     disabled={deleteConfirmText !== "DELETE" || isDeleting}
                     variant="destructive"
-                    className="w-full h-16 rounded-[24px] font-bold text-lg shadow-xl relative overflow-hidden"
+                    className="w-full h-16 rounded-[24px] font-bold text-lg shadow-xl"
                   >
-                    {isDeleting ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="animate-spin" />
-                        <span>Purging Identity...</span>
-                      </div>
-                    ) : (
-                      "Delete My Account"
-                    )}
+                    {isDeleting ? <Loader2 className="animate-spin" /> : "Delete My Aura"}
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -416,13 +384,6 @@ export default function SettingsPage() {
             </Dialog>
           </div>
         </section>
-
-        <Dialog open={isSignOutDialogOpen} onOpenChange={setIsSignOutDialogOpen}>
-          <DialogContent className="bg-popover border-border text-foreground rounded-[32px] w-[calc(100%-40px)] max-w-[400px] p-8">
-            <DialogHeader className="space-y-4"><div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto"><LogOut size={32} /></div><div className="space-y-2 text-center"><DialogTitle className="text-2xl font-semibold text-foreground">{t('sign_out')}</DialogTitle><DialogDescription className="text-muted-foreground text-sm font-light leading-relaxed">Secure redirect in progress.</DialogDescription></div></DialogHeader>
-            <div className="py-6 flex flex-col items-center justify-center space-y-4"><div className="relative w-24 h-24 flex items-center justify-center"><svg className="w-full h-full transform -rotate-90"><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted/20" /><circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={276} strokeDashoffset={276 - (276 * signOutCountdown) / 5} className="text-primary transition-all duration-1000 ease-linear" /></svg><span className="absolute text-3xl font-bold text-foreground">{signOutCountdown}</span></div><p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Secure Redirect</p></div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

@@ -20,31 +20,42 @@ service cloud.firestore {
       allow list: if isAuthenticated() && (
         isAdmin() || (
           resource.data.get('onboardingCompleted', false) == true && 
+          resource.data.get('settings', {}).get('incognito', false) == false &&
           resource.data.get('incognitoMode', false) == false
         )
       );
 
       allow create: if isOwner(userId);
       
+      // Hardened update rules for Aura Settings Synchronization
       allow update: if isOwner(userId) && 
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'plan', 'isAdmin', 'superLikeBalance', 'isSuperFunder', 
           'spotlightExpiry', 'subscription', 'verificationStatus', 'verification'
         ]) &&
+        // Protect Elite Plus features (Incognito)
         (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['incognitoMode']) || 
-          request.resource.data.incognitoMode == false || 
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['settings']) ||
+          request.resource.data.settings.get('incognito', false) == false ||
           resource.data.get('plan', 'free') == 'elite_plus'
         );
         
       allow update, delete: if isAdmin();
       
       match /blockedUsers/{blockedId} {
-        // Allow reading if you are either the blocker or the person being blocked (to check interaction eligibility)
         allow read: if isOwner(userId) || isOwner(blockedId);
         allow write: if isOwner(userId);
       }
 
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /presence/{document=**} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+      
       match /notificationDevices/{tokenId} {
         allow read, write: if isOwner(userId);
       }
@@ -74,19 +85,16 @@ service cloud.firestore {
         
         allow create: if isAuthenticated() && 
           request.auth.uid == request.resource.data.senderId && 
-          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants &&
-          request.resource.data.expiresAt > request.time + duration.value(23, 'h') &&
-          request.resource.data.expiresAt < request.time + duration.value(25, 'h');
+          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
 
         allow delete: if isAuthenticated() && 
-          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants &&
-          (resource.data.expiresAt < request.time || resource.data.timestamp + duration.value(24, 'h') < request.time);
+          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
       }
     }
 
     match /notifications/{notificationId} {
-      allow read, update, delete: if isOwner(resource.data.userId);
-      allow create: if isAdmin() || isAuthenticated();
+      allow read, update, delete: if isOwner(resource.data.userId) || isOwner(resource.data.recipientId);
+      allow create: if isAuthenticated();
     }
 
     match /purchases/{purchaseId} {
