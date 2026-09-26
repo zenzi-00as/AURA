@@ -25,13 +25,11 @@ service cloud.firestore {
 
       allow create: if isOwner(userId);
       
-      // HARDENED UPDATE RULE: Protect privileged fields + Incognito validation
       allow update: if isOwner(userId) && 
         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'plan', 'isAdmin', 'superLikeBalance', 'usage', 'isSuperFunder', 
           'spotlightExpiry', 'subscription', 'verificationStatus', 'verification'
         ]) &&
-        // INCOGNITO ENFORCEMENT: Only Elite Plus members can enable Incognito Mode
         (request.resource.data.incognitoMode == false || resource.data.plan == 'elite_plus');
         
       allow update, delete: if isAdmin();
@@ -66,9 +64,18 @@ service cloud.firestore {
       
       match /messages/{messageId} {
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
+        
         allow create: if isAuthenticated() && 
           request.auth.uid == request.resource.data.senderId && 
-          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants;
+          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants &&
+          // MANDATORY: 24h Expiration Enforcement
+          request.resource.data.expiresAt > request.time + duration.value(23, 'h') &&
+          request.resource.data.expiresAt < request.time + duration.value(25, 'h');
+
+        // Allow participants to trigger cleanup of expired messages
+        allow delete: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(roomId)).data.participants &&
+          (resource.data.expiresAt < request.time || resource.data.timestamp + duration.value(24, 'h') < request.time);
       }
     }
 

@@ -3,6 +3,7 @@
 /**
  * @fileOverview Atomic Interaction Hub.
  * Standardized with Aura Monitoring Protocol and Block verification.
+ * Enforces mandatory 24-hour message expiration.
  */
 
 import { initializeFirebase } from "@/firebase/init";
@@ -112,12 +113,15 @@ export async function handleSecureChat(fromUid: string, roomId: string, text: st
       }
 
       const msgRef = doc(collection(db, "chatRooms", roomId, "messages"));
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24-hour mandatory retention
       
       transaction.set(msgRef, {
         id: msgRef.id,
         senderId: fromUid,
         text,
         timestamp: serverTimestamp(),
+        expiresAt: expiresAt,
         seen: false
       });
 

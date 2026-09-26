@@ -99,6 +99,7 @@ export type Message = {
   senderId: string;
   text: string;
   timestamp: any;
+  expiresAt: any; // Mandatory for 24h retention
   seen: boolean;
   isMedia?: boolean;
   mediaUrl?: string;
@@ -106,7 +107,6 @@ export type Message = {
   privacyMode?: boolean;
   viewMode?: "unlimited" | "one" | "two";
   viewCount?: Record<string, number>;
-  expiresAt?: any;
   status?: 'sending' | 'sent' | 'failed';
 };
 
@@ -118,8 +118,6 @@ export type ChatRoom = {
   typing?: Record<string, boolean>;
   isSystem?: boolean;
   unreadCount?: Record<string, number>;
-  autoDeleteEnabled?: boolean;
-  privacyEnabled?: boolean;
 };
 
 export type NotificationType = 

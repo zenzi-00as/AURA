@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -14,42 +13,6 @@ import { ChatRoom, UserProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Input } from "@/components/ui/input";
-
-const DEMO_CHATS = [
-  {
-    id: "demo-chat-1",
-    name: "Julian",
-    lastMsg: "That architectural site you mentioned is incredible.",
-    time: "2m ago",
-    verified: true,
-    unreadCount: 1,
-    isSystem: false,
-    isOnline: true,
-    isSpotlight: false
-  },
-  {
-    id: "demo-chat-2",
-    name: "Sasha",
-    lastMsg: "Golden hour at the coast today was magical 🌅",
-    time: "1h ago",
-    verified: true,
-    unreadCount: 0,
-    isSystem: false,
-    isOnline: true,
-    isSpotlight: true
-  },
-  {
-    id: "demo-chat-3",
-    name: "Ezra",
-    lastMsg: "Found a rare vinyl pressing of that synth album!",
-    time: "3h ago",
-    verified: true,
-    unreadCount: 0,
-    isSystem: false,
-    isOnline: false,
-    isSpotlight: false
-  }
-];
 
 export default function ChatList() {
   const router = useRouter();
@@ -71,7 +34,6 @@ export default function ChatList() {
   const { data: rooms, loading: roomsLoading } = useCollection<ChatRoom>(roomsQuery);
 
   const usersQuery = useMemoFirebase(() => {
-    // SECURITY: Ensure authUser is initialized before attempting collection list
     if (!db || !authUser) return null;
     return query(
       collection(db, "users"), 
@@ -84,37 +46,33 @@ export default function ChatList() {
   const { data: profiles } = useCollection<UserProfile>(usersQuery);
 
   const chatItems = useMemo(() => {
-    const items = [];
+    if (!rooms || !authUser || !profiles) return [];
     
-    if (rooms && authUser && profiles) {
-      const profileMap = new Map(profiles.map(p => [p.uid, p]));
+    const profileMap = new Map(profiles.map(p => [p.uid, p]));
+    const now = new Date();
+    
+    return rooms.map(room => {
+      const lastTs = room.lastTimestamp?.toDate ? room.lastTimestamp.toDate() : new Date(room.lastTimestamp);
+      const isExpired = (now.getTime() - lastTs.getTime()) > 24 * 60 * 60 * 1000;
       
-      const realItems = rooms.map(room => {
-        const participants = Array.isArray(room.participants) ? room.participants : [];
-        const otherId = participants.find(id => id !== (authUser?.uid || ''));
-        const otherUser = otherId ? profileMap.get(otherId) : null;
-        const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
+      const participants = Array.isArray(room.participants) ? room.participants : [];
+      const otherId = participants.find(id => id !== (authUser?.uid || ''));
+      const otherUser = otherId ? profileMap.get(otherId) : null;
+      const isSpotlight = otherUser?.spotlightExpiry && (otherUser.spotlightExpiry.toDate ? otherUser.spotlightExpiry.toDate() : new Date(otherUser.spotlightExpiry)) > new Date();
 
-        return {
-          id: room.id,
-          name: room.isSystem ? "AURA Team" : (otherUser?.name || "Aura User"),
-          lastMsg: room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation"),
-          time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
-          verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
-          unreadCount: (room.unreadCount && authUser && room.unreadCount[authUser.uid]) || 0,
-          isSystem: room.isSystem,
-          isOnline: otherUser?.isOnline,
-          isSpotlight
-        };
-      });
-      items.push(...realItems);
-    }
-
-    if (items.length < 5) {
-      items.push(...DEMO_CHATS);
-    }
-    
-    return items;
+      return {
+        id: room.id,
+        name: room.isSystem ? "AURA Team" : (otherUser?.name || "Aura Member"),
+        lastMsg: isExpired ? "Conversation expired" : (room.lastMessage || (room.isSystem ? "Welcome to AURA ❤️" : "Start a conversation")),
+        time: room.lastTimestamp?.toDate ? room.lastTimestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
+        verified: room.isSystem || otherUser?.verificationStatus === 'Verified',
+        unreadCount: isExpired ? 0 : ((room.unreadCount && authUser && room.unreadCount[authUser.uid]) || 0),
+        isSystem: room.isSystem,
+        isOnline: otherUser?.isOnline,
+        isSpotlight,
+        isExpired
+      };
+    });
   }, [rooms, profiles, authUser]);
 
   const filteredChats = useMemo(() => {
@@ -151,11 +109,15 @@ export default function ChatList() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.1, delay: idx * 0.02 }}
                   onClick={() => router.push(`/chat/${chat.id}`)} 
-                  className={cn("p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", chat.unreadCount > 0 ? "bg-white/10 border-primary/20" : "bg-white/5 border-white/5")}
+                  className={cn(
+                    "p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", 
+                    chat.unreadCount > 0 ? "bg-white/10 border-primary/20" : "bg-white/5 border-white/5",
+                    chat.isExpired && "opacity-40 grayscale"
+                  )}
                 >
                   <div className={cn("w-14 h-14 rounded-2xl border border-white/10 flex items-center justify-center relative shrink-0", chat.isSystem ? "premium-gradient" : "bg-[#151515]")}>
                     {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-white/20">{chat.name?.[0] || "?"}</span>}
-                    {chat.isOnline && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#070709]" />}
+                    {chat.isOnline && !chat.isExpired && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#070709]" />}
                   </div>
                   <div className="flex-1 flex flex-col min-w-0">
                     <div className="flex justify-between items-center mb-0.5">

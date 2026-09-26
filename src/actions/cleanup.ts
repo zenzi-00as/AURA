@@ -1,13 +1,23 @@
-
 'use server';
 
 /**
- * @fileOverview Ephemeral Media Cleanup Node.
- * Definitively deletes physical files from Storage once view limits are synchronized.
+ * @fileOverview Ephemeral Media and Message Cleanup Node.
+ * Definitively deletes physical files and expired records from Storage/Firestore.
  */
 
 import { initializeFirebase } from "@/firebase/init";
-import { doc, getDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  increment, 
+  collectionGroup, 
+  query, 
+  where, 
+  getDocs, 
+  writeBatch,
+  deleteDoc
+} from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 
 export async function handleMediaViewCleanup(uid: string, roomId: string, messageId: string) {
@@ -51,6 +61,49 @@ export async function handleMediaViewCleanup(uid: string, roomId: string, messag
 
     return { success: true, expired: shouldDelete };
   } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Global scheduled cleanup for the mandatory 24-hour retention rule.
+ * Deletes expired messages across all subcollections.
+ */
+export async function cleanupExpiredMessages() {
+  const { db, storage } = initializeFirebase();
+  if (!db || !storage) return { success: false, error: "System Sync Fault" };
+
+  const now = new Date();
+  
+  try {
+    const expiredQuery = query(
+      collectionGroup(db, "messages"),
+      where("expiresAt", "<=", now)
+    );
+
+    const snapshot = await getDocs(expiredQuery);
+    if (snapshot.empty) return { success: true, count: 0 };
+
+    const batch = writeBatch(db);
+    let count = 0;
+
+    for (const messageDoc of snapshot.docs) {
+      const data = messageDoc.data();
+      
+      // Physical Storage Deletion
+      if (data.isMedia && data.storagePath) {
+        const fileRef = ref(storage, data.storagePath);
+        await deleteObject(fileRef).catch(() => {});
+      }
+
+      batch.delete(messageDoc.ref);
+      count++;
+    }
+
+    await batch.commit();
+    return { success: true, count };
+  } catch (e: any) {
+    console.error("[CLEANUP_FAULT]", e);
     return { success: false, error: e.message };
   }
 }

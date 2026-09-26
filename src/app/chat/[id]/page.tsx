@@ -16,7 +16,8 @@ import {
   Flag,
   ShieldAlert,
   X,
-  Shield
+  Shield,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,9 +116,24 @@ export default function ChatRoomPage() {
   const messagesQuery = useMemoFirebase(() => (db && roomId && roomId !== "") ? query(collection(db, "chatRooms", roomId, "messages"), orderBy("timestamp", "asc")) : null, [db, roomId]);
   const { data: messages } = useCollection<Message>(messagesQuery as any);
 
+  // High-fidelity UI expiration filtering
+  const activeMessages = useMemo(() => {
+    if (!messages) return [];
+    const now = new Date();
+    return messages.filter(m => {
+      if (!m.expiresAt) {
+        // Fallback for transition/system messages: check timestamp
+        const ts = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+        return (now.getTime() - ts.getTime()) < 24 * 60 * 60 * 1000;
+      }
+      const expiry = m.expiresAt.toDate ? m.expiresAt.toDate() : new Date(m.expiresAt);
+      return expiry > now;
+    });
+  }, [messages]);
+
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "instant" }); 
-  }, [messages?.length]);
+  }, [activeMessages?.length]);
 
   const handleSendText = async () => {
     const msgText = input.trim();
@@ -227,6 +243,13 @@ export default function ChatRoomPage() {
           </header>
 
           <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 flex flex-col z-10 select-none">
+            <div className="mx-auto bg-muted/40 border border-border px-4 py-1.5 rounded-full flex items-center gap-2 mb-2">
+              <Clock size={12} className="text-muted-foreground" />
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                24h disappearing chat
+              </span>
+            </div>
+
             {isBlocked && (
               <div className="mx-auto bg-rose-500/10 border border-rose-500/20 px-4 py-2 rounded-full flex items-center gap-2">
                 <ShieldAlert size={14} className="text-rose-500" />
@@ -235,7 +258,7 @@ export default function ChatRoomPage() {
                 </span>
               </div>
             )}
-            {messages?.map((msg) => {
+            {activeMessages?.map((msg) => {
               const isMe = msg.senderId === authUser?.uid;
               const views = msg.viewCount?.[authUser?.uid || ''] || 0;
               const isExpired = !isMe && msg.isMedia && ((msg.viewMode === 'one' && views >= 1) || (msg.viewMode === 'two' && views >= 2));

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -242,11 +241,14 @@ export default function Onboarding() {
       });
 
       const msgRef = doc(collection(db, "chatRooms", systemRoomId, "messages"));
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h retention
+
       batch.set(msgRef, {
         id: msgRef.id,
         senderId: "system",
-        text: "Welcome to Aura ✨\n\nYour journey starts here. Meet authentically, stay private.",
+        text: "Welcome to Aura ✨\n\nYour journey starts here. Meet authentically, stay private.\n\nNote: All Aura chats disappear after 24 hours.",
         timestamp: serverTimestamp(),
+        expiresAt: expiresAt,
         seen: false
       });
 
