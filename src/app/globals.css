@@ -34,6 +34,17 @@
     --ring: 220 100% 50%;
     
     --radius: 1.75rem; /* 28px */
+
+    /* Aura Special Effects Tokens */
+    --noise-opacity: 0.03;
+    --blob-opacity-blue: 0.15;
+    --blob-opacity-purple: 0.1;
+    --blob-opacity-cyan: 0.08;
+    --hero-radial-glow: rgba(0, 87, 255, 0.4);
+    --hero-radial-glow-outer: rgba(0, 87, 255, 0.1);
+    --premium-gradient: linear-gradient(110deg, #0057FF 0%, #003FD6 28%, #07142B 58%, #05070D 100%);
+    --blue-gradient: linear-gradient(100deg, #0057FF, #0B6CFF, #003ED1);
+    --fuchsia-gradient: linear-gradient(135deg, #0057FF 0%, #0B6CFF 50%, #003ED1 100%);
   }
 
   .light {
@@ -64,6 +75,17 @@
     --border: 220 13% 88%;
     --input: 220 13% 94%;
     --ring: 220 100% 50%;
+
+    /* Light Theme Effects - Clear "Black Texture", Vibrant Blue Light */
+    --noise-opacity: 0.012;
+    --blob-opacity-blue: 0.1;
+    --blob-opacity-purple: 0.05;
+    --blob-opacity-cyan: 0.04;
+    --hero-radial-glow: rgba(0, 87, 255, 0.15);
+    --hero-radial-glow-outer: rgba(0, 87, 255, 0.05);
+    --premium-gradient: linear-gradient(110deg, #0057FF 0%, #1D4ED8 35%, #1E40AF 70%, #1E3A8A 100%);
+    --blue-gradient: linear-gradient(100deg, #3B82F6, #2563EB, #1D4ED8);
+    --fuchsia-gradient: linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%);
   }
 
   * {
@@ -85,23 +107,24 @@
   }
 
   .aura-noise {
-    @apply absolute inset-0 opacity-[0.03] pointer-events-none;
+    @apply absolute inset-0 pointer-events-none;
+    opacity: var(--noise-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
 
   .aura-blob-blue {
-    background: radial-gradient(circle, rgba(0, 87, 255, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 87, 255, var(--blob-opacity-blue)) 0%, transparent 70%);
     filter: blur(80px);
     @apply animate-pulse;
   }
 
   .aura-blob-purple {
-    background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(168, 85, 247, var(--blob-opacity-purple)) 0%, transparent 70%);
     filter: blur(60px);
   }
 
   .aura-blob-cyan {
-    background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(34, 211, 238, var(--blob-opacity-cyan)) 0%, transparent 70%);
     filter: blur(40px);
   }
 }
@@ -126,15 +149,15 @@
   }
 
   .premium-gradient {
-    background: linear-gradient(110deg, #0057FF 0%, #003FD6 28%, #07142B 58%, #05070D 100%);
+    background: var(--premium-gradient);
   }
 
   .blue-gradient {
-    background: linear-gradient(100deg, #0057FF, #0B6CFF, #003ED1);
+    background: var(--blue-gradient);
   }
 
   .fuchsia-gradient {
-    background: linear-gradient(135deg, #0057FF 0%, #0B6CFF 50%, #003ED1 100%);
+    background: var(--fuchsia-gradient);
   }
   
   .neon-glow {
@@ -160,7 +183,7 @@
 }
 
 .hero-radial {
-  background: radial-gradient(circle at 15% 20%, rgba(0, 87, 255, 0.4) 0%, rgba(0, 87, 255, 0.1) 22%, transparent 75%), hsl(var(--background));
+  background: radial-gradient(circle at 15% 20%, var(--hero-radial-glow) 0%, var(--hero-radial-glow-outer) 22%, transparent 75%), hsl(var(--background));
 }
 
 @keyframes breathe {

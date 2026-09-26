@@ -74,7 +74,7 @@ export default function VerifyEmailPage() {
   if (loading || !user) return null;
 
   return (
-    <div className="flex-1 flex flex-col bg-[#050816] min-h-screen relative overflow-hidden p-8 justify-center">
+    <div className="flex-1 flex flex-col bg-background min-h-screen relative overflow-hidden p-8 justify-center">
       <div className="absolute inset-0 z-0 hero-radial" />
       
       <motion.div 
@@ -87,14 +87,14 @@ export default function VerifyEmailPage() {
             <Mail size={40} className="text-white" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-white tracking-tighter">Verify Identity</h2>
-            <p className="text-white/60 font-light leading-relaxed">
-              A verification link has been dispatched to <span className="text-white font-medium">{user.email}</span>. Please acknowledge it to continue.
+            <h2 className="text-3xl font-bold text-foreground tracking-tighter">Verify Identity</h2>
+            <p className="text-muted-foreground font-light leading-relaxed">
+              A verification link has been dispatched to <span className="text-foreground font-medium">{user.email}</span>. Please acknowledge it to continue.
             </p>
           </div>
         </div>
 
-        <div className="glass-card p-8 rounded-[32px] border-white/10 bg-white/5 space-y-6 shadow-2xl">
+        <div className="glass-card p-8 rounded-[32px] border-border bg-card space-y-6 shadow-2xl">
           <div className="space-y-4">
             <Button 
               onClick={handleRefresh}
@@ -109,16 +109,16 @@ export default function VerifyEmailPage() {
               variant="ghost"
               onClick={handleResend}
               disabled={isSending || cooldown > 0}
-              className="w-full h-12 text-white/40 hover:text-white font-bold text-xs uppercase tracking-widest"
+              className="w-full h-12 text-muted-foreground/40 hover:text-foreground font-bold text-xs uppercase tracking-widest"
             >
               {isSending ? <Loader2 className="animate-spin h-4 w-4" /> : (cooldown > 0 ? `Resend in ${cooldown}s` : "Resend Verification Email")}
             </Button>
           </div>
 
-          <div className="pt-6 border-t border-white/5">
+          <div className="pt-6 border-t border-border">
             <button 
               onClick={handleSignOut}
-              className="flex items-center justify-center gap-2 w-full text-white/20 hover:text-rose-500 transition-colors text-[10px] font-bold uppercase tracking-widest"
+              className="flex items-center justify-center gap-2 w-full text-muted-foreground/20 hover:text-rose-500 transition-colors text-[10px] font-bold uppercase tracking-widest"
             >
               <LogOut size={14} />
               Sign Out & Restart
@@ -127,7 +127,7 @@ export default function VerifyEmailPage() {
         </div>
 
         <div className="text-center">
-          <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-black">Secure Aura Identity</p>
+          <p className="text-[10px] text-muted-foreground/20 uppercase tracking-[0.3em] font-black">Secure Aura Identity</p>
         </div>
       </motion.div>
     </div>

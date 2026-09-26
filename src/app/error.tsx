@@ -30,7 +30,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-[#050816] min-h-screen p-8 text-center relative overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen p-8 text-center relative overflow-hidden">
       <div className="absolute inset-0 hero-radial opacity-50" />
       
       <motion.div 
@@ -42,8 +42,8 @@ export default function GlobalError({
       </motion.div>
       
       <div className="relative z-10 space-y-3 mb-12">
-        <h2 className="text-3xl font-bold tracking-tighter text-white">Aura Sync Interrupted</h2>
-        <p className="text-sm text-white/40 font-light leading-relaxed max-w-[280px] mx-auto italic">
+        <h2 className="text-3xl font-bold tracking-tighter text-foreground">Aura Sync Interrupted</h2>
+        <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto italic">
           Your connection to the Aura has encountered an unexpected synchronization exception.
         </p>
       </div>
@@ -57,13 +57,13 @@ export default function GlobalError({
           Synchronize Again
         </Button>
         
-        <p className="text-[9px] text-white/20 uppercase tracking-[0.4em] font-bold">
+        <p className="text-[9px] text-muted-foreground/20 uppercase tracking-[0.4em] font-bold">
           Ref: {error.digest?.substring(0, 8) || 'internal_fault'}
         </p>
       </div>
 
       <div className="absolute bottom-12 left-0 right-0 text-center opacity-20">
-        <p className="text-[10px] text-white uppercase tracking-[0.5em] font-black">Secure Aura Recovery</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.5em] font-black">Secure Aura Recovery</p>
       </div>
     </div>
   );

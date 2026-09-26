@@ -137,7 +137,9 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
             {user.photoUrl ? <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} /> : <div className="w-full h-full bg-muted" />}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+            
+            {/* Soften overlay in light mode to prevent "black texture" smudges */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/20 dark:from-black/80 to-transparent pointer-events-none" />
             
             {showOnline && (
               <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md pl-1.5 pr-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10">

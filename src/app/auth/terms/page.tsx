@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, Check, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export default function TermsAcceptancePage() {
   if (loading || !user) return null;
 
   return (
-    <div className="flex-1 flex flex-col bg-[#050816] min-h-screen relative overflow-hidden p-8 justify-center">
+    <div className="flex-1 flex flex-col bg-background min-h-screen relative overflow-hidden p-8 justify-center">
       <div className="absolute inset-0 z-0 hero-radial" />
       
       <motion.div 
@@ -90,14 +90,14 @@ export default function TermsAcceptancePage() {
             <Shield size={40} className="text-white" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-white tracking-tighter">Safety Synchronization</h2>
-            <p className="text-white/60 font-light leading-relaxed">
+            <h2 className="text-3xl font-bold text-foreground tracking-tighter">Safety Synchronization</h2>
+            <p className="text-muted-foreground font-light leading-relaxed">
               Welcome to Aura. To maintain an authentic and secure community, please acknowledge our safety standards.
             </p>
           </div>
         </div>
 
-        <div className="glass-card p-6 rounded-[32px] border-white/10 bg-white/5 space-y-6 shadow-2xl">
+        <div className="glass-card p-6 rounded-[32px] border-border bg-card space-y-6 shadow-2xl">
           <div className="space-y-4">
             {[
               "Respect all community members.",
@@ -105,7 +105,7 @@ export default function TermsAcceptancePage() {
               "Protect your digital autonomy.",
               "Adhere to privacy guidelines."
             ].map((text, i) => (
-              <div key={i} className="flex items-center gap-4 text-xs text-white/80">
+              <div key={i} className="flex items-center gap-4 text-xs text-foreground/80">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
                   <Check size={12} strokeWidth={3} />
                 </div>
@@ -114,16 +114,16 @@ export default function TermsAcceptancePage() {
             ))}
           </div>
 
-          <div className="pt-6 border-t border-white/5">
+          <div className="pt-6 border-t border-border">
             <div className="flex items-start space-x-3">
               <Checkbox 
                 id="sync-terms" 
                 checked={agreed} 
                 onCheckedChange={(c) => setAgreed(c === true)}
-                className="h-5 w-5 mt-0.5 border-white/20 data-[state=checked]:bg-[#2563FF]"
+                className="h-5 w-5 mt-0.5 border-border data-[state=checked]:bg-primary"
               />
-              <label htmlFor="sync-terms" className="text-[11px] text-white/40 leading-relaxed pt-1">
-                I agree to the <Link href="/terms" className="text-white hover:text-[#2563FF] font-bold">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-white hover:text-[#2563FF] font-bold">Privacy Policy</Link>.
+              <label htmlFor="sync-terms" className="text-[11px] text-muted-foreground leading-relaxed pt-1">
+                I agree to the <Link href="/terms" className="text-foreground hover:text-primary font-bold">Terms of Service</Link> and acknowledge the <Link href="/privacy" className="text-foreground hover:text-primary font-bold">Privacy Policy</Link>.
               </label>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function TermsAcceptancePage() {
             )}
           </Button>
           
-          <div className="flex items-center justify-center gap-2 text-[9px] text-white/20 uppercase tracking-[0.3em] font-black">
+          <div className="flex items-center justify-center gap-2 text-[9px] text-muted-foreground/20 uppercase tracking-[0.3em] font-black">
             <Lock size={10} />
             <span>Secure Aura Protocol v{CURRENT_TERMS_VERSION}</span>
           </div>
