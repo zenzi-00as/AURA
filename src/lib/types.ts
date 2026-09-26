@@ -18,30 +18,24 @@ export interface UserUsage {
 }
 
 export type UserNotificationSettings = {
+  // Master toggle
+  pushEnabled: boolean;
+
+  // Categories
   newMessages: boolean;
-  groupMessages: boolean;
-  mentions: boolean;
-  likes: boolean;
-  comments: boolean;
-  newFollowers: boolean;
-  friendRequests: boolean;
-  calls: boolean;
-  promotions: boolean;
-  updates: boolean;
+  newLikes: boolean;
+  superLikes: boolean;
+  newMatches: boolean;
+  profileViews: boolean;
+  verificationUpdates: boolean;
+  membershipUpdates: boolean;
+  paymentUpdates: boolean;
+  spotlightUpdates: boolean;
+  auraUpdates: boolean;
   securityAlerts: boolean;
-  loginAlerts: boolean;
-  sound: boolean;
-  vibration: boolean;
-  popupNotification: boolean;
-  ledFlash: boolean;
-  lockScreenPreview: boolean;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  dndSchedule: boolean;
-  notificationPreview: boolean;
-  muteIndividualChats: boolean;
-  notificationTone: string;
-  badgeCount: boolean;
+
+  // System
+  updatedAt?: any;
 };
 
 export type VerificationData = {
@@ -58,7 +52,7 @@ export type UserProfile = {
   email?: string;
   emailVerified?: boolean;
   profilePhoneNumber?: string;
-  phoneNumber?: string; // Legacy field support
+  phoneNumber?: string; 
   age: number;
   bio: string;
   gender: string;
@@ -127,7 +121,19 @@ export type ChatRoom = {
   privacyEnabled?: boolean;
 };
 
-export type NotificationType = 'verification' | 'proximity' | 'message' | 'welcome' | 'subscription' | 'spotlight' | 'like' | 'super_like' | 'match' | 'super_fund';
+export type NotificationType = 
+  | 'verification' 
+  | 'proximity' 
+  | 'message' 
+  | 'welcome' 
+  | 'subscription' 
+  | 'spotlight' 
+  | 'like' 
+  | 'super_like' 
+  | 'match' 
+  | 'super_fund'
+  | 'payment'
+  | 'security';
 
 export type Notification = {
   id: string;

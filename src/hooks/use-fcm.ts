@@ -1,16 +1,16 @@
+
 'use client';
 
 /**
  * @fileOverview Aura High-Fidelity FCM Interaction Node.
- * Handles permission staging, token synchronization, and foreground reception.
- * Refined for service worker registration and VAPID synchronization.
+ * Handles permission staging, token synchronization, and logical unregistration.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/firebase/auth-context';
 import { useMessaging, useFirestore } from '@/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function useFcm() {
@@ -32,7 +32,6 @@ export function useFcm() {
     if (!messaging) return;
 
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log('[AURA FCM] Foreground message received', payload);
       toast({
         title: payload.notification?.title || "New Alert",
         description: payload.notification?.body || "Check your Aura for updates.",
@@ -47,50 +46,30 @@ export function useFcm() {
 
     setIsRegistering(true);
     try {
-      // 1. Request Browser Permission
       const status = await Notification.requestPermission();
       setPermission(status);
 
       if (status === 'granted') {
-        // 2. Explicitly register the service worker for background handling
-        // Standard location is /firebase-messaging-sw.js
         const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        
-        // 3. Synchronize FCM Token with VAPID Key
         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
         
-        if (!vapidKey && process.env.NODE_ENV === 'development') {
-          console.warn("[AURA FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing from environment.");
-        }
-
         const token = await getToken(messaging, {
           vapidKey: vapidKey,
           serviceWorkerRegistration: registration
         });
 
         if (token) {
-          console.log('[AURA FCM] Token synchronized:', token);
-          
-          // 4. Store token in user's secure subcollection
           const deviceRef = doc(db, 'users', user.uid, 'notificationDevices', token);
           await setDoc(deviceRef, {
             token,
             platform: 'web',
+            enabled: true,
             lastUpdated: serverTimestamp(),
             userAgent: navigator.userAgent
           });
           
-          toast({
-            title: "Aura Alerts Active",
-            description: "Your device is now synchronized with our messaging node."
-          });
+          console.log('[AURA FCM] Node synchronized:', token);
         }
-      } else if (status === 'denied') {
-        toast({
-          variant: "destructive",
-          title: "Permission Denied",
-          description: "Enable notifications in your browser settings to receive real-time alerts."
-        });
       }
     } catch (error: any) {
       console.error('[AURA FCM] Registration fault', error);
@@ -105,9 +84,24 @@ export function useFcm() {
   }, [messaging, db, user, isRegistering, toast]);
 
   const unregisterPush = useCallback(async () => {
-    // Logical unregistration can be handled by deleting the token from Firestore
-    console.log('[AURA FCM] Push disassociated from UI toggle');
-  }, []);
+    if (!messaging || !db || !user) return;
+    
+    try {
+      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+      const token = await getToken(messaging, { vapidKey });
+      
+      if (token) {
+        // Logically disable the token rather than deleting to preserve session history
+        const deviceRef = doc(db, 'users', user.uid, 'notificationDevices', token);
+        await updateDoc(deviceRef, {
+          enabled: false,
+          lastUpdated: serverTimestamp()
+        });
+      }
+    } catch (err) {
+      console.warn("[AURA FCM] Logical unregistration warning", err);
+    }
+  }, [messaging, db, user]);
 
   return {
     permission,

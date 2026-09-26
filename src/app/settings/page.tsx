@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,17 +28,6 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -51,13 +41,13 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
 import { LANGUAGES } from "@/lib/translations";
-import { useCollection, useFirestore, useUser, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
-import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc } from "firebase/firestore";
+import { useCollection, useFirestore, useMemoFirebase, initializeFirebase, useAuthContext } from "@/firebase";
+import { collection, query, orderBy, deleteDoc, doc, Query, updateDoc, serverTimestamp } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { BlockedUser } from "@/lib/types";
-import { formatDistanceToNow } from "date-fns";
 import { getPlanConfig } from "@/lib/subscription-engine";
 import { deleteAuraAccountData } from "@/actions/account";
+import { useFcm } from "@/hooks/use-fcm";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -68,9 +58,10 @@ export default function SettingsPage() {
   const db = useFirestore();
   const { user: authUser, profile, effectivePlan } = useAuthContext();
   const planConfig = getPlanConfig(effectivePlan as any);
+  const { registerPush, unregisterPush, isRegistering } = useFcm();
   
   const [settings, setSettings] = useState({
-    notifications: true,
+    pushEnabled: true,
     privateProfile: false,
     incognito: false,
     onlineStatus: true
@@ -82,7 +73,6 @@ export default function SettingsPage() {
   const [isSignOutDialogOpen, setIsSignOutDialogOpen] = useState(false);
   const [signOutCountdown, setSignOutCountdown] = useState(5);
 
-  // Account Deletion State
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -90,7 +80,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (profile) {
       setSettings({
-        notifications: true,
+        pushEnabled: profile.notificationSettings?.pushEnabled ?? true,
         privateProfile: false,
         incognito: !!profile.incognitoMode,
         onlineStatus: !!profile.isOnline
@@ -117,16 +107,27 @@ export default function SettingsPage() {
     }
 
     try {
-      const updateKey = key === 'incognito' ? 'incognitoMode' : 
-                      key === 'onlineStatus' ? 'isOnline' : key;
-      
-      await updateDoc(doc(db, "users", authUser.uid), {
-        [updateKey]: value
-      });
+      if (key === 'pushEnabled') {
+        if (value) await registerPush();
+        else await unregisterPush();
+        
+        await updateDoc(doc(db, "users", authUser.uid), {
+          'notificationSettings.pushEnabled': value,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        const updateKey = key === 'incognito' ? 'incognitoMode' : 
+                        key === 'onlineStatus' ? 'isOnline' : key;
+        
+        await updateDoc(doc(db, "users", authUser.uid), {
+          [updateKey]: value,
+          updatedAt: serverTimestamp()
+        });
+      }
       setSettings(prev => ({ ...prev, [key]: value }));
       toast({ title: "Preference Updated" });
     } catch (e) {
-      // Error handled by FirebaseProvider listener
+      console.error("Toggle Fault:", e);
     }
   };
 
@@ -160,11 +161,9 @@ export default function SettingsPage() {
 
     setIsDeleting(true);
     try {
-      // 1. Trigger Server-side Data Cleanup
       const result = await deleteAuraAccountData(authUser.uid);
       if (!result.success) throw new Error(result.error);
 
-      // 2. Delete Auth User (requires recent login)
       const { auth } = initializeFirebase();
       if (auth?.currentUser) {
         await deleteUser(auth.currentUser);
@@ -268,18 +267,31 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('general')}</h2>
           </div>
           <div className="space-y-2">
-            <button 
-              onClick={() => router.push('/settings/notifications')}
-              className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
-                  <Bell size={18} />
-                </div>
-                <span>Just push notifications here</span>
-              </div>
-              <ChevronRight size={16} className="text-muted-foreground" />
-            </button>
+            <div className="flex flex-col gap-2 p-6 bg-card rounded-[32px] border border-border">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                      <Bell size={18} />
+                    </div>
+                    <div className="text-left space-y-0.5">
+                       <h3 className="font-medium text-foreground">Push Notifications</h3>
+                       <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">Master Synchronizer</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    disabled={isRegistering}
+                    checked={settings.pushEnabled} 
+                    onCheckedChange={(v) => handleToggle('pushEnabled', v)} 
+                  />
+               </div>
+               <button 
+                 onClick={() => router.push('/settings/notifications')}
+                 className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between group"
+               >
+                 <span className="text-xs text-white/40 font-medium group-hover:text-primary transition-colors">Detailed Alert Settings</span>
+                 <ChevronRight size={14} className="text-white/20 group-hover:text-primary transition-all" />
+               </button>
+            </div>
 
             <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
               <DialogTrigger asChild>

@@ -1,210 +1,194 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
   Bell, 
   MessageSquare, 
-  Users, 
-  AtSign, 
   Heart, 
-  MessageCircle, 
-  UserPlus, 
   UserCheck, 
-  Phone, 
-  Tag, 
+  ShieldCheck, 
+  CreditCard, 
+  Sparkles, 
   Zap, 
-  ShieldAlert, 
-  Lock, 
-  Volume2, 
-  Vibrate, 
-  AppWindow, 
-  Lightbulb, 
-  Eye, 
-  Mail, 
-  Smartphone, 
-  Calendar,
-  Save,
-  Loader2
+  Lock,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/context/LanguageContext";
 import { useAuthContext } from "@/firebase/auth-context";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { UserNotificationSettings } from "@/lib/types";
 import { useFcm } from "@/hooks/use-fcm";
+import { cn } from "@/lib/utils";
 
-const SETTING_GROUPS = [
-  {
-    title: "Activity",
-    items: [
-      { id: "newMessages", label: "New Messages", icon: MessageSquare },
-      { id: "groupMessages", label: "Group Messages", icon: Users },
-      { id: "mentions", label: "Mentions", icon: AtSign },
-      { id: "likes", label: "Likes", icon: Heart },
-      { id: "comments", label: "Comments", icon: MessageCircle },
-      { id: "newFollowers", label: "New Followers", icon: UserPlus },
-      { id: "friendRequests", label: "Friend Requests", icon: UserCheck },
-      { id: "calls", label: "Calls", icon: Phone },
-    ]
-  },
-  {
-    title: "Marketing & Security",
-    items: [
-      { id: "promotions", label: "Promotions", icon: Tag },
-      { id: "updates", label: "Product Updates", icon: Zap },
-      { id: "securityAlerts", label: "Security Alerts", icon: ShieldAlert },
-      { id: "loginAlerts", label: "Login Alerts", icon: Lock },
-    ]
-  },
-  {
-    title: "System Alerts",
-    items: [
-      { id: "sound", label: "Sound", icon: Volume2 },
-      { id: "vibration", label: "Vibration", icon: Vibrate },
-      { id: "popupNotification", label: "Pop-up Notification", icon: AppWindow },
-      { id: "ledFlash", label: "LED Flash", icon: Lightbulb },
-      { id: "lockScreenPreview", label: "Lock Screen Preview", icon: Eye },
-      { id: "badgeCount", label: "Badge Count", icon: Bell },
-    ]
-  },
-  {
-    title: "Delivery Methods",
-    items: [
-      { id: "pushNotifications", label: "Push Notifications", icon: Smartphone },
-      { id: "emailNotifications", label: "Email Notifications", icon: Mail },
-      { id: "dndSchedule", label: "Do Not Disturb Schedule", icon: Calendar },
-    ]
-  }
-];
+const NOTIF_CATEGORIES = [
+  { id: "newMessages", label: "New Messages", icon: MessageSquare, color: "text-primary" },
+  { id: "newLikes", label: "New Likes", icon: Heart, color: "text-rose-400" },
+  { id: "superLikes", label: "Super Likes", icon: Sparkles, color: "text-amber-400" },
+  { id: "newMatches", label: "New Matches", icon: Heart, color: "text-[#C93CFF]" },
+  { id: "profileViews", label: "Profile Views", icon: Zap, color: "text-[#00FF88]" },
+  { id: "verificationUpdates", label: "Verification Updates", icon: ShieldCheck, color: "text-blue-400" },
+  { id: "membershipUpdates", label: "Membership & Subscription", icon: CheckCircle2, color: "text-amber-500" },
+  { id: "paymentUpdates", label: "Payment Updates", icon: CreditCard, color: "text-emerald-400" },
+  { id: "spotlightUpdates", label: "Spotlight Updates", icon: Sparkles, color: "text-amber-400" },
+  { id: "auraUpdates", label: "Aura Announcements", icon: Zap, color: "text-primary" },
+  { id: "securityAlerts", label: "Safety & Security Alerts", icon: Lock, color: "text-destructive" },
+] as const;
 
 export default function NotificationSettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
   const db = useFirestore();
   const { user: authUser, profile } = useAuthContext();
-  const { registerPush, isRegistering } = useFcm();
-  const [isSaving, setIsSaving] = useState(false);
+  const { registerPush, unregisterPush, permission, isRegistering } = useFcm();
   
   const [settings, setSettings] = useState<UserNotificationSettings>({
+    pushEnabled: true,
     newMessages: true,
-    groupMessages: true,
-    mentions: true,
-    likes: true,
-    comments: true,
-    newFollowers: true,
-    friendRequests: true,
-    calls: true,
-    promotions: false,
-    updates: true,
-    securityAlerts: true,
-    loginAlerts: true,
-    sound: true,
-    vibration: true,
-    popupNotification: true,
-    ledFlash: false,
-    lockScreenPreview: true,
-    emailNotifications: true,
-    pushNotifications: false,
-    dndSchedule: false,
-    notificationPreview: true,
-    muteIndividualChats: false,
-    notificationTone: "Default",
-    badgeCount: true
+    newLikes: true,
+    superLikes: true,
+    newMatches: true,
+    profileViews: true,
+    verificationUpdates: true,
+    membershipUpdates: true,
+    paymentUpdates: true,
+    spotlightUpdates: true,
+    auraUpdates: true,
+    securityAlerts: true
   });
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (profile?.notificationSettings) {
       setSettings(profile.notificationSettings);
     }
+    setIsLoading(false);
   }, [profile]);
 
-  const toggleSetting = async (id: keyof UserNotificationSettings) => {
-    const newValue = !settings[id];
-    setSettings(prev => ({ ...prev, [id]: newValue }));
-
-    // Trigger FCM registration if pushNotifications is enabled
-    if (id === 'pushNotifications' && newValue) {
-      await registerPush();
-    }
-  };
-
-  const handleSave = async () => {
+  const updatePreference = async (key: keyof UserNotificationSettings, value: boolean) => {
     if (!db || !authUser) return;
-    setIsSaving(true);
+
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+
     try {
+      if (key === 'pushEnabled') {
+        if (value) await registerPush();
+        else await unregisterPush();
+      }
+
       await updateDoc(doc(db, "users", authUser.uid), {
-        notificationSettings: settings
+        notificationSettings: {
+          ...newSettings,
+          updatedAt: serverTimestamp()
+        }
       });
-      toast({ title: "Settings Saved", description: "Your notification preferences have been synchronized." });
-      router.back();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save settings." });
-    } finally {
-      setIsSaving(false);
+    } catch (err: any) {
+      // Rollback UI
+      setSettings(settings);
+      toast({ 
+        variant: "destructive", 
+        title: "Sync Fault", 
+        description: "Failed to synchronize preferences with the messaging node." 
+      });
     }
   };
+
+  const isPermissionDenied = permission === 'denied';
 
   return (
-    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors aura-doodle min-h-screen">
-      <header className="px-6 h-20 flex items-center justify-between border-b border-[#2A2A2A] bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-[#8F8F8F] hover:text-white transition-colors p-2 -ml-2">
-            <ArrowLeft size={22} />
-          </button>
-          <h1 className="text-xl font-semibold text-white">Notification Settings</h1>
-        </div>
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving || isRegistering}
-          className="h-10 px-4 rounded-xl fuchsia-gradient text-white font-bold text-xs"
-        >
-          {isSaving ? <Loader2 size={16} className="animate-spin" /> : <div className="flex items-center gap-2"><Save size={16} /> Save</div>}
-        </Button>
+    <div className="flex-1 flex flex-col bg-background pb-12 transition-colors min-h-screen-safe overflow-x-hidden">
+      <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-30 safe-top">
+        <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
+          <ArrowLeft size={22} />
+        </button>
+        <h1 className="text-xl font-semibold text-white">Notifications</h1>
       </header>
 
       <div className="p-6 space-y-10">
-        {SETTING_GROUPS.map((group, gIdx) => (
-          <motion.section 
-            key={`notif-group-${group.title}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: gIdx * 0.1 }}
-            className="space-y-4"
-          >
-            <h2 className="text-[10px] font-bold text-[#8F8F8F] uppercase tracking-[0.2em] px-2">{group.title}</h2>
-            <div className="space-y-2">
-              {group.items.map((item) => (
-                <div 
-                  key={`notif-item-${item.id}`}
-                  className="aura-card aura-card-read p-5 flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#151515] border border-[#2A2A2A] flex items-center justify-center text-[#8F8F8F] group-hover:text-[#C93CFF] transition-colors">
-                      <item.icon size={18} />
-                    </div>
-                    <span className="text-sm font-medium text-white">{item.label}</span>
-                  </div>
-                  <Switch 
-                    disabled={isRegistering && item.id === 'pushNotifications'}
-                    checked={settings[item.id as keyof UserNotificationSettings] as boolean} 
-                    onCheckedChange={() => toggleSetting(item.id as keyof UserNotificationSettings)}
-                    className="data-[state=checked]:bg-[#C93CFF]"
-                  />
-                </div>
-              ))}
+        <section className="space-y-6">
+          <div className="p-6 rounded-[32px] bg-white/5 border border-white/10 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="font-bold text-lg">Push Notifications</h3>
+                <p className="text-xs text-white/40">Control push notifications from Aura.</p>
+              </div>
+              <Switch 
+                disabled={isLoading || isRegistering}
+                checked={settings.pushEnabled} 
+                onCheckedChange={(v) => updatePreference('pushEnabled', v)}
+                className="data-[state=checked]:bg-primary"
+              />
             </div>
-          </motion.section>
-        ))}
+            
+            {isPermissionDenied && settings.pushEnabled && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 flex gap-3 items-start"
+              >
+                <AlertCircle className="text-destructive shrink-0 mt-0.5" size={16} />
+                <p className="text-[10px] text-destructive/80 font-medium leading-relaxed">
+                  Notifications are blocked on this device. Enable notification permission in your browser settings to receive real-time alerts.
+                </p>
+              </motion.div>
+            )}
+
+            {isRegistering && (
+              <div className="flex items-center gap-2 text-primary">
+                 <Loader2 className="animate-spin" size={14} />
+                 <span className="text-[10px] font-bold uppercase tracking-widest">Synchronizing messaging node...</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="px-2">
+            <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Alert Categories</h2>
+          </div>
+
+          <div className={cn(
+            "space-y-2 transition-all duration-500",
+            !settings.pushEnabled && "opacity-40 grayscale pointer-events-none"
+          )}>
+            {NOTIF_CATEGORIES.map((cat, idx) => (
+              <motion.div 
+                key={cat.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.03 }}
+                className="p-5 rounded-[28px] bg-white/5 border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={cn("w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center transition-colors", cat.color)}>
+                    <cat.icon size={18} />
+                  </div>
+                  <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">{cat.label}</span>
+                </div>
+                <Switch 
+                  disabled={!settings.pushEnabled || isLoading}
+                  checked={settings[cat.id as keyof UserNotificationSettings] as boolean} 
+                  onCheckedChange={(v) => updatePreference(cat.id as keyof UserNotificationSettings, v)}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
         <div className="pt-8 text-center pb-12">
-          <p className="text-[10px] text-[#8F8F8F] uppercase tracking-[0.4em] font-bold opacity-40">Aura Activity Guard v1.0.4</p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">
+            Aura Activity Guard v2.5.0
+          </div>
         </div>
       </div>
     </div>
