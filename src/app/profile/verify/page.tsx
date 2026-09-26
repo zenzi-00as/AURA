@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -14,6 +13,8 @@ import { ref, uploadBytes } from "firebase/storage";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { cn } from "@/lib/utils";
 import { triggerAiVerification } from "@/actions/verification";
+import { PrivacyWatermark } from "@/components/aura/PrivacyWatermark";
+import { PrivacyObscure } from "@/components/aura/PrivacyObscure";
 
 export default function VerifyProfilePage() {
   const router = useRouter();
@@ -112,118 +113,130 @@ export default function VerifyProfilePage() {
 
   return (
     <AuthGuard>
-      <div className="flex-1 flex flex-col bg-background min-h-screen pb-12 transition-colors">
-        <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20">
-          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
-            <ArrowLeft size={22} />
-          </button>
-          <h1 className="text-xl font-semibold text-foreground">Verify Your Profile</h1>
-        </header>
+      <PrivacyObscure>
+        <div 
+          className="flex-1 flex flex-col bg-background min-h-screen pb-12 transition-colors"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20">
+            <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
+              <ArrowLeft size={22} />
+            </button>
+            <h1 className="text-xl font-semibold text-foreground">Verify Your Profile</h1>
+          </header>
 
-        <div className="p-8 space-y-10">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
-              <Shield size={32} className="text-white" />
+          <div className="p-8 space-y-10">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 rounded-[24px] premium-gradient flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
+                <Shield size={32} className="text-white" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Identity Guard</h2>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
+                  Upload a clear photo so our AI can verify that your profile belongs to a real person.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Identity Guard</h2>
-              <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto">
-                Upload a clear photo so our AI can verify that your profile belongs to a real person.
+
+            <div className="glass-card p-6 rounded-[40px] border border-white/10 space-y-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
+              
+              <div className="relative aspect-[3/4] w-full max-w-[240px] mx-auto rounded-3xl overflow-hidden glass border-2 border-white/10 shadow-2xl">
+                {previewUrl ? (
+                  <div className="relative w-full h-full group">
+                    <PrivacyWatermark />
+                    <img 
+                      src={previewUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover pointer-events-none" 
+                      onDragStart={(e) => e.preventDefault()}
+                      style={{ WebkitTouchCallout: 'none' }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                      <button 
+                        onClick={() => fileInputRef.current?.click()} 
+                        className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"
+                      >
+                        <RefreshCcw size={20} />
+                      </button>
+                      <button 
+                        onClick={() => { setImageFile(null); setPreviewPreviewUrl(null); }} 
+                        className="w-12 h-12 rounded-full bg-rose-500/20 backdrop-blur-md flex items-center justify-center text-rose-500"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
+                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                      <Upload size={28} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.15em]">Select Document</p>
+                      <p className="text-[9px] text-white/20 font-light italic">Supports JPG, PNG, WEBP</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                {!previewUrl ? (
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={authLoading}
+                    className="w-full h-14 rounded-2xl premium-gradient text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/20"
+                  >
+                    <Upload size={18} className="mr-3" />
+                    {authLoading ? "Checking account..." : "Select Verification Photo"}
+                  </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center gap-2 text-[#00FF88] bg-[#00FF88]/5 py-3 rounded-xl border border-[#00FF88]/10">
+                      <ShieldCheck size={18} />
+                      <span className="text-xs font-bold uppercase tracking-widest">Image Ready for Submission</span>
+                    </div>
+                    <Button 
+                      onClick={handleSubmit}
+                      disabled={isUploading || authLoading}
+                      className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-center gap-3"
+                    >
+                      {isUploading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                          <span>Synchronizing AI...</span>
+                        </div>
+                      ) : (
+                        <>
+                          Submit Verification
+                          <Shield size={20} />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-muted/30 p-6 rounded-[32px] border border-white/5 space-y-4">
+              <div className="flex items-center gap-3 text-white/60">
+                <Info size={18} />
+                <h4 className="text-[10px] font-bold uppercase tracking-widest">Privacy Guarantee</h4>
+              </div>
+              <p className="text-xs text-white/40 font-light leading-relaxed">
+                Your verification image is encrypted and stored in a private vault. It will never be shown on your profile or shared with other members. Our AI Guard only uses it for biometric alignment.
               </p>
             </div>
           </div>
-
-          <div className="glass-card p-6 rounded-[40px] border border-white/10 space-y-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
-            
-            <div className="relative aspect-[3/4] w-full max-w-[240px] mx-auto rounded-3xl overflow-hidden glass border-2 border-white/10 shadow-2xl">
-              {previewUrl ? (
-                <div className="relative w-full h-full group">
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                    <button 
-                      onClick={() => fileInputRef.current?.click()} 
-                      className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"
-                    >
-                      <RefreshCcw size={20} />
-                    </button>
-                    <button 
-                      onClick={() => { setImageFile(null); setPreviewPreviewUrl(null); }} 
-                      className="w-12 h-12 rounded-full bg-rose-500/20 backdrop-blur-md flex items-center justify-center text-rose-500"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    <Upload size={28} />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.15em]">Select Document</p>
-                    <p className="text-[9px] text-white/20 font-light italic">Supports JPG, PNG, WEBP</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                accept="image/*" 
-                className="hidden" 
-              />
-              {!previewUrl ? (
-                <Button 
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={authLoading}
-                  className="w-full h-14 rounded-2xl premium-gradient text-white font-bold text-sm tracking-widest uppercase shadow-xl shadow-primary/20"
-                >
-                  <Upload size={18} className="mr-3" />
-                  {authLoading ? "Checking account..." : "Select Verification Photo"}
-                </Button>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-2 text-[#00FF88] bg-[#00FF88]/5 py-3 rounded-xl border border-[#00FF88]/10">
-                    <ShieldCheck size={18} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Image Ready for Submission</span>
-                  </div>
-                  <Button 
-                    onClick={handleSubmit}
-                    disabled={isUploading || authLoading}
-                    className="w-full h-16 rounded-3xl premium-gradient text-white font-bold text-lg neon-glow flex items-center justify-center gap-3"
-                  >
-                    {isUploading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-                        <span>Synchronizing AI...</span>
-                      </div>
-                    ) : (
-                      <>
-                        Submit Verification
-                        <Shield size={20} />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-muted/30 p-6 rounded-[32px] border border-white/5 space-y-4">
-            <div className="flex items-center gap-3 text-white/60">
-              <Info size={18} />
-              <h4 className="text-[10px] font-bold uppercase tracking-widest">Privacy Guarantee</h4>
-            </div>
-            <p className="text-xs text-white/40 font-light leading-relaxed">
-              Your verification image is encrypted and stored in a private vault. It will never be shown on your profile or shared with other members. Our AI Guard only uses it for biometric alignment.
-            </p>
-          </div>
         </div>
-      </div>
+      </PrivacyObscure>
     </AuthGuard>
   );
 }

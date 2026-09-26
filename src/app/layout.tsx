@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { PrivacyProvider } from "@/context/PrivacyContext";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { AuthProvider } from "@/firebase/auth-context";
 import { DemoIndicator } from "@/components/aura/DemoIndicator";
@@ -47,10 +48,12 @@ export default function RootLayout({
             <ThemeProvider>
               <LanguageProvider>
                 <CurrencyProvider>
-                  <main className="min-h-screen-safe flex-1 flex flex-col w-full relative transition-opacity duration-300">
-                    {children}
-                  </main>
-                  <Toaster />
+                  <PrivacyProvider>
+                    <main className="min-h-screen-safe flex-1 flex flex-col w-full relative transition-opacity duration-300">
+                      {children}
+                    </main>
+                    <Toaster />
+                  </PrivacyProvider>
                 </CurrencyProvider>
               </LanguageProvider>
             </ThemeProvider>

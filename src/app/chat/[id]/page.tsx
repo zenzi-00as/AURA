@@ -15,7 +15,8 @@ import {
   UserX,
   Flag,
   ShieldAlert,
-  X
+  X,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PrivacyObscure } from "@/components/aura/PrivacyObscure";
+import { PrivacyWatermark } from "@/components/aura/PrivacyWatermark";
 
 const REPORT_CATEGORIES = [
   "Harassment or bullying",
@@ -186,149 +189,164 @@ export default function ChatRoomPage() {
 
   return (
     <AuthGuard>
-      <div className="flex flex-col h-screen-safe bg-background overflow-hidden">
-        <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-border bg-background/40 backdrop-blur-2xl z-30 safe-top">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground p-2 -ml-2"><ArrowLeft size={22} /></button>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm text-foreground">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
-                {(isSystemChat || otherUser?.verificationStatus === 'Verified') && <BadgeCheck size={16} className="text-primary" />}
-              </div>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                {isSystemChat ? "Official System" : (otherUser?.isOnline && !otherUser.incognitoMode && !isBlocked ? "Active" : "Offline")}
-              </span>
-            </div>
-          </div>
-          {!isSystemChat && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><MoreVertical size={18} /></button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
-                {!isBlockedByMe && (
-                  <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500">
-                    <UserX size={16} /> Block User
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2">
-                  <Flag size={16} /> Report User
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 flex flex-col z-10">
-          {isBlocked && (
-            <div className="mx-auto bg-rose-500/10 border border-rose-500/20 px-4 py-2 rounded-full flex items-center gap-2">
-               <ShieldAlert size={14} className="text-rose-500" />
-               <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">
-                 {isBlockedByMe ? "You have blocked this user" : "Interaction restricted"}
-               </span>
-            </div>
-          )}
-          {messages?.map((msg) => {
-            const isMe = msg.senderId === authUser?.uid;
-            const views = msg.viewCount?.[authUser?.uid || ''] || 0;
-            const isExpired = !isMe && msg.isMedia && ((msg.viewMode === 'one' && views >= 1) || (msg.viewMode === 'two' && views >= 2));
-
-            return (
-              <motion.div key={msg.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
-                  <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden", isMe ? "premium-gradient text-white rounded-br-none" : "bg-muted text-foreground rounded-bl-none border border-border")}>
-                    {msg.isMedia ? (
-                      <div onClick={() => !isExpired && handleMediaClick(msg)} className={cn("relative rounded-2xl overflow-hidden cursor-pointer", (isExpired || !msg.mediaUrl) && "opacity-40 grayscale")}>
-                         {msg.mediaUrl ? (
-                           <img src={msg.mediaUrl} alt="" className={cn("max-w-full max-h-[300px] object-cover", isExpired && "blur-2xl")} />
-                         ) : (
-                           <div className="w-[200px] h-[150px] bg-background/40 flex flex-col items-center justify-center gap-2">
-                             <Lock size={24} className="text-muted-foreground/20" />
-                             <span className="text-[10px] text-muted-foreground/20 font-bold uppercase">Expired Packet</span>
-                           </div>
-                         )}
-                         {isExpired && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><Lock size={20} className="text-white/60" /></div>}
-                      </div>
-                    ) : <p className="text-sm leading-relaxed font-light">{msg.text}</p>}
-                  </div>
-                  {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-muted-foreground/20" />}</div>}
+      <PrivacyObscure active={!isSystemChat}>
+        <div 
+          className="flex flex-col h-screen-safe bg-background overflow-hidden"
+          onContextMenu={(e) => !isSystemChat && e.preventDefault()}
+        >
+          <header className="flex-shrink-0 px-6 h-20 flex items-center justify-between border-b border-border bg-background/40 backdrop-blur-2xl z-30 safe-top">
+            <div className="flex items-center gap-3">
+              <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground p-2 -ml-2"><ArrowLeft size={22} /></button>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold text-sm text-foreground">{isSystemChat ? "Aura Team" : (otherUser?.name || "Aura User")}</span>
+                  {(isSystemChat || otherUser?.verificationStatus === 'Verified') && <BadgeCheck size={16} className="text-primary" />}
                 </div>
-              </motion.div>
-            );
-          })}
-          <div ref={scrollRef} className="h-4 flex-shrink-0" />
-        </div>
-
-        {!isSystemChat && (
-          <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-background/60 backdrop-blur-3xl border-t border-border z-20">
-            <div className="flex items-center gap-3 w-full h-14">
-              <Input 
-                value={input} 
-                onChange={(e) => setInput(e.target.value)} 
-                onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} 
-                placeholder={isBlocked ? "Interaction restricted" : "Message..."} 
-                disabled={isBlocked}
-                className="flex-1 h-12 bg-muted border-none rounded-[28px] px-6 text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-20 shadow-none focus:ring-0" 
-              />
-              <button 
-                onClick={handleSendText} 
-                disabled={!input.trim() || isSending || isBlocked} 
-                className="w-12 h-12 rounded-full premium-gradient shrink-0 flex items-center justify-center disabled:opacity-20"
-              >
-                {isSending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
-              </button>
+                <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                  {isSystemChat ? "Official System" : (otherUser?.isOnline && !otherUser.incognitoMode && !isBlocked ? "Active" : "Offline")}
+                </span>
+              </div>
             </div>
+            {!isSystemChat && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground"><MoreVertical size={18} /></button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
+                  {!isBlockedByMe && (
+                    <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500">
+                      <UserX size={16} /> Block User
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2">
+                    <Flag size={16} /> Report User
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </header>
+
+          <div className="flex-1 overflow-y-auto px-4 pt-6 pb-6 space-y-4 flex flex-col z-10 select-none">
+            {isBlocked && (
+              <div className="mx-auto bg-rose-500/10 border border-rose-500/20 px-4 py-2 rounded-full flex items-center gap-2">
+                <ShieldAlert size={14} className="text-rose-500" />
+                <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">
+                  {isBlockedByMe ? "You have blocked this user" : "Interaction restricted"}
+                </span>
+              </div>
+            )}
+            {messages?.map((msg) => {
+              const isMe = msg.senderId === authUser?.uid;
+              const views = msg.viewCount?.[authUser?.uid || ''] || 0;
+              const isExpired = !isMe && msg.isMedia && ((msg.viewMode === 'one' && views >= 1) || (msg.viewMode === 'two' && views >= 2));
+
+              return (
+                <motion.div key={msg.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                  <div className={cn("max-w-[85%] flex flex-col", isMe ? "items-end" : "items-start")}>
+                    <div className={cn("px-4 py-3 rounded-[24px] shadow-lg overflow-hidden relative", isMe ? "premium-gradient text-white rounded-br-none" : "bg-muted text-foreground rounded-bl-none border border-border")}>
+                      {msg.isMedia ? (
+                        <div 
+                          onClick={() => !isExpired && handleMediaClick(msg)} 
+                          onDragStart={(e) => e.preventDefault()}
+                          className={cn("relative rounded-2xl overflow-hidden cursor-pointer", (isExpired || !msg.mediaUrl) && "opacity-40 grayscale")}
+                        >
+                          {msg.isMedia && msg.viewMode !== 'unlimited' && <PrivacyWatermark />}
+                          {msg.mediaUrl ? (
+                            <img 
+                              src={msg.mediaUrl} 
+                              alt="" 
+                              className={cn("max-w-full max-h-[300px] object-cover pointer-events-none", isExpired && "blur-2xl")} 
+                              style={{ WebkitTouchCallout: 'none' }}
+                            />
+                          ) : (
+                            <div className="w-[200px] h-[150px] bg-background/40 flex flex-col items-center justify-center gap-2">
+                              <Lock size={24} className="text-muted-foreground/20" />
+                              <span className="text-[10px] text-muted-foreground/20 font-bold uppercase">Expired Packet</span>
+                            </div>
+                          )}
+                          {isExpired && <div className="absolute inset-0 flex items-center justify-center bg-black/20"><Lock size={20} className="text-white/60" /></div>}
+                        </div>
+                      ) : <p className="text-sm leading-relaxed font-light">{msg.text}</p>}
+                    </div>
+                    {isMe && planConfig.readReceipts && <div className="flex items-center gap-1 mt-1 px-1">{msg.seen ? <CheckCheck size={12} className="text-primary" /> : <Check size={12} className="text-muted-foreground/20" />}</div>}
+                  </div>
+                </motion.div>
+              );
+            })}
+            <div ref={scrollRef} className="h-4 flex-shrink-0" />
           </div>
-        )}
 
-        {/* Moderation Dialogs */}
-        <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
-          <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px]">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Block this user?</AlertDialogTitle>
-              <AlertDialogDescription>
-                They will no longer be able to message you. Existing messages remain private but no new interactions can occur.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white border-none">Block</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-          <DialogContent className="bg-popover border-border text-foreground rounded-[32px] p-8">
-            <DialogHeader>
-              <DialogTitle>Report User</DialogTitle>
-              <DialogDescription>Help us keep Aura safe. Our team will review the reports.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Select value={reportCategory} onValueChange={setReportCategory}>
-                <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12">
-                  <SelectValue placeholder="Select Reason" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-foreground rounded-xl">
-                  {REPORT_CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Textarea 
-                placeholder="Tell us more (optional)" 
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-                className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground"
-              />
+          {!isSystemChat && (
+            <div className="flex-shrink-0 px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-background/60 backdrop-blur-3xl border-t border-border z-20">
+              <div className="flex items-center gap-3 w-full h-14">
+                <Input 
+                  value={input} 
+                  onChange={(e) => setInput(e.target.value)} 
+                  onKeyPress={(e: any) => e.key === 'Enter' && handleSendText()} 
+                  placeholder={isBlocked ? "Interaction restricted" : "Message..."} 
+                  disabled={isBlocked}
+                  className="flex-1 h-12 bg-muted border-none rounded-[28px] px-6 text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-20 shadow-none focus:ring-0" 
+                />
+                <button 
+                  onClick={handleSendText} 
+                  disabled={!input.trim() || isSending || isBlocked} 
+                  className="w-12 h-12 rounded-full premium-gradient shrink-0 flex items-center justify-center disabled:opacity-20"
+                >
+                  {isSending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
+                </button>
+              </div>
             </div>
-            <DialogFooter>
-              <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl text-white">
-                {isReporting ? <Loader2 className="animate-spin" /> : "Submit Report"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          )}
+
+          {/* Moderation Dialogs */}
+          <AlertDialog open={isBlockAlertOpen} onOpenChange={setIsBlockAlertOpen}>
+            <AlertDialogContent className="bg-popover border-border text-foreground rounded-[32px]">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Block this user?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  They will no longer be able to message you. Existing messages remain private but no new interactions can occur.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onBlock} className="bg-rose-500 hover:bg-rose-600 text-white border-none">Block</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+            <DialogContent className="bg-popover border-border text-foreground rounded-[32px] p-8">
+              <DialogHeader>
+                <DialogTitle>Report User</DialogTitle>
+                <DialogDescription>Help us keep Aura safe. Our team will review the reports.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <Select value={reportCategory} onValueChange={setReportCategory}>
+                  <SelectTrigger className="bg-muted border-border text-foreground rounded-xl h-12">
+                    <SelectValue placeholder="Select Reason" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border text-foreground rounded-xl">
+                    {REPORT_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Textarea 
+                  placeholder="Tell us more (optional)" 
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  className="bg-muted border-border rounded-xl min-h-[100px] resize-none text-foreground"
+                />
+              </div>
+              <DialogFooter>
+                <Button onClick={onReport} disabled={!reportCategory || isReporting} className="w-full h-12 premium-gradient font-bold rounded-xl text-white">
+                  {isReporting ? <Loader2 className="animate-spin" /> : "Submit Report"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </PrivacyObscure>
     </AuthGuard>
   );
 }

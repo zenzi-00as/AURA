@@ -19,6 +19,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PrivacyWatermark } from "./PrivacyWatermark";
+import { PrivacyObscure } from "./PrivacyObscure";
 
 interface AuraCardProps {
   user: UserProfile;
@@ -148,30 +150,53 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
         </div>
 
         <SheetContent side="bottom" className="bg-background border-border text-foreground rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
-          <div className="h-full flex flex-col">
-            <header className="px-8 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
-                <div className="flex items-center gap-2">
-                   <SheetTitle className="text-sm font-bold text-foreground">{user.name}, {user.age}</SheetTitle>
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><MoreVertical size={14} /></button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
-                        <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500"><UserX size={16} /> Block User</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2"><Flag size={16} /> Report User</DropdownMenuItem>
-                      </DropdownMenuContent>
-                   </DropdownMenu>
+          <PrivacyObscure>
+            <div 
+              className="h-full flex flex-col"
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <header className="px-8 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl shrink-0">
+                  <div className="flex items-center gap-2">
+                    <SheetTitle className="text-sm font-bold text-foreground">{user.name}, {user.age}</SheetTitle>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><MoreVertical size={14} /></button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover border-border text-foreground rounded-2xl">
+                          <DropdownMenuItem onClick={() => setIsBlockAlertOpen(true)} className="gap-2 text-rose-500 focus:text-rose-500"><UserX size={16} /> Block User</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)} className="gap-2"><Flag size={16} /> Report User</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <button onClick={() => setIsDetailOpen(false)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><X size={20} /></button>
+              </header>
+              <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide select-none">
+                <div 
+                  className="aspect-[3/4] w-full rounded-[40px] overflow-hidden glass-card relative shadow-2xl"
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  {user.photoUrl && !blurPhotos ? (
+                    <>
+                      <PrivacyWatermark />
+                      <img 
+                        src={user.photoUrl} 
+                        alt="" 
+                        className="w-full h-full object-cover pointer-events-none" 
+                        style={{ WebkitTouchCallout: 'none' }}
+                      />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-6">
+                      <Lock size={48} className="text-primary/20" />
+                      <p className="text-sm text-muted-foreground font-light">Join Elite Plus to unlock full identity photos.</p>
+                    </div>
+                  )}
                 </div>
-                <button onClick={() => setIsDetailOpen(false)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><X size={20} /></button>
-            </header>
-            <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
-              <div className="aspect-[3/4] w-full rounded-[40px] overflow-hidden glass-card relative shadow-2xl">
-                {user.photoUrl && !blurPhotos ? <img src={user.photoUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center gap-6"><Lock size={48} className="text-primary/20" /><p className="text-sm text-muted-foreground font-light">Join Elite Plus to unlock full identity photos.</p></div>}
+                <p className="text-lg text-foreground font-light leading-relaxed">{user.bio}</p>
               </div>
-              <p className="text-lg text-foreground font-light leading-relaxed">{user.bio}</p>
+              <div className="p-8 border-t border-border bg-background shrink-0 safe-bottom">{interactionButtons}</div>
             </div>
-            <div className="p-8 border-t border-border bg-background shrink-0 safe-bottom">{interactionButtons}</div>
-          </div>
+          </PrivacyObscure>
         </SheetContent>
       </motion.div>
     </Sheet>

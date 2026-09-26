@@ -99,6 +99,17 @@ export default function PrivacySafetyPage() {
           </p>
         </div>
 
+        {/* Protection Disclaimer */}
+        <div className="p-6 bg-primary/5 border border-primary/10 rounded-[32px] space-y-3">
+          <div className="flex items-center gap-2 text-primary">
+            <Lock size={16} />
+            <h4 className="text-[10px] font-black uppercase tracking-widest">Media Protection Protocol</h4>
+          </div>
+          <p className="text-[10px] text-white/50 leading-relaxed italic">
+            Some devices and browsers may not allow Aura to definitively prevent or detect screenshots or screen recordings. Aura applies the strongest available platform-level protections, including content obscuration and watermarking, to secure your private presence.
+          </p>
+        </div>
+
         {/* Feature Highlights */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
