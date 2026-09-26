@@ -268,6 +268,19 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('general')}</h2>
           </div>
           <div className="space-y-2">
+            <button 
+              onClick={() => router.push('/settings/notifications')}
+              className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <Bell size={18} />
+                </div>
+                <span>{t('notifications')}</span>
+              </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
+
             <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
               <DialogTrigger asChild>
                 <button className="w-full flex items-center justify-between p-6 bg-card rounded-[32px] border border-border hover:bg-muted/50 transition-colors text-foreground font-medium group">
