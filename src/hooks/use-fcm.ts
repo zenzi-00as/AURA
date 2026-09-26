@@ -3,13 +3,14 @@
 /**
  * @fileOverview Aura High-Fidelity FCM Interaction Node.
  * Handles permission staging, token synchronization, and foreground reception.
+ * Refined for service worker registration and VAPID synchronization.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/firebase/auth-context';
 import { useMessaging, useFirestore } from '@/firebase';
-import { getToken, onMessage, Messaging } from 'firebase/messaging';
-import { doc, setDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { getToken, onMessage } from 'firebase/messaging';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function useFcm() {
@@ -46,17 +47,31 @@ export function useFcm() {
 
     setIsRegistering(true);
     try {
+      // 1. Request Browser Permission
       const status = await Notification.requestPermission();
       setPermission(status);
 
       if (status === 'granted') {
+        // 2. Explicitly register the service worker for background handling
+        // Standard location is /firebase-messaging-sw.js
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        
+        // 3. Synchronize FCM Token with VAPID Key
+        const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+        
+        if (!vapidKey && process.env.NODE_ENV === 'development') {
+          console.warn("[AURA FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing from environment.");
+        }
+
         const token = await getToken(messaging, {
-          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+          vapidKey: vapidKey,
+          serviceWorkerRegistration: registration
         });
 
         if (token) {
-          console.log('[AURA FCM] Token synchronized');
-          // Store token in user's device collection
+          console.log('[AURA FCM] Token synchronized:', token);
+          
+          // 4. Store token in user's secure subcollection
           const deviceRef = doc(db, 'users', user.uid, 'notificationDevices', token);
           await setDoc(deviceRef, {
             token,
@@ -64,27 +79,35 @@ export function useFcm() {
             lastUpdated: serverTimestamp(),
             userAgent: navigator.userAgent
           });
+          
+          toast({
+            title: "Aura Alerts Active",
+            description: "Your device is now synchronized with our messaging node."
+          });
         }
+      } else if (status === 'denied') {
+        toast({
+          variant: "destructive",
+          title: "Permission Denied",
+          description: "Enable notifications in your browser settings to receive real-time alerts."
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[AURA FCM] Registration fault', error);
+      toast({
+        variant: "destructive",
+        title: "Synchronization Fault",
+        description: "Failed to establish a connection with the messaging node."
+      });
     } finally {
       setIsRegistering(false);
     }
-  }, [messaging, db, user, isRegistering]);
+  }, [messaging, db, user, isRegistering, toast]);
 
   const unregisterPush = useCallback(async () => {
-    if (!db || !user) return;
-    
-    try {
-      // For simplicity, we'd need the token to delete specifically.
-      // In a real staging environment, we might query tokens or keep the current one in state.
-      // We'll leave the token in Firestore for now as "disabled" or handle it if we have it.
-      console.log('[AURA FCM] Push disassociated from UI toggle');
-    } catch (error) {
-      console.error('[AURA FCM] Unregistration fault', error);
-    }
-  }, [db, user]);
+    // Logical unregistration can be handled by deleting the token from Firestore
+    console.log('[AURA FCM] Push disassociated from UI toggle');
+  }, []);
 
   return {
     permission,
