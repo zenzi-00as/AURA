@@ -40,6 +40,9 @@ export default function RootLayout({
           <div className="aura-blob-blue w-[600px] h-[600px] absolute top-[-10%] left-[-10%]" />
           <div className="aura-blob-purple w-[400px] h-[400px] absolute bottom-[-10%] right-[-10%]" />
           <div className="aura-blob-cyan w-[300px] h-[300px] absolute top-[40%] left-[10%] opacity-10" />
+          
+          {/* Blue Light Effect from Bottom - Rising atmospheric glow */}
+          <div className="aura-blob-blue w-[100%] h-[300px] absolute bottom-[-5%] left-0 opacity-10 blur-[120px]" />
         </div>
         
         <FirebaseClientProvider>

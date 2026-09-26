@@ -78,12 +78,13 @@
 
     /* Light Theme Effects - Clear "Black Texture", Vibrant Blue Light */
     --noise-opacity: 0.012;
-    --blob-opacity-blue: 0.1;
-    --blob-opacity-purple: 0.05;
-    --blob-opacity-cyan: 0.04;
+    --blob-opacity-blue: 0.12;
+    --blob-opacity-purple: 0.06;
+    --blob-opacity-cyan: 0.05;
     --hero-radial-glow: rgba(0, 87, 255, 0.15);
     --hero-radial-glow-outer: rgba(0, 87, 255, 0.05);
-    --premium-gradient: linear-gradient(110deg, #0057FF 0%, #1D4ED8 35%, #1E40AF 70%, #1E3A8A 100%);
+    /* Replaced dark stops with lighter energetic blues for the premium effect in Light Mode */
+    --premium-gradient: linear-gradient(110deg, #0057FF 0%, #3B82F6 35%, #60A5FA 70%, #93C5FD 100%);
     --blue-gradient: linear-gradient(100deg, #3B82F6, #2563EB, #1D4ED8);
     --fuchsia-gradient: linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #2563EB 100%);
   }

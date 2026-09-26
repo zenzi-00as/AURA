@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -352,9 +351,11 @@ function ProfileContent() {
                   whileTap={{ scale: 0.98 }} 
                   className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
                 >
-                  {/* Atmospheric Light Effect for Light Mode */}
+                  {/* Atmospheric Light Effect for Light Mode - Blue light from bottom-left corner */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -ml-12 -mb-12 block dark:hidden" />
+                  
+                  {/* Blue light effect from bottom center of the card */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none block dark:hidden" />
 
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
@@ -408,9 +409,11 @@ function ProfileContent() {
                   whileTap={{ scale: 0.98 }} 
                   className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
                 >
-                  {/* Atmospheric Light Effect for Light Mode */}
+                  {/* Atmospheric Light Effect for Light Mode - Blue light from top-right corner */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -ml-12 -mb-12 block dark:hidden" />
+                  
+                  {/* Blue light effect from bottom center of the card */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none block dark:hidden" />
 
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
