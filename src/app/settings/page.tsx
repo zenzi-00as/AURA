@@ -99,7 +99,7 @@ export default function SettingsPage() {
   const { data: blockedUsers, loading: blockedLoading } = useCollection<BlockedUser>(blockedQuery);
 
   const handleToggle = async (key: string, value: boolean) => {
-    if (!db || !authUser) return;
+    if (!db || !authUser || !profile) return;
 
     // INCOGNITO ELITE PLUS GUARD
     if (key === 'incognito' && !planConfig.incognito) {
@@ -133,7 +133,7 @@ export default function SettingsPage() {
       setSettings(prev => ({ ...prev, [key]: value }));
       toast({ title: "Preference Synchronized" });
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Sync Fault", description: e.message });
+      toast({ variant: "destructive", title: "Sync Fault", description: "Failed to synchronize setting. Please try again." });
     }
   };
 

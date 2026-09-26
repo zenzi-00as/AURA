@@ -161,19 +161,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
 
-        // Online Status Lifecycle Handling
+        // Online Status Lifecycle Handling - GUARDED by profile existence
         const updatePresence = (online: boolean) => {
-          updateDoc(userRef, { 
-            isOnline: online, 
-            lastActive: serverTimestamp() 
-          }).catch(() => {});
+          // Only attempt update if the document is confirmed to exist via the profile state
+          if (profile) {
+            updateDoc(userRef, { 
+              isOnline: online, 
+              lastActive: serverTimestamp() 
+            }).catch(() => {});
+          }
         };
-
-        updatePresence(true);
 
         const handleVisibilityChange = () => {
           updatePresence(document.visibilityState === 'visible');
         };
+
+        // Initialize presence if profile is already loaded
+        if (profile) updatePresence(true);
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('focus', () => updatePresence(true));
@@ -195,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth();
       if (unsubscribeProfile) unsubscribeProfile();
     };
-  }, []);
+  }, [profile?.uid]); // Add dependency to ensure presence logic re-runs when profile is synchronized
 
   const value = {
     user,

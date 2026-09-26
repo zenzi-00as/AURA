@@ -1,4 +1,3 @@
-
 'use client';
 
 /**
@@ -10,11 +9,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/firebase/auth-context';
 import { useMessaging, useFirestore } from '@/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
-import { doc, setDoc, deleteDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export function useFcm() {
-  const { user } = useAuthContext();
+  const { user, profile } = useAuthContext();
   const messaging = useMessaging();
   const db = useFirestore();
   const { toast } = useToast();
@@ -42,7 +41,8 @@ export function useFcm() {
   }, [messaging, toast]);
 
   const registerPush = useCallback(async () => {
-    if (!messaging || !db || !user || isRegistering) return;
+    // SECURITY: Ensure both Auth and Profile exist before writing tokens
+    if (!messaging || !db || !user || !profile || isRegistering) return;
 
     setIsRegistering(true);
     try {
@@ -73,15 +73,11 @@ export function useFcm() {
       }
     } catch (error: any) {
       console.error('[AURA FCM] Registration fault', error);
-      toast({
-        variant: "destructive",
-        title: "Synchronization Fault",
-        description: "Failed to establish a connection with the messaging node."
-      });
+      // Fail silently unless the user explicitly triggered this
     } finally {
       setIsRegistering(false);
     }
-  }, [messaging, db, user, isRegistering, toast]);
+  }, [messaging, db, user, profile, isRegistering]);
 
   const unregisterPush = useCallback(async () => {
     if (!messaging || !db || !user) return;
@@ -96,7 +92,7 @@ export function useFcm() {
         await updateDoc(deviceRef, {
           enabled: false,
           lastUpdated: serverTimestamp()
-        });
+        }).catch(() => {});
       }
     } catch (err) {
       console.warn("[AURA FCM] Logical unregistration warning", err);
