@@ -159,14 +159,14 @@ export default function SuperFundPage() {
           <Sparkles size={48} className="text-white" />
         </motion.div>
         <div className="space-y-4 mb-10">
-          <h2 className="text-3xl font-bold tracking-tight">Support Materialized!</h2>
-          <p className="text-white/60 font-light leading-relaxed max-w-[280px] mx-auto">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Support Materialized!</h2>
+          <p className="text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto italic">
             Your {formatPrice(amountToPay)} Super Fund has been successfully synchronized with Aura's development core.
           </p>
         </div>
         <div className="w-full space-y-3">
-          <Button onClick={() => router.push('/dashboard')} className="w-full h-16 rounded-[28px] premium-gradient font-bold text-lg">Return to Aura</Button>
-          <Button variant="ghost" onClick={() => setShowSuccess(false)} className="w-full h-12 text-[10px] font-bold uppercase tracking-widest text-white/40">View Leaderboard</Button>
+          <Button onClick={() => router.push('/dashboard')} className="w-full h-16 rounded-[28px] premium-gradient font-bold text-lg text-white">Return to Aura</Button>
+          <Button variant="ghost" onClick={() => setShowSuccess(false)} className="w-full h-12 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">View Leaderboard</Button>
         </div>
       </div>
     );
@@ -175,11 +175,11 @@ export default function SuperFundPage() {
   return (
     <AuthGuard>
       <div className="flex-1 flex flex-col bg-background pb-32 transition-colors min-h-screen-safe">
-        <header className="px-6 h-20 flex items-center gap-4 border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
-          <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors p-2 -ml-2">
+        <header className="px-6 h-20 flex items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-20 safe-top">
+          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
             <ArrowLeft size={22} />
           </button>
-          <h1 className="text-xl font-bold text-white">Aura Community</h1>
+          <h1 className="text-xl font-bold text-foreground">Aura Community</h1>
         </header>
 
         <div className="p-8 space-y-12">
@@ -192,8 +192,8 @@ export default function SuperFundPage() {
             >
               <Sparkles size={32} className="text-white" />
             </motion.div>
-            <h2 className="text-4xl font-bold tracking-tighter text-white">Super Fund ✨</h2>
-            <p className="text-sm text-white/40 font-light leading-relaxed max-w-[280px] mx-auto italic">
+            <h2 className="text-4xl font-bold tracking-tighter text-foreground">Super Fund ✨</h2>
+            <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto italic">
               Voluntary contributions help us build, maintain, and evolve the connection experience for the entire community.
             </p>
           </section>
@@ -203,7 +203,7 @@ export default function SuperFundPage() {
             <div className="space-y-4">
                <div className="flex justify-between items-center px-1">
                   <label className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Select Support Level</label>
-                  {amountToPay > 0 && <span className="text-sm font-bold text-white">{formatPrice(amountToPay)}</span>}
+                  {amountToPay > 0 && <span className="text-sm font-bold text-foreground">{formatPrice(amountToPay)}</span>}
                </div>
                <div className="grid grid-cols-4 gap-2">
                   {QUICK_AMOUNTS.map((amt) => (
@@ -213,29 +213,29 @@ export default function SuperFundPage() {
                       className={cn(
                         "h-12 rounded-xl text-xs font-bold transition-all border",
                         selectedAmount === amt 
-                          ? "premium-gradient border-2 border-primary text-white neon-glow" 
-                          : "bg-white/5 border-white/5 text-white/60"
+                          ? "premium-gradient border-transparent text-white neon-glow" 
+                          : "bg-muted border-border text-muted-foreground hover:bg-muted/80"
                       )}
                     >
                       {currency.symbol}{amt}
                     </button>
                   ))}
                </div>
-               <div className="relative glass rounded-2xl p-0.5 mt-2 focus-within:neon-glow transition-all">
+               <div className="relative glass rounded-2xl p-0.5 mt-2 focus-within:neon-glow transition-all bg-muted/50 border border-border">
                   <Input 
                     placeholder="Custom Amount (Min ₹10)" 
                     type="number"
                     value={customAmount}
                     onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null); }}
-                    className="h-14 bg-transparent border-none text-center text-white font-bold placeholder:text-white/20 focus:ring-0 shadow-none"
+                    className="h-14 bg-transparent border-none text-center text-foreground font-bold placeholder:text-muted-foreground/30 focus:ring-0 shadow-none"
                   />
                </div>
             </div>
 
-            <div className="flex items-center justify-between p-6 rounded-[32px] bg-white/5 border border-white/5">
+            <div className="flex items-center justify-between p-6 rounded-[32px] bg-card border border-border">
                <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-white">Support Anonymously</h4>
-                  <p className="text-[10px] text-white/40">Hide your identity on the leaderboard.</p>
+                  <h4 className="text-sm font-bold text-foreground">Support Anonymously</h4>
+                  <p className="text-[10px] text-muted-foreground">Hide your identity on the leaderboard.</p>
                </div>
                <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} className="data-[state=checked]:bg-primary" />
             </div>
@@ -254,14 +254,14 @@ export default function SuperFundPage() {
              <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                    <Trophy size={18} className="text-primary" />
-                   <h3 className="text-xs font-bold text-white uppercase tracking-widest">Global Supporters</h3>
+                   <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">Global Supporters</h3>
                 </div>
-                <span className="text-[8px] font-black text-white/20 uppercase tracking-tighter">ALL TIME</span>
+                <span className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-tighter">ALL TIME</span>
              </div>
 
              <div className="space-y-3">
                 {loadingLeaderboard ? (
-                  Array(3).fill(0).map((_, i) => <div key={`skel-${i}`} className="h-16 w-full rounded-2xl bg-white/5 animate-pulse" />)
+                  Array(3).fill(0).map((_, i) => <div key={`skel-${i}`} className="h-16 w-full rounded-2xl bg-muted animate-pulse" />)
                 ) : leaderboard.length > 0 ? (
                   leaderboard.map((fund, idx) => {
                     const isTop3 = idx < 3;
@@ -279,21 +279,21 @@ export default function SuperFundPage() {
                         transition={{ delay: idx * 0.05 }}
                         className={cn(
                           "p-4 rounded-[24px] border flex items-center justify-between transition-all",
-                          isTop3 ? "bg-white/10 border-white/10 shadow-lg" : "bg-white/5 border-white/5"
+                          isTop3 ? "bg-card border-primary/20 shadow-lg" : "bg-card/50 border-border"
                         )}
                       >
                         <div className="flex items-center gap-4">
                            <div className={cn(
                               "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-white shadow-lg",
-                              isTop3 ? `bg-gradient-to-br ${rankColors[idx]}` : "bg-white/5"
+                              isTop3 ? `bg-gradient-to-br ${rankColors[idx]}` : "bg-muted"
                            )}>
                               {idx + 1}
                            </div>
                            <div className="space-y-0.5">
-                              <h4 className={cn("text-sm font-bold", isTop3 ? "text-white" : "text-white/60")}>
+                              <h4 className={cn("text-sm font-bold", isTop3 ? "text-foreground" : "text-foreground/80")}>
                                  {fund.isAnonymous ? "Anonymous Supporter" : fund.displayName}
                               </h4>
-                              <p className="text-[9px] text-white/30 uppercase tracking-widest">verified aura supporter</p>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest">verified aura supporter</p>
                            </div>
                         </div>
                         <div className="text-right">
@@ -304,8 +304,8 @@ export default function SuperFundPage() {
                   })
                 ) : (
                   <div className="py-12 text-center space-y-3">
-                     <Sparkles size={40} className="text-white/10 mx-auto" />
-                     <p className="text-sm text-white/30 italic">Be the first to support Aura.</p>
+                     <Sparkles size={40} className="text-muted-foreground/10 mx-auto" />
+                     <p className="text-sm text-muted-foreground/30 italic">Be the first to support Aura.</p>
                   </div>
                 )}
              </div>
@@ -315,8 +315,8 @@ export default function SuperFundPage() {
           <section className="space-y-8 pt-8">
             <div className="text-center space-y-2">
                <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Community Horizon</h3>
-               <h2 className="text-2xl font-bold text-white">Coming Soon...</h2>
-               <p className="text-xs text-white/40 font-light max-w-[240px] mx-auto">High-fidelity features currently being materialized for the Aura Collective.</p>
+               <h2 className="text-2xl font-bold text-foreground">Coming Soon...</h2>
+               <p className="text-xs text-muted-foreground font-light max-w-[240px] mx-auto">High-fidelity features currently being materialized for the Aura Collective.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,17 +327,17 @@ export default function SuperFundPage() {
                    whileInView={{ opacity: 1, x: 0 }}
                    viewport={{ once: true }}
                    transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
-                   className="glass-card p-6 rounded-[32px] border border-white/5 space-y-6 relative overflow-hidden group"
+                   className="glass-card p-6 rounded-[32px] border border-border space-y-6 relative overflow-hidden group bg-card"
                  >
                     <div className="flex justify-between items-start">
                        <feature.icon className="group-hover:scale-110 transition-transform duration-500" />
-                       <span className="text-[7px] font-black text-white/30 uppercase tracking-widest border border-white/10 px-2 py-1 rounded-full group-hover:border-primary/40 group-hover:text-primary transition-colors">
+                       <span className="text-[7px] font-black text-muted-foreground/30 uppercase tracking-widest border border-border px-2 py-1 rounded-full group-hover:border-primary/40 group-hover:text-primary transition-colors">
                           {feature.badge}
                        </span>
                     </div>
                     <div className="space-y-2">
-                       <h4 className="text-base font-bold text-white">{feature.title}</h4>
-                       <p className="text-xs text-white/40 leading-relaxed font-light">{feature.desc}</p>
+                       <h4 className="text-base font-bold text-foreground">{feature.title}</h4>
+                       <p className="text-xs text-muted-foreground leading-relaxed font-light">{feature.desc}</p>
                     </div>
                     <div className="pt-2 flex items-center gap-2 text-[8px] font-black text-primary uppercase tracking-widest">
                        <Zap size={10} className="animate-pulse" />
@@ -358,18 +358,18 @@ export default function SuperFundPage() {
                       <HandHeart size={24} />
                    </div>
                    <div className="space-y-0.5">
-                      <h3 className="text-lg font-bold text-white">Community Impact</h3>
-                      <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Global Commitment</p>
+                      <h3 className="text-lg font-bold text-foreground">Community Impact</h3>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Global Commitment</p>
                    </div>
                 </div>
 
                 <div className="space-y-4 pt-4">
-                   <div className="p-6 rounded-[28px] bg-white/5 border border-white/5 space-y-3">
+                   <div className="p-6 rounded-[28px] bg-background/50 border border-border space-y-3 backdrop-blur-sm">
                       <div className="flex justify-between items-center">
                          <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Donation Node</span>
-                         <span className="text-xl font-black text-white">20%</span>
+                         <span className="text-xl font-black text-foreground">20%</span>
                       </div>
-                      <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                      <p className="text-[11px] text-muted-foreground leading-relaxed font-light">
                         In line with our mission of community empowerment, 20% of eligible platform funds are dedicated to supporting various charitable causes. This commitment activates definitively once our primary developmental milestones are achieved.
                       </p>
                    </div>
@@ -379,8 +379,8 @@ export default function SuperFundPage() {
                          <ShieldCheck size={14} />
                          <span className="text-[8px] font-black uppercase tracking-widest">Transparent Records</span>
                       </div>
-                      <div className="w-1 h-1 rounded-full bg-white/20" />
-                      <div className="flex items-center gap-2 text-white/30">
+                      <div className="w-1 h-1 rounded-full bg-muted" />
+                      <div className="flex items-center gap-2 text-muted-foreground/30">
                          <EyeOff size={14} />
                          <span className="text-[8px] font-black uppercase tracking-widest">Pending Activation</span>
                       </div>
@@ -390,13 +390,13 @@ export default function SuperFundPage() {
           </section>
 
           {/* How it Works Section */}
-          <section className="glass-card p-8 rounded-[40px] border border-white/10 space-y-8 bg-gradient-to-br from-primary/5 to-transparent">
+          <section className="glass-card p-8 rounded-[40px] border border-border space-y-8 bg-gradient-to-br from-primary/5 to-transparent bg-card">
              <div className="space-y-2">
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
                   <Info size={16} className="text-primary" />
                   How Super Fund Works
                 </h3>
-                <p className="text-[10px] text-white/40 leading-relaxed">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
                   Super Fund is a voluntary engagement mechanism for members who want to definitively support the Aura mission.
                 </p>
              </div>
@@ -411,8 +411,8 @@ export default function SuperFundPage() {
                   <div key={i} className="flex gap-4">
                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-black shrink-0">{i+1}</div>
                      <div className="space-y-1">
-                        <h4 className="text-xs font-bold text-white">{step.title}</h4>
-                        <p className="text-[10px] text-white/40 leading-relaxed font-light">{step.desc}</p>
+                        <h4 className="text-xs font-bold text-foreground">{step.title}</h4>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed font-light">{step.desc}</p>
                      </div>
                   </div>
                 ))}
@@ -426,16 +426,16 @@ export default function SuperFundPage() {
 
           {/* FAQ Section */}
           <section className="space-y-6 pb-12">
-             <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-1 text-center">Frequently Asked Questions</h3>
+             <h3 className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] px-1 text-center">Frequently Asked Questions</h3>
              <div className="space-y-3">
                 {[
                   { q: "Is this a subscription?", a: "No. Super Fund is a one-time voluntary contribution." },
                   { q: "Does it grant Elite access?", a: "No. Super Fund supports the platform, while Elite unlocks personal features." },
                   { q: "Can I get a refund?", a: "Super Fund contributions are voluntary and generally non-refundable." }
                 ].map((faq, i) => (
-                  <div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
-                     <h4 className="text-xs font-bold text-white/80">Q: {faq.q}</h4>
-                     <p className="text-[10px] text-white/40 leading-relaxed">{faq.a}</p>
+                  <div key={i} className="p-5 rounded-2xl bg-card border border-border space-y-2">
+                     <h4 className="text-xs font-bold text-foreground/80">Q: {faq.q}</h4>
+                     <p className="text-[10px] text-muted-foreground leading-relaxed">{faq.a}</p>
                   </div>
                 ))}
              </div>
