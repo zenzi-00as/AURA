@@ -323,10 +323,10 @@ export default function SuperFundPage() {
                {COMING_SOON_FEATURES.map((feature, i) => (
                  <motion.div 
                    key={feature.id}
-                   initial={{ opacity: 0, y: 10 }}
-                   whileInView={{ opacity: 1, y: 0 }}
+                   initial={{ opacity: 0, x: -30 }}
+                   whileInView={{ opacity: 1, x: 0 }}
                    viewport={{ once: true }}
-                   transition={{ delay: i * 0.1 }}
+                   transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
                    className="glass-card p-6 rounded-[32px] border border-white/5 space-y-6 relative overflow-hidden group"
                  >
                     <div className="flex justify-between items-start">
