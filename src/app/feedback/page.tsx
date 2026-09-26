@@ -55,8 +55,8 @@ export default function FeedbackPage() {
         </motion.div>
         
         <div className="relative z-10 space-y-4">
-          <h2 className="text-4xl font-bold text-white tracking-tighter">Materialized!</h2>
-          <p className="text-white/60 font-light leading-relaxed max-w-[280px] mx-auto italic">
+          <h2 className="text-4xl font-bold text-foreground tracking-tighter">Materialized!</h2>
+          <p className="text-muted-foreground font-light leading-relaxed max-w-[280px] mx-auto italic">
             {t('feedback_success')}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function FeedbackPage() {
         </div>
 
         <div className="absolute bottom-12 left-0 right-0 text-center opacity-20">
-          <p className="text-[10px] text-white uppercase tracking-[0.5em] font-black">Aura Feedback Node Synchronized</p>
+          <p className="text-[10px] text-foreground uppercase tracking-[0.5em] font-black">Aura Feedback Node Synchronized</p>
         </div>
       </div>
     );
@@ -158,7 +158,7 @@ export default function FeedbackPage() {
               placeholder="What's on your mind?"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="bg-muted border-border rounded-2xl min-h-[160px] text-sm resize-none focus:ring-primary p-5"
+              className="bg-muted border-border rounded-2xl min-h-[160px] text-sm resize-none focus:ring-primary p-5 text-foreground placeholder:text-muted-foreground"
             />
           </div>
 

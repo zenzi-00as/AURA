@@ -105,19 +105,19 @@ export default function PrivacySafetyPage() {
             <Lock size={16} />
             <h4 className="text-[10px] font-black uppercase tracking-widest">Media Protection Protocol</h4>
           </div>
-          <p className="text-[10px] text-white/50 leading-relaxed italic">
+          <p className="text-[10px] text-muted-foreground leading-relaxed italic">
             Some devices and browsers may not allow Aura to definitively prevent or detect screenshots or screen recordings. Aura applies the strongest available platform-level protections, including content obscuration and watermarking, to secure your private presence.
           </p>
         </div>
 
         {/* Feature Highlights */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
+          <div className="p-4 rounded-3xl bg-card border border-border space-y-2">
             <Fingerprint className="text-primary" size={20} />
             <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Verified Only</h4>
             <p className="text-[10px] text-muted-foreground font-light leading-snug">AI-checked identities to prevent bots.</p>
           </div>
-          <div className="p-4 rounded-3xl bg-muted/50 border border-border space-y-2">
+          <div className="p-4 rounded-3xl bg-card border border-border space-y-2">
             <Globe className="text-[#00FF88]" size={20} />
             <h4 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Global Safety</h4>
             <p className="text-[10px] text-muted-foreground font-light leading-snug">Resources for LGBTQ+ safety worldwide.</p>
@@ -131,7 +131,7 @@ export default function PrivacySafetyPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="glass-card rounded-[32px] overflow-hidden border border-border"
+              className="glass-card rounded-[32px] overflow-hidden border border-border bg-card shadow-sm"
             >
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value={section.id} className="border-none">
@@ -186,8 +186,8 @@ export default function PrivacySafetyPage() {
           </div>
         </section>
 
-        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-[#00FF88]/10 to-transparent">
-          <div className="flex items-center gap-3 text-[#00FF88]">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="flex items-center gap-3 text-primary">
             <HeartHandshake size={24} />
             <h3 className="text-sm font-semibold text-foreground">Always With You</h3>
           </div>

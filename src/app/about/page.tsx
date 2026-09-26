@@ -109,11 +109,11 @@ export default function AboutPage() {
             {features.map((feature, idx) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
-                className="glass-card p-6 rounded-[32px] space-y-4"
+                className="glass-card p-6 rounded-[32px] space-y-4 bg-card border-border shadow-lg"
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <feature.icon size={20} />
@@ -136,11 +136,11 @@ export default function AboutPage() {
             {coreValues.map((value, idx) => (
               <motion.div
                 key={value.title}
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
-                className="glass-card p-6 rounded-[32px] flex items-start gap-5"
+                className="glass-card p-6 rounded-[32px] flex items-start gap-5 bg-card border-border shadow-lg"
               >
                 <div className={`w-12 h-12 rounded-2xl bg-muted flex items-center justify-center ${value.color} shrink-0`}>
                   <value.icon size={22} />
@@ -157,8 +157,8 @@ export default function AboutPage() {
         </section>
 
         {/* Our Promise Section */}
-        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-[#00FF88]/10 to-transparent">
-          <div className="flex items-center gap-3 text-[#00FF88]">
+        <section className="glass-card p-8 rounded-[40px] border border-border space-y-6 bg-gradient-to-br from-primary/5 to-transparent">
+          <div className="flex items-center gap-3 text-primary">
             <Handshake size={24} />
             <h3 className="text-sm font-semibold text-foreground">{mounted ? t('our_promise') : "Our Commitment"}</h3>
           </div>
@@ -167,7 +167,7 @@ export default function AboutPage() {
               {t('promise_desc')}
             </p>
           )}
-          <div className="flex items-center gap-2 text-[10px] text-[#00FF88] font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-[10px] text-primary font-bold uppercase tracking-widest">
             <Lock size={12} />
             <span>Secured • No Ads • No Selling</span>
           </div>

@@ -85,23 +85,23 @@ export default function SupportPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-background pb-12 transition-colors min-h-screen-safe overflow-hidden">
-      <header className="px-6 h-20 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-30 safe-top">
+      <header className="px-6 h-20 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-30 safe-top">
         <div className="flex items-center gap-4">
           <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors p-2 -ml-2">
             <ArrowLeft size={22} />
           </button>
           <h1 className="text-xl font-semibold text-foreground">Support Hub</h1>
         </div>
-        <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+        <div className="flex gap-1 bg-muted p-1 rounded-xl">
            <button 
              onClick={() => setActiveTab('faq')}
-             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'faq' ? "bg-primary text-white shadow-lg" : "text-white/40")}
+             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'faq' ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}
            >
              FAQ
            </button>
            <button 
              onClick={() => setActiveTab('agent')}
-             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'agent' ? "bg-primary text-white shadow-lg" : "text-white/40")}
+             className={cn("px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all", activeTab === 'agent' ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}
            >
              AI Agent
            </button>
@@ -123,7 +123,7 @@ export default function SupportPage() {
                    <div key={i} className={cn("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
                       <div className={cn(
                         "max-w-[85%] p-4 rounded-3xl text-sm font-light leading-relaxed shadow-lg",
-                        msg.role === 'user' ? "premium-gradient text-white rounded-br-none" : "bg-white/5 border border-white/10 text-white/80 rounded-bl-none"
+                        msg.role === 'user' ? "premium-gradient text-white rounded-br-none" : "bg-muted/50 border border-border text-foreground rounded-bl-none"
                       )}>
                         {msg.content}
                       </div>
@@ -131,7 +131,7 @@ export default function SupportPage() {
                  ))}
                  {isTyping && (
                    <div className="flex justify-start">
-                      <div className="bg-white/5 border border-white/10 p-4 rounded-3xl rounded-bl-none flex gap-1">
+                      <div className="bg-muted border border-border p-4 rounded-3xl rounded-bl-none flex gap-1">
                         <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
                         <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
                         <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
@@ -141,14 +141,14 @@ export default function SupportPage() {
                  <div ref={scrollRef} />
               </div>
 
-              <div className="p-4 bg-background border-t border-white/5 safe-bottom">
+              <div className="p-4 bg-background border-t border-border safe-bottom">
                  <div className="relative flex items-center gap-3">
                     <Input 
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                      onKeyPress={(e: any) => e.key === 'Enter' && handleSend()}
                       placeholder="Ask Aura Support..."
-                      className="h-14 bg-white/5 border-white/10 rounded-2xl pl-6 pr-14 text-sm"
+                      className="h-14 bg-muted border-border rounded-2xl pl-6 pr-14 text-sm text-foreground placeholder:text-muted-foreground focus:ring-primary shadow-none focus-visible:ring-0"
                     />
                     <button 
                       onClick={handleSend}
@@ -174,11 +174,11 @@ export default function SupportPage() {
                     <Accordion type="single" collapsible className="w-full space-y-3">
                       {faqs.map((faq, i) => (
                         <AccordionItem key={i} value={`faq-${i}`} className="border-none">
-                          <div className="glass-card rounded-[24px] overflow-hidden border border-white/5">
-                            <AccordionTrigger className="px-6 py-5 text-sm font-medium hover:no-underline text-left">
+                          <div className="glass-card rounded-[24px] overflow-hidden border border-border bg-card">
+                            <AccordionTrigger className="px-6 py-5 text-sm font-medium hover:no-underline text-left text-foreground">
                               {faq.q}
                             </AccordionTrigger>
-                            <AccordionContent className="px-6 pb-6 pt-0 text-xs text-white/40 leading-relaxed italic">
+                            <AccordionContent className="px-6 pb-6 pt-0 text-xs text-muted-foreground leading-relaxed italic">
                               {faq.a}
                             </AccordionContent>
                           </div>
@@ -193,52 +193,52 @@ export default function SupportPage() {
                  <div className="grid grid-cols-1 gap-3">
                     <button 
                       onClick={() => window.location.href = "mailto:support@aura.community"}
-                      className="p-6 rounded-[28px] bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all"
+                      className="p-6 rounded-[28px] bg-card border border-border flex items-center justify-between group hover:bg-muted/50 transition-all"
                     >
                        <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Mail size={22} /></div>
                           <div className="text-left space-y-0.5">
-                             <h4 className="font-bold text-sm">Email Support</h4>
-                             <p className="text-[10px] text-white/40">Expected response: 24-48 hours</p>
+                             <h4 className="font-bold text-sm text-foreground">Email Support</h4>
+                             <p className="text-[10px] text-muted-foreground">Expected response: 24-48 hours</p>
                           </div>
                        </div>
-                       <ExternalLink size={16} className="text-white/20 group-hover:text-primary transition-colors" />
+                       <ExternalLink size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
                     </button>
 
                     <button 
                       onClick={() => router.push('/privacy-safety')}
-                      className="p-6 rounded-[28px] bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all"
+                      className="p-6 rounded-[28px] bg-card border border-border flex items-center justify-between group hover:bg-muted/50 transition-all"
                     >
                        <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-2xl bg-[#00FF88]/10 flex items-center justify-center text-[#00FF88]"><Shield size={22} /></div>
                           <div className="text-left space-y-0.5">
-                             <h4 className="font-bold text-sm">Safety Center</h4>
-                             <p className="text-[10px] text-white/40">Community guidelines & safety tips</p>
+                             <h4 className="font-bold text-sm text-foreground">Safety Center</h4>
+                             <p className="text-[10px] text-muted-foreground">Community guidelines & safety tips</p>
                           </div>
                        </div>
-                       <ChevronRight size={16} className="text-white/20 group-hover:text-[#00FF88] transition-colors" />
+                       <ChevronRight size={16} className="text-muted-foreground group-hover:text-[#00FF88] transition-colors" />
                     </button>
                  </div>
               </section>
 
-              <div className="p-8 rounded-[32px] glass-card border-white/5 space-y-4 bg-gradient-to-br from-primary/10 to-transparent">
+              <div className="p-8 rounded-[32px] glass-card border-border space-y-4 bg-gradient-to-br from-primary/10 to-transparent">
                  <div className="flex items-center gap-3 text-primary">
                     <Sparkles size={24} />
                     <h3 className="text-sm font-bold uppercase tracking-widest">Aura Priority</h3>
                  </div>
-                 <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                 <p className="text-[11px] text-muted-foreground leading-relaxed font-light">
                    Elite members receive prioritized synchronization with our manual review team for verification and report analysis.
                  </p>
                  <Button 
                    onClick={() => router.push('/profile?tab=elite')}
-                   className="w-full h-10 rounded-xl premium-gradient text-[10px] font-bold uppercase tracking-widest shadow-lg"
+                   className="w-full h-10 rounded-xl premium-gradient text-[10px] font-bold uppercase tracking-widest shadow-lg text-white"
                  >
                    Upgrade Membership
                  </Button>
               </div>
 
               <div className="text-center py-4">
-                 <p className="text-[9px] text-white/20 uppercase tracking-[0.4em] font-bold">Aura Support node v2.1.0</p>
+                 <p className="text-[9px] text-muted-foreground uppercase tracking-[0.4em] font-bold">Aura Support node v2.1.0</p>
               </div>
             </motion.div>
           )}
