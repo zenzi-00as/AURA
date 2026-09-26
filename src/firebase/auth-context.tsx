@@ -213,13 +213,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // REAL PRESENCE ENGINE
   useEffect(() => {
-    const { db } = initializeFirebase();
+    const { db, auth } = initializeFirebase();
     if (!db || !user || !profile || user.isDemoUser) return;
 
     const presenceRef = doc(db, 'users', user.uid, 'presence', 'current');
 
     const updatePresence = async (online: boolean) => {
-      if (!profile.onboardingCompleted) return;
+      // SECURITY GUARD: Ensure user is still authenticated and profile materialized
+      if (!profile?.onboardingCompleted || !auth?.currentUser) return;
       
       try {
         await setDoc(presenceRef, { 
@@ -251,7 +252,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const startHeartbeat = () => {
       if (heartbeatInterval.current) return;
-      heartbeatInterval.current = setInterval(() => updatePresence(true), 3 * 60 * 1000); // 3m interval
+      heartbeatInterval.current = setInterval(() => {
+        if (auth?.currentUser) {
+          updatePresence(true);
+        } else {
+          stopHeartbeat();
+        }
+      }, 3 * 60 * 1000); // 3m interval
     };
 
     const stopHeartbeat = () => {
