@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, reload } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from './init';
 import { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
@@ -160,33 +160,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           setLoading(false);
         });
-
-        // Online Status Lifecycle Handling - GUARDED by profile existence
-        const updatePresence = (online: boolean) => {
-          // Only attempt update if the document is confirmed to exist via the profile state
-          if (profile) {
-            updateDoc(userRef, { 
-              isOnline: online, 
-              lastActive: serverTimestamp() 
-            }).catch(() => {});
-          }
-        };
-
-        const handleVisibilityChange = () => {
-          updatePresence(document.visibilityState === 'visible');
-        };
-
-        // Initialize presence if profile is already loaded
-        if (profile) updatePresence(true);
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('focus', () => updatePresence(true));
-        window.addEventListener('blur', () => updatePresence(false));
-
-        return () => {
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-          updatePresence(false);
-        };
       } else {
         setUser(null);
         setProfile(null);
@@ -199,7 +172,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth();
       if (unsubscribeProfile) unsubscribeProfile();
     };
-  }, [profile?.uid]); // Add dependency to ensure presence logic re-runs when profile is synchronized
+  }, []);
+
+  // Presence Synchronization Node - Separated to ensure document existence check
+  useEffect(() => {
+    const { db } = initializeFirebase();
+    if (!db || !user || !profile || user.isDemoUser) return;
+
+    const userRef = doc(db, 'users', user.uid);
+
+    const updatePresence = async (online: boolean) => {
+      // DEFINITIVE GUARD: Ensure the profile document exists before writing presence signals
+      // This prevents rules evaluation faults during early lifecycle transitions
+      try {
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          updateDoc(userRef, { 
+            isOnline: online, 
+            lastActive: serverTimestamp() 
+          }).catch(() => {});
+        }
+      } catch (e) {
+        // Fail silently to prevent hydration noise
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      updatePresence(document.visibilityState === 'visible');
+    };
+
+    // Initial establish
+    updatePresence(true);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', () => updatePresence(true));
+    window.addEventListener('blur', () => updatePresence(false));
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      updatePresence(false);
+    };
+  }, [user?.uid, !!profile]);
 
   const value = {
     user,

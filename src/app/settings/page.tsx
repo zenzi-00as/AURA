@@ -21,7 +21,8 @@ import {
   Coins,
   EyeOff,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Settings
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -112,6 +113,9 @@ export default function SettingsPage() {
       return;
     }
 
+    // Optimistic UI update
+    setSettings(prev => ({ ...prev, [key]: value }));
+
     try {
       if (key === 'pushEnabled') {
         if (value) await registerPush();
@@ -130,9 +134,10 @@ export default function SettingsPage() {
           updatedAt: serverTimestamp()
         });
       }
-      setSettings(prev => ({ ...prev, [key]: value }));
       toast({ title: "Preference Synchronized" });
     } catch (e: any) {
+      // Rollback UI
+      setSettings(prev => ({ ...prev, [key]: !value }));
       toast({ variant: "destructive", title: "Sync Fault", description: "Failed to synchronize setting. Please try again." });
     }
   };
@@ -276,30 +281,31 @@ export default function SettingsPage() {
             <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('general')}</h2>
           </div>
           <div className="space-y-2">
-            <div className="flex flex-col gap-2 p-6 bg-card rounded-[32px] border border-border">
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
-                      <Bell size={18} />
-                    </div>
-                    <div className="text-left space-y-0.5">
-                       <h3 className="font-medium text-foreground">Push Notifications</h3>
-                       <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">Master Synchronizer</p>
-                    </div>
-                  </div>
-                  <Switch 
-                    disabled={isRegistering}
-                    checked={settings.pushEnabled} 
-                    onCheckedChange={(v) => handleToggle('pushEnabled', v)} 
-                  />
-               </div>
-               <button 
-                 onClick={() => router.push('/settings/notifications')}
-                 className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between group"
-               >
-                 <span className="text-xs text-white/40 font-medium group-hover:text-primary transition-colors">Detailed Alert Settings</span>
-                 <ChevronRight size={14} className="text-white/20 group-hover:text-primary transition-all" />
-               </button>
+            <div className="flex items-center justify-between p-6 bg-card rounded-[32px] border border-border transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <Bell size={18} />
+                </div>
+                <div className="text-left space-y-0.5">
+                   <h3 className="font-medium text-foreground">Push Notifications</h3>
+                   <p className="text-[10px] text-muted-foreground font-light">Receive real-time Aura alerts.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {settings.pushEnabled && (
+                  <button 
+                    onClick={() => router.push('/settings/notifications')}
+                    className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    <Settings size={16} />
+                  </button>
+                )}
+                <Switch 
+                  disabled={isRegistering}
+                  checked={settings.pushEnabled} 
+                  onCheckedChange={(v) => handleToggle('pushEnabled', v)} 
+                />
+              </div>
             </div>
 
             <Dialog open={isLanguageOpen} onOpenChange={setIsLanguageOpen}>
