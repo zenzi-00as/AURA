@@ -212,7 +212,7 @@ export default function Dashboard() {
           </div>
 
           <div className="px-2 mb-4">
-             <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.3em] px-2 flex items-center gap-2">
+             <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] px-2 flex items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                Latest Connections
              </h3>

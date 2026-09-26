@@ -42,7 +42,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 pb-8">
-      <nav className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-[32px] glass-dark border border-white/10 shadow-2xl w-full max-w-[380px] mx-auto mb-[env(safe-area-inset-bottom)]">
+      <nav className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-[32px] glass-dark border border-border shadow-2xl w-full max-w-[380px] mx-auto mb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
 
@@ -52,13 +52,13 @@ export function BottomNav() {
               onClick={() => router.replace(item.path)}
               className={cn(
                 "relative flex-1 py-3 rounded-[24px] flex flex-col items-center justify-center transition-all duration-300",
-                isActive ? "text-[#1680FF]" : "text-white/55 hover:text-white"
+                isActive ? "text-primary" : "text-muted-foreground/60 hover:text-foreground"
               )}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeNav"
-                  className="absolute inset-0 bg-[#1680FF15] rounded-[24px]"
+                  className="absolute inset-0 bg-primary/10 rounded-[24px]"
                   transition={{ type: "spring", stiffness: 350, damping: 25 }}
                 />
               )}
@@ -74,8 +74,8 @@ export function BottomNav() {
                 
                 {item.hasBadge && (
                   <div className="absolute -top-1 -right-1 flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1680FF] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1680FF] border border-black"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary border border-background"></span>
                   </div>
                 )}
               </div>
@@ -83,7 +83,7 @@ export function BottomNav() {
               {isActive && (
                 <motion.div 
                   layoutId="activeDot"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-[#1680FF] shadow-[0_0_8px_#1680FF]"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]"
                 />
               )}
             </button>
