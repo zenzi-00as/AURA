@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, Suspense } from "react";
@@ -294,7 +295,7 @@ function ProfileContent() {
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
             <Sheet open={activeSheet === 'free'} onOpenChange={(o) => setActiveSheet(o ? 'free' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-card text-foreground border border-border text-left relative overflow-hidden group shadow-sm">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-card text-foreground dark:text-white border border-border text-left relative overflow-hidden group shadow-sm">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-muted text-muted-foreground px-2 py-0.5 rounded-md">Main Plan</span>
@@ -347,7 +348,14 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] dark:premium-gradient bg-card text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-sm">
+                <motion.button 
+                  whileTap={{ scale: 0.98 }} 
+                  className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
+                >
+                  {/* Atmospheric Light Effect for Light Mode */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -ml-12 -mb-12 block dark:hidden" />
+
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite</span>
@@ -396,7 +404,14 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] dark:premium-gradient bg-card text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-sm">
+                <motion.button 
+                  whileTap={{ scale: 0.98 }} 
+                  className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
+                >
+                  {/* Atmospheric Light Effect for Light Mode */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -ml-12 -mb-12 block dark:hidden" />
+
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite Plus</span>
