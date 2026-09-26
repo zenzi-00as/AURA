@@ -276,7 +276,7 @@ export default function SettingsPage() {
                 <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
                   <Bell size={18} />
                 </div>
-                <span>{t('notifications')}</span>
+                <span>Just push notifications here</span>
               </div>
               <ChevronRight size={16} className="text-muted-foreground" />
             </button>
