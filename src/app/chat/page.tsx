@@ -91,7 +91,7 @@ export default function ChatList() {
               <h1 className="text-xl font-bold tracking-tight text-foreground">{t('messages')}</h1>
             </div>
             <div className="relative w-40">
-              <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-9 bg-muted border-border rounded-xl px-4 text-xs" />
+              <Input placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-9 bg-muted border-border rounded-xl px-4 text-xs text-foreground placeholder:text-muted-foreground/50" />
             </div>
           </div>
         </header>
@@ -111,26 +111,26 @@ export default function ChatList() {
                   onClick={() => router.push(`/chat/${chat.id}`)} 
                   className={cn(
                     "p-4 rounded-[28px] flex items-center gap-4 border transition-all cursor-pointer", 
-                    chat.unreadCount > 0 ? "bg-muted shadow-sm border-primary/20" : "bg-card border-border",
+                    chat.unreadCount > 0 ? "bg-card shadow-md border-primary/40" : "bg-card border-border",
                     chat.isExpired && "opacity-40 grayscale"
                   )}
                 >
                   <div className={cn("w-14 h-14 rounded-2xl border border-border flex items-center justify-center relative shrink-0", chat.isSystem ? "premium-gradient" : "bg-muted")}>
-                    {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-muted-foreground/20">{chat.name?.[0] || "?"}</span>}
+                    {chat.isSystem ? <span className="text-white font-bold text-xl">A</span> : <span className="text-xl font-semibold text-muted-foreground/60">{chat.name?.[0] || "?"}</span>}
                     {chat.isOnline && !chat.isExpired && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-background" />}
                   </div>
                   <div className="flex-1 flex flex-col min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-foreground font-bold" : "text-muted-foreground")}>{chat.name}</h3>
+                        <h3 className={cn("truncate text-sm transition-colors", chat.unreadCount > 0 ? "text-foreground font-bold" : "text-foreground/80")}>{chat.name}</h3>
                         {chat.verified && <BadgeCheck size={14} className="text-primary" />}
                         {chat.isSpotlight && (
                           <span className="inline-flex items-center justify-center" style={{ filter: 'hue-rotate(180deg) brightness(1.2)' }}>🌟</span>
                         )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground/40 tabular-nums">{chat.time}</span>
+                      <span className="text-[10px] text-muted-foreground/60 tabular-nums">{chat.time}</span>
                     </div>
-                    <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "text-foreground" : "text-muted-foreground/60")}>{chat.lastMsg}</p>
+                    <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "text-foreground font-medium" : "text-muted-foreground")}>{chat.lastMsg}</p>
                   </div>
                   {chat.unreadCount > 0 && <div className="h-5 min-w-[20px] px-2 rounded-full premium-gradient flex items-center justify-center"><span className="text-[9px] font-bold text-white">{chat.unreadCount}</span></div>}
                 </motion.div>
