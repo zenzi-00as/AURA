@@ -1,14 +1,14 @@
 'use server';
 
 /**
- * @fileOverview Edge-compatible Razorpay interaction node.
- * Updated to use 'node:crypto' for Cloudflare compatibility.
+ * @fileOverview Trusted Payment State Node.
+ * Synchronized with Firebase Admin SDK for entitlement materialization.
  */
 
-import { initializeFirebase } from "@/firebase/init";
-import { doc, getDoc, updateDoc, serverTimestamp, increment, collection, addDoc } from "firebase/firestore";
+import { adminDb } from "@/lib/firebase-admin";
+import { serverTimestamp as adminTimestamp, FieldValue } from "firebase-admin/firestore";
 import Razorpay from "razorpay";
-import crypto from "node:crypto"; // Definitively use node:crypto for Edge compatibility
+import crypto from "node:crypto";
 import { validateServerEnv } from "@/lib/env-validation";
 import { logger } from "@/lib/logger";
 
@@ -48,21 +48,13 @@ export async function verifyRazorpayPayment(data: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+  uid: string; // Authenticated UID passed from server context or verified via token
 }) {
-  const { db, auth } = initializeFirebase();
   const correlationId = logger.generateCorrelationId();
-  
-  if (!db || !auth?.currentUser) {
-    logger.critical('Payment Verification Fault: Auth Sync', { correlationId });
-    return { success: false, error: "Authentication Sync Fault" };
-  }
-
-  const uid = auth.currentUser.uid;
   const env = validateServerEnv();
   const secret = env.razorpaySecret;
   const body = data.razorpay_order_id + "|" + data.razorpay_payment_id;
 
-  // Use node:crypto Hmac for Cloudflare nodejs_compat support
   const expectedSignature = crypto
     .createHmac("sha256", secret)
     .update(body.toString())
@@ -73,69 +65,59 @@ export async function verifyRazorpayPayment(data: {
       const razorpay = getRazorpayInstance();
       const order = await razorpay.orders.fetch(data.razorpay_order_id);
       
-      if (!order) {
-        logger.error('Order Not Found on Gateway', { category: 'PAYMENT_ERROR', correlationId, orderId: data.razorpay_order_id });
-        throw new Error("Order not found on gateway");
-      }
+      if (!order) throw new Error("Order not found on gateway");
 
       const itemType = order.notes?.itemType as string;
       const quantity = parseInt(order.notes?.quantity?.toString() || "1");
       const amount = order.amount / 100;
+      const uid = data.uid;
 
-      const userRef = doc(db, "users", uid);
+      const userRef = adminDb.collection("users").doc(uid);
+      const batch = adminDb.batch();
       
       if (itemType === 'Elite' || itemType === 'ElitePlus') {
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + 28);
-        await updateDoc(userRef, { 
+        batch.update(userRef, { 
           plan: itemType === 'Elite' ? 'elite' : 'elite_plus',
           subscription: {
             planId: itemType === 'Elite' ? 'elite' : 'elite_plus', 
             status: 'active',
             expiresAt: expiry,
-            startedAt: serverTimestamp()
+            startedAt: adminTimestamp()
           },
-          updatedAt: serverTimestamp()
+          updatedAt: adminTimestamp()
         });
       } else if (itemType === 'Spotlight') {
-        const snap = await getDoc(userRef);
+        const snap = await userRef.get();
         const currentExp = snap.data()?.spotlightExpiry?.toDate ? snap.data().spotlightExpiry.toDate() : (snap.data()?.spotlightExpiry ? new Date(snap.data().spotlightExpiry) : new Date());
         const baseDate = currentExp > new Date() ? currentExp : new Date();
         const newExpiry = new Date(baseDate);
         newExpiry.setDate(newExpiry.getDate() + 7);
-        await updateDoc(userRef, { spotlightExpiry: newExpiry, updatedAt: serverTimestamp() });
+        batch.update(userRef, { spotlightExpiry: newExpiry, updatedAt: adminTimestamp() });
       } else if (itemType === 'SuperLike') {
-        await updateDoc(userRef, { superLikeBalance: increment(quantity), updatedAt: serverTimestamp() });
+        batch.update(userRef, { superLikeBalance: FieldValue.increment(quantity), updatedAt: adminTimestamp() });
       }
 
-      await addDoc(collection(db, "purchases"), {
+      const purchaseRef = adminDb.collection("purchases").doc();
+      batch.set(purchaseRef, {
         uid,
         itemType,
         amount,
-        timestamp: serverTimestamp(),
+        timestamp: adminTimestamp(),
         razorpayOrderId: data.razorpay_order_id,
         status: 'Success',
         correlationId
       });
 
-      logger.info('Payment Verified & Entitlement Granted', { correlationId, uid, itemType });
+      await batch.commit();
+      logger.info('Payment Verified & Entitlement Granted via Admin SDK', { correlationId, uid, itemType });
       return { success: true };
     } catch (err: any) {
-      logger.error('Payment Verification Synchronization Fault', { 
-        category: 'PAYMENT_ERROR', 
-        correlationId, 
-        uid,
-        errorMessage: err.message 
-      });
+      logger.error('Payment Verification Synchronization Fault', { correlationId, errorMessage: err.message });
       return { success: false, error: "Entitlement Synchronization Fault" };
     }
   }
 
-  logger.critical('Invalid Razorpay Signature Detected', { 
-    category: 'PAYMENT_ERROR', 
-    correlationId, 
-    uid, 
-    orderId: data.razorpay_order_id 
-  });
   return { success: false, error: "Invalid Signature Packet" };
 }

@@ -3,7 +3,7 @@
 /**
  * @fileOverview Geospatial Discovery Node.
  * Calibrates geohashes for scalable proximity queries.
- * Hardened to exclude blocked relationships and Incognito members.
+ * Hardened to strictly align with Incognito Security Rules.
  */
 
 import { initializeFirebase } from "@/firebase/init";
@@ -40,10 +40,11 @@ export async function getDiscoveryNodes(uid: string, lat: number, lng: number, r
   
   // Parallel query nodes for high-speed synchronization
   const queries = searchHashes.map(async (hash) => {
+    // SECURITY ALIGNMENT: Query must filter out documents that rules would deny
     const q = query(
       collection(db, "users"),
       where("onboardingCompleted", "==", true),
-      // INCOGNITO GUARD: Exclude users in private browsing mode (Legacy & New)
+      // INCOGNITO GUARD: Must match rules exactly to avoid permission faults
       where("incognitoMode", "==", false),
       where("settings.incognito", "==", false),
       where("geohash", ">=", hash),

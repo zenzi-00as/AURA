@@ -13,6 +13,10 @@
           "order": "ASCENDING"
         },
         {
+          "fieldPath": "settings.incognito",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "geohash",
           "order": "ASCENDING"
         }
@@ -39,6 +43,20 @@
         {
           "fieldPath": "expiresAt",
           "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recipientId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
         }
       ]
     },
