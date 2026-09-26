@@ -290,7 +290,7 @@ export default function Onboarding() {
         </motion.div>
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-          <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em]">Synchronizing Identity</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Synchronizing Identity</p>
         </div>
       </div>
     );
@@ -306,10 +306,10 @@ export default function Onboarding() {
         <div className="flex justify-between items-center w-full">
           <div className="flex gap-1.5 flex-1 max-w-[180px]">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
-              <div key={`onboard-step-${s}`} className={cn("h-1 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-white/10")} />
+              <div key={`onboard-step-${s}`} className={cn("h-1 rounded-full transition-all duration-700 flex-1", step >= s ? "bg-primary neon-glow" : "bg-foreground/10 dark:bg-white/10")} />
             ))}
           </div>
-          <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.1em] ml-4 shrink-0">{progressPercentage}%</span>
+          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.1em] ml-4 shrink-0">{progressPercentage}%</span>
         </div>
       </header>
 
@@ -324,7 +324,7 @@ export default function Onboarding() {
           >
             <div className="flex justify-between items-start mb-8">
               <div className="space-y-1">
-                <h2 className="text-3xl font-bold text-white tracking-tight">
+                <h2 className="text-3xl font-bold text-foreground dark:text-white tracking-tight">
                   {step === 1 ? "Enable Location" : 
                    step === 2 ? "Identity" : 
                    step === 3 ? "Aura Bio" : 
@@ -336,23 +336,23 @@ export default function Onboarding() {
                    step === 9 ? "Identity Guard" : 
                    "Aura Elite"}
                 </h2>
-                <p className="text-[10px] text-white/40 font-light uppercase tracking-widest">Step {step} of 10</p>
+                <p className="text-[10px] text-muted-foreground font-light uppercase tracking-widest">Step {step} of 10</p>
               </div>
               {step > 1 && (
-                <button onClick={handleBack} className="mt-1 w-8 h-8 rounded-full glass flex items-center justify-center text-white/60"><ArrowLeft size={16} /></button>
+                <button onClick={handleBack} className="mt-1 w-8 h-8 rounded-full glass flex items-center justify-center text-foreground/60 dark:text-white/60"><ArrowLeft size={16} /></button>
               )}
             </div>
 
             {step === 1 && (
               <div className="space-y-6 flex-1 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 rounded-[32px] bg-primary/20 flex items-center justify-center text-primary mb-6 animate-pulse"><MapPin size={48} /></div>
-                <h3 className="text-2xl font-bold text-white">Enable your location</h3>
-                <p className="text-sm text-white/40 max-w-[260px]">Find people nearby and discover connections around you.</p>
+                <h3 className="text-2xl font-bold text-foreground dark:text-white">Enable your location</h3>
+                <p className="text-sm text-muted-foreground max-w-[260px]">Find people nearby and discover connections around you.</p>
                 <div className="w-full pt-8 space-y-3">
                    <Button onClick={handleLocationEnable} disabled={isDetectingLocation} className="w-full h-16 rounded-[24px] blue-gradient text-white font-bold shadow-xl">
                      {isDetectingLocation ? <Loader2 className="animate-spin" /> : "Enable Location →"}
                    </Button>
-                   <button onClick={() => setStep(2)} className="text-[10px] font-bold text-white/20 uppercase tracking-widest py-2 w-full">Skip for now</button>
+                   <button onClick={() => setStep(2)} className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest py-2 w-full">Skip for now</button>
                 </div>
               </div>
             )}
@@ -361,11 +361,11 @@ export default function Onboarding() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Display Name</label>
-                  <div className="relative glass rounded-xl p-0.5"><User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" /><Input placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-12 bg-transparent border-none text-base text-white focus:ring-0 shadow-none" /></div>
+                  <div className="relative bg-muted rounded-xl p-0.5"><User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" /><Input placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="pl-12 h-12 bg-transparent border-none text-base text-foreground focus:ring-0 shadow-none" /></div>
                 </div>
                 <div className="space-y-3">
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Age</label>
-                  <div className="relative glass rounded-xl p-0.5"><Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" /><Input type="number" placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-12 bg-transparent border-none text-base text-white focus:ring-0 shadow-none" /></div>
+                  <div className="relative bg-muted rounded-xl p-0.5"><Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" /><Input type="number" placeholder="Your age" value={formData.age} onChange={(e) => setFormData({ ...formData, age: e.target.value })} className="pl-12 h-12 bg-transparent border-none text-base text-foreground focus:ring-0 shadow-none" /></div>
                 </div>
               </div>
             )}
@@ -373,7 +373,7 @@ export default function Onboarding() {
             {step === 3 && (
               <div className="space-y-4 flex-1 flex flex-col">
                 <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Describe your presence</label>
-                <div className="flex-1 glass rounded-2xl p-0.5"><Textarea placeholder="Share your desires and interests..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="h-full bg-transparent border-none p-4 text-base text-white focus:ring-0 resize-none shadow-none" /></div>
+                <div className="flex-1 bg-muted rounded-2xl p-0.5"><Textarea placeholder="Share your desires and interests..." value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="h-full bg-transparent border-none p-4 text-base text-foreground focus:ring-0 resize-none shadow-none" /></div>
               </div>
             )}
 
@@ -411,7 +411,7 @@ export default function Onboarding() {
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Dynamic Position</label>
                   <div className="grid grid-cols-1 gap-2">
                     {POSITION_OPTIONS.map((opt) => (
-                      <button key={`pos-${opt}`} onClick={() => setFormData({ ...formData, position: opt })} className={cn("h-12 px-5 rounded-xl text-sm transition-all flex items-center justify-between border", formData.position === opt ? "premium-gradient text-white border-transparent" : "glass border-white/10 text-white/80")}>
+                      <button key={`pos-${opt}`} onClick={() => setFormData({ ...formData, position: opt })} className={cn("h-12 px-5 rounded-xl text-sm transition-all flex items-center justify-between border", formData.position === opt ? "premium-gradient text-white border-transparent" : "bg-muted border-border text-foreground")}>
                         {opt}{formData.position === opt && <Check size={16} />}
                       </button>
                     ))}
@@ -421,7 +421,7 @@ export default function Onboarding() {
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">hosting preference</label>
                   <div className="grid grid-cols-2 gap-3">
                     {ROOM_OPTIONS.map((opt) => (
-                      <button key={`room-${opt}`} onClick={() => setFormData({ ...formData, room: opt })} className={cn("h-12 px-5 rounded-xl text-sm transition-all flex items-center justify-center border gap-2", formData.room === opt ? "premium-gradient text-white border-transparent" : "glass border-white/10 text-white/80")}>
+                      <button key={`room-${opt}`} onClick={() => setFormData({ ...formData, room: opt })} className={cn("h-12 px-5 rounded-xl text-sm transition-all flex items-center justify-center border gap-2", formData.room === opt ? "premium-gradient text-white border-transparent" : "bg-muted border-border text-foreground")}>
                         {opt === "Yes" ? <Home size={16} /> : <MapPin size={16} />}{opt}
                       </button>
                     ))}
@@ -434,9 +434,9 @@ export default function Onboarding() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] px-1">Phone Number</label>
-                  <p className="text-[10px] text-white/40 mb-2">Used for profile contact only. Not for authentication.</p>
-                  <div className="relative glass rounded-xl p-0.5">
-                    <Input placeholder="+1 000 000 0000" value={formData.profilePhoneNumber} onChange={(e) => setFormData({ ...formData, profilePhoneNumber: e.target.value })} className="h-12 bg-transparent border-none text-base text-white focus:ring-0 shadow-none" />
+                  <p className="text-[10px] text-muted-foreground mb-2">Used for profile contact only. Not for authentication.</p>
+                  <div className="relative bg-muted rounded-xl p-0.5">
+                    <Input placeholder="+1 000 000 0000" value={formData.profilePhoneNumber} onChange={(e) => setFormData({ ...formData, profilePhoneNumber: e.target.value })} className="h-12 bg-transparent border-none text-base text-foreground focus:ring-0 shadow-none" />
                   </div>
                 </div>
               </div>
@@ -444,18 +444,18 @@ export default function Onboarding() {
             
             {step === 9 && (
               <div className="space-y-6 flex-1 flex flex-col">
-                <div className="glass-card p-6 rounded-[32px] border border-white/10 space-y-6 text-center">
-                  <h3 className="text-lg font-bold text-white">Identity Guard</h3>
-                  <div className="relative aspect-[4/5] w-full max-w-[200px] mx-auto rounded-2xl overflow-hidden glass border-2 border-white/10 shadow-2xl">
+                <div className="glass-card p-6 rounded-[32px] border border-border space-y-6 text-center">
+                  <h3 className="text-lg font-bold text-foreground">Identity Guard</h3>
+                  <div className="relative aspect-[4/5] w-full max-w-[200px] mx-auto rounded-2xl overflow-hidden bg-muted border-2 border-border shadow-2xl">
                     {formData.verificationPreview ? (
                       <img src={formData.verificationPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4"><div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Upload size={24} /></div><p className="text-[10px] text-white/30 uppercase tracking-[0.1em]">No image</p></div>
+                      <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-4"><div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Upload size={24} /></div><p className="text-[10px] text-muted-foreground uppercase tracking-[0.1em]">No image</p></div>
                     )}
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                    <Button onClick={() => fileInputRef.current?.click()} className="h-12 rounded-xl glass border-white/10 text-white/80"><ImageIcon size={18} className="mr-2" />Select Photo</Button>
+                    <Button onClick={() => fileInputRef.current?.click()} className="h-12 rounded-xl bg-muted border border-border text-foreground"><ImageIcon size={18} className="mr-2" />Select Photo</Button>
                   </div>
                 </div>
               </div>
@@ -464,12 +464,12 @@ export default function Onboarding() {
             {step === 10 && (
               <div className="space-y-8 flex-1 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 rounded-[28px] premium-gradient neon-glow flex items-center justify-center mb-2 shadow-2xl"><Sparkles className="text-white" size={32} /></div>
-                <div className="w-full p-8 rounded-[32px] glass border-white/10 space-y-6">
-                  <h3 className="text-3xl font-bold text-white tracking-tighter">{formatPrice(1)} <span className="text-xs font-normal text-white/40">/ 28 Days</span></h3>
+                <div className="w-full p-8 rounded-[32px] bg-card border border-border space-y-6">
+                  <h3 className="text-3xl font-bold text-foreground tracking-tighter">{formatPrice(1)} <span className="text-xs font-normal text-muted-foreground">/ 28 Days</span></h3>
                   <p className="text-[9px] font-bold text-primary uppercase tracking-[0.3em]">AURA ELITE ACCESS</p>
-                  <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="space-y-3 pt-4 border-t border-border">
                     {["Identity Verified Badge", "Unlimited Messages", "Priority Discovery Stage"].map((feature, i) => (
-                      <div key={`elite-feat-${i}`} className="flex items-center gap-3 text-xs text-white/60 text-left"><div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0"><Check size={10} strokeWidth={3} /></div><span>{feature}</span></div>
+                      <div key={`elite-feat-${i}`} className="flex items-center gap-3 text-xs text-muted-foreground text-left"><div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0"><Check size={10} strokeWidth={3} /></div><span>{feature}</span></div>
                     ))}
                   </div>
                 </div>

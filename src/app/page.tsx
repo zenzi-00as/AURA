@@ -7,6 +7,11 @@ import { useAuthContext } from '@/firebase/auth-context';
 import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 
+/**
+ * @fileOverview Aura Splash Node.
+ * Features a high-fidelity entry sequence with theme-aware synchronization.
+ */
+
 const TAGLINES = [
   "Find Your Aura",
   "Connect Beyond Labels",
@@ -60,7 +65,7 @@ export default function Home() {
   }, [isSequenceComplete, loading, user, onboardingCompleted, router]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center bg-background min-h-screen relative overflow-hidden transition-colors duration-500">
       <div className="absolute inset-0 z-0 hero-radial" />
       
       <AnimatePresence>
@@ -74,7 +79,7 @@ export default function Home() {
           >
             <div className="relative w-24 h-24 animate-breathe">
               <div className="absolute inset-0 blue-gradient rounded-[32px] blur-2xl opacity-40" />
-              <div className="relative w-full h-full rounded-[32px] blue-gradient flex items-center justify-center shadow-2xl border border-white/10">
+              <div className="relative w-full h-full rounded-[32px] blue-gradient flex items-center justify-center shadow-2xl border border-white/10 dark:border-white/10 border-white/30">
                 <span className="text-4xl font-bold text-white tracking-tighter">A</span>
               </div>
             </div>
@@ -86,12 +91,12 @@ export default function Home() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="text-lg font-medium tracking-tight text-white/90"
+                  className="text-lg font-medium tracking-tight text-foreground/90 dark:text-white/90"
                 >
                   {TAGLINES[taglineIndex]}
                 </motion.p>
               </AnimatePresence>
-              <div className="mt-4 w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="mt-4 w-48 h-1 bg-muted rounded-full overflow-hidden">
                 <motion.div 
                   className="h-full blue-gradient"
                   initial={{ width: 0 }}
@@ -104,7 +109,7 @@ export default function Home() {
       </AnimatePresence>
       
       <div className="absolute bottom-12 left-0 right-0 text-center">
-        <p className="text-[10px] text-white/20 uppercase tracking-[0.4em] font-bold">
+        <p className="text-[10px] text-muted-foreground/40 dark:text-white/20 uppercase tracking-[0.4em] font-bold">
           Premium • Private • Real
         </p>
       </div>
