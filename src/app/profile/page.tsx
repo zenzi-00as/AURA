@@ -294,10 +294,10 @@ function ProfileContent() {
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
             <Sheet open={activeSheet === 'free'} onOpenChange={(o) => setActiveSheet(o ? 'free' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-muted/50 text-foreground border border-border text-left relative overflow-hidden group">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-card text-foreground border border-border text-left relative overflow-hidden group shadow-sm">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-background text-muted-foreground px-2 py-0.5 rounded-md">Main Plan</span>
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-muted text-muted-foreground px-2 py-0.5 rounded-md">Main Plan</span>
                        {effectivePlan === 'free' && <Check size={14} className="text-[#00FF88]" />}
                     </div>
                     <div className="space-y-1">
@@ -347,15 +347,15 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'elite'} onOpenChange={(o) => setActiveSheet(o ? 'elite' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border-2 border-primary text-left relative overflow-hidden group">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] dark:premium-gradient bg-card text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-sm">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 text-white px-2 py-0.5 rounded-md">Elite</span>
-                       {effectivePlan === 'elite' && <Check size={14} className="text-white" />}
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite</span>
+                       {effectivePlan === 'elite' && <Check size={14} className="text-primary dark:text-white" />}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold">{formatPrice(99)} <span className="text-[10px] font-normal opacity-60">+ 18% GST</span></h3>
-                      <p className="text-[10px] opacity-70">Unlock essential premium benefits and search reach.</p>
+                      <p className="text-[10px] text-muted-foreground/70 dark:text-white/70">Unlock essential premium benefits and search reach.</p>
                     </div>
                   </div>
                 </motion.button>
@@ -396,15 +396,15 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'eliteplus'} onOpenChange={(o) => setActiveSheet(o ? 'eliteplus' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] premium-gradient text-white border-2 border-primary text-left relative overflow-hidden group">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] dark:premium-gradient bg-card text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-sm">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-2 py-0.5 rounded-md">Elite Plus</span>
-                       {effectivePlan === 'elite_plus' && <Check size={14} className="text-white" />}
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite Plus</span>
+                       {effectivePlan === 'elite_plus' && <Check size={14} className="text-primary dark:text-white" />}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold">{formatPrice(199)} <span className="text-[10px] font-normal opacity-60">+ 18% GST</span></h3>
-                      <p className="text-[10px] opacity-70">Unlock the complete Aura luxury experience.</p>
+                      <p className="text-[10px] text-muted-foreground/70 dark:text-white/70">Unlock the complete Aura luxury experience.</p>
                     </div>
                   </div>
                 </motion.button>
@@ -447,8 +447,8 @@ function ProfileContent() {
           <div className="grid grid-cols-2 gap-3">
             <Sheet open={activeSheet === 'spotlight'} onOpenChange={(o) => setActiveSheet(o ? 'spotlight' : null)}>
               <SheetTrigger asChild>
-                <button className="p-6 rounded-[28px] bg-muted/50 border border-border flex flex-col items-center gap-3 text-center relative overflow-hidden group">
-                  <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-primary/30 to-transparent opacity-40 group-hover:opacity-100 transition-opacity" />
+                <button className="p-6 rounded-[28px] bg-card border border-border flex flex-col items-center gap-3 text-center relative overflow-hidden group shadow-sm">
+                  <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-primary/30 to-transparent opacity-10 group-hover:opacity-100 transition-opacity" />
                   <div className={cn("w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary relative z-10", spotlight && "animate-pulse")}>
                     <Star size={24} />
                   </div>
@@ -532,8 +532,8 @@ function ProfileContent() {
 
             <Sheet open={activeSheet === 'superlike'} onOpenChange={(o) => setActiveSheet(o ? 'superlike' : null)}>
               <SheetTrigger asChild>
-                <button className="p-6 rounded-[28px] bg-muted/50 border border-border flex flex-col items-center gap-3 text-center relative overflow-hidden group">
-                  <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-primary/30 to-transparent opacity-40 group-hover:opacity-100 transition-opacity" />
+                <button className="p-6 rounded-[28px] bg-card border border-border flex flex-col items-center gap-3 text-center relative overflow-hidden group shadow-sm">
+                  <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-primary/30 to-transparent opacity-10 group-hover:opacity-100 transition-opacity" />
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary relative z-10">
                     <Heart size={24} />
                   </div>
