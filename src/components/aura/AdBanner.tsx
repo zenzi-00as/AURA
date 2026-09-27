@@ -13,8 +13,9 @@ export function AdBanner() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="w-full bg-muted/30 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden group"
     >
       <div className="flex justify-between items-center text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">

@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
 export function NativeAdCard() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="w-full bg-[#11141C] border border-white/10 rounded-[22px] overflow-hidden shadow-2xl flex flex-col h-full"
     >
       <div className="relative aspect-square shrink-0 bg-[#0B0F18] flex items-center justify-center overflow-hidden">

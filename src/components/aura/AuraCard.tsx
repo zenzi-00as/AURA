@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BadgeCheck, MapPin, Lock, Heart, MessageSquare, X, Loader2, MoreVertical, ShieldAlert, UserX, Flag, Circle } from "lucide-react";
 import { UserProfile, InteractionType } from "@/lib/types";
@@ -56,6 +57,12 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
   const [reportCategory, setReportCategory] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
+
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
 
   const blurPhotos = planConfig.profilePhotos === 'blurred';
   const showOnline = user.showOnlineStatus !== false && user.isOnline;
@@ -130,10 +137,26 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
     </div>
   );
 
+  const cardVariants = {
+    idle: { scale: 1 },
+    hover: { scale: reducedMotion ? 1.01 : 1.03 },
+    tap: { scale: reducedMotion ? 0.99 : 0.98 },
+    active: { scale: reducedMotion ? 1.02 : 1.06, zIndex: 10 }
+  };
+
   return (
     <>
     <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-      <motion.div layout initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="w-full bg-card border border-border rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col">
+      <motion.div 
+        layout 
+        variants={cardVariants}
+        initial="idle"
+        animate={isDetailOpen ? "active" : "idle"}
+        whileHover={!isDetailOpen ? "hover" : ""}
+        whileTap={!isDetailOpen ? "tap" : ""}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full bg-card border border-border rounded-[22px] overflow-hidden shadow-2xl h-full flex flex-col"
+      >
         <SheetTrigger asChild>
           <div className="relative aspect-square cursor-pointer overflow-hidden shrink-0">
             {user.photoUrl ? <img src={user.photoUrl} alt="" className={cn("w-full h-full object-cover", blurPhotos && "blur-xl")} /> : <div className="w-full h-full bg-muted" />}
@@ -159,7 +182,14 @@ export function AuraCard({ user, onClick }: AuraCardProps) {
           <div className="pt-2 mt-auto">{interactionButtons}</div>
         </div>
 
-        <SheetContent side="bottom" className="bg-background border-border text-foreground rounded-t-[40px] p-0 h-[92dvh] overflow-hidden">
+        <SheetContent 
+          side="bottom" 
+          className={cn(
+            "bg-background border-border text-foreground rounded-t-[40px] p-0 h-[92dvh] overflow-hidden",
+            "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-0",
+            "transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          )}
+        >
           <PrivacyObscure>
             <div 
               className="h-full flex flex-col"

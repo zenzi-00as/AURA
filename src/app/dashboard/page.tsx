@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -228,7 +229,16 @@ export default function Dashboard() {
           ) : discoveryItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
               {discoveryItems.map((item, idx) => (
-                <motion.div key={item.type === 'user' ? item.data.uid : `ad-${idx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
+                <motion.div 
+                  key={item.type === 'user' ? item.data.uid : `ad-${idx}`} 
+                  initial={{ opacity: 0, scale: 0.94 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  transition={{ 
+                    duration: 0.35, 
+                    delay: idx * 0.04,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                >
                   {item.type === 'user' ? (
                     <AuraCard user={item.data} onClick={() => router.push(`/chat/${item.data.uid}`)} />
                   ) : (

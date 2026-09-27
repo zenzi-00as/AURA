@@ -1,3 +1,4 @@
+
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,9 +36,9 @@ export function UpgradeModal({ isOpen, onClose, requiredPlan, featureName, limit
         />
         
         <motion.div 
-          initial={{ y: "100%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: "100%", opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative w-full max-w-sm bg-card border border-border rounded-t-[40px] sm:rounded-[40px] p-8 text-center space-y-8 shadow-2xl overflow-hidden"
         >
