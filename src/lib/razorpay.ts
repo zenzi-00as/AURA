@@ -4,21 +4,21 @@
  */
 
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/actions/payments";
+import { PlanType } from "./types";
 
 export async function initializeRazorpayPayment(options: {
-  amount: number;
-  currency?: string;
   itemType: 'Elite' | 'ElitePlus' | 'SuperLike' | 'Spotlight' | 'SuperFund';
   quantity?: number;
+  uid: string;
   onSuccess: (response: any) => void;
   onFailure?: (error: any) => void;
 }) {
   try {
-    // 1. Request legitimate order from Server
+    // 1. Request legitimate order from Server (No price sent from client)
     const order = await createRazorpayOrder({
-      amount: options.amount,
       itemType: options.itemType,
-      quantity: options.quantity || 1
+      quantity: options.quantity || 1,
+      uid: options.uid
     });
 
     if (!order.success) throw new Error(order.error || "Order generation failed");
@@ -27,12 +27,12 @@ export async function initializeRazorpayPayment(options: {
     const rzpOptions = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       amount: order.orderData.amount,
-      currency: options.currency || "INR",
+      currency: "INR",
       name: "AURA",
       description: `${options.itemType} Activation`,
       order_id: order.orderData.id,
       handler: async function (response: any) {
-        // 3. Verify payment on Server (removed itemType/quantity from call as they are fetched from order notes)
+        // 3. Verify payment on Server via Action
         const verification = await verifyRazorpayPayment({
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
@@ -50,6 +50,11 @@ export async function initializeRazorpayPayment(options: {
       },
       theme: {
         color: "#0057FF"
+      },
+      modal: {
+        ondismiss: function() {
+          options.onFailure?.({ message: "Checkout cancelled." });
+        }
       }
     };
 
