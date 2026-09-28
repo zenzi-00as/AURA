@@ -91,7 +91,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="text-lg font-medium tracking-tight text-foreground/90 dark:text-white/90"
+                  className="text-lg font-medium tracking-tight text-foreground dark:text-white/90"
                 >
                   {TAGLINES[taglineIndex]}
                 </motion.p>

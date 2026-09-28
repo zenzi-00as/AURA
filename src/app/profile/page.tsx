@@ -92,49 +92,17 @@ function ProfileContent() {
   const handlePurchase = (itemType: 'Elite' | 'ElitePlus' | 'Spotlight' | 'SuperLike', baseAmount: number, quantity: number = 1) => {
     const totalAmount = baseAmount + getGstAmount(baseAmount);
     
+    if (!authUser) return;
+
     initializeRazorpayPayment({
       amount: totalAmount,
       currency: currency.code,
-      itemType: itemType === 'ElitePlus' ? 'Elite' : itemType as any,
+      itemType: itemType === 'ElitePlus' ? 'ElitePlus' : itemType as any,
+      uid: authUser.uid,
       onSuccess: async (res) => {
-        if (!db || !authUser) return;
-        const userRef = doc(db, "users", authUser.uid);
-        
-        if (itemType === 'Elite' || itemType === 'ElitePlus') {
-          const expiry = new Date();
-          expiry.setDate(expiry.getDate() + 28);
-          await updateDoc(userRef, { 
-            plan: itemType === 'Elite' ? 'elite' : 'elite_plus',
-            subscription: {
-              planId: itemType === 'Elite' ? 'elite' : 'elite_plus', 
-              status: 'active',
-              expiresAt: expiry,
-              startedAt: serverTimestamp()
-            },
-            updatedAt: serverTimestamp()
-          });
-        } else if (itemType === 'Spotlight') {
-          const currentExp = profile?.spotlightExpiry?.toDate ? profile.spotlightExpiry.toDate() : (profile?.spotlightExpiry ? new Date(profile.spotlightExpiry) : new Date());
-          const baseDate = currentExp > new Date() ? currentExp : new Date();
-          const newExpiry = new Date(baseDate);
-          newExpiry.setDate(newExpiry.getDate() + 7);
-          await updateDoc(userRef, { spotlightExpiry: newExpiry, updatedAt: serverTimestamp() });
-        } else if (itemType === 'SuperLike') {
-          await updateDoc(userRef, { superLikeBalance: increment(quantity), updatedAt: serverTimestamp() });
-        }
-
-        await addDoc(collection(db, "purchases"), {
-          uid: authUser.uid,
-          itemType,
-          amount: totalAmount,
-          currency: currency.code,
-          timestamp: serverTimestamp(),
-          razorpayOrderId: res.razorpay_order_id,
-          status: 'Success'
-        });
-
+        // Success handled by verified webhook/action protocol
         setActiveSheet(null);
-        toast({ title: "Activation Successful!", description: `${itemType} is now synchronizing with your Aura.` });
+        toast({ title: "Activation Initiated", description: "Synchronizing your Aura entitlement..." });
       }
     });
   };
@@ -294,7 +262,7 @@ function ProfileContent() {
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide -mx-2 px-2">
             <Sheet open={activeSheet === 'free'} onOpenChange={(o) => setActiveSheet(o ? 'free' : null)}>
               <SheetTrigger asChild>
-                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-card text-foreground dark:text-white border border-border text-left relative overflow-hidden group shadow-sm">
+                <motion.button whileTap={{ scale: 0.98 }} className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-card text-foreground border border-border text-left relative overflow-hidden group shadow-sm">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-muted text-muted-foreground px-2 py-0.5 rounded-md">Main Plan</span>

@@ -142,7 +142,7 @@ export default function NotificationsPage() {
                           <div className="flex items-center gap-1.5 min-w-0">
                             <h3 className={cn(
                               "truncate text-sm transition-colors",
-                              !notif.read ? "text-foreground font-bold" : "text-muted-foreground"
+                              !notif.read ? "text-foreground font-bold" : "text-foreground"
                             )}>{notif.title}</h3>
                           </div>
                           <span className="text-[10px] text-muted-foreground font-medium shrink-0 ml-2">{timeStr}</span>
