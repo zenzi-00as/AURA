@@ -25,7 +25,8 @@ import {
   Zap,
   Eye,
   Clock,
-  Headphones
+  Headphones,
+  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -44,6 +45,7 @@ import { initializeRazorpayPayment } from "@/lib/razorpay";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
 import { Purchase } from "@/lib/types";
+import { AURA_UPDATES } from "@/data/updates";
 
 function ProfileContent() {
   const router = useRouter();
@@ -58,6 +60,7 @@ function ProfileContent() {
   const [tempBio, setTempBio] = useState("");
   const [superLikeQty, setSuperLikeQty] = useState(1);
   const [activeSheet, setActiveSheet] = useState<'free' | 'elite' | 'eliteplus' | 'spotlight' | 'superlike' | 'history' | null>(null);
+  const [unreadUpdatesCount, setUnreadUpdatesCount] = useState(0);
 
   useEffect(() => {
     if (profile?.bio) setTempBio(profile.bio);
@@ -70,6 +73,18 @@ function ProfileContent() {
     else if (tab === 'spotlight') setActiveSheet('spotlight');
     else if (tab === 'superlike') setActiveSheet('superlike');
   }, [searchParams]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('aura_viewed_updates');
+    let viewedIds: string[] = [];
+    if (saved) {
+      try {
+        viewedIds = JSON.parse(saved);
+      } catch (e) {}
+    }
+    const unread = AURA_UPDATES.filter(u => !viewedIds.includes(u.id)).length;
+    setUnreadUpdatesCount(unread);
+  }, []);
 
   const purchaseQuery = useMemoFirebase(() => {
     if (!db || !authUser) return null;
@@ -100,7 +115,6 @@ function ProfileContent() {
       itemType: itemType === 'ElitePlus' ? 'ElitePlus' : itemType as any,
       uid: authUser.uid,
       onSuccess: async (res) => {
-        // Success handled by verified webhook/action protocol
         setActiveSheet(null);
         toast({ title: "Activation Initiated", description: "Synchronizing your Aura entitlement..." });
       }
@@ -319,12 +333,8 @@ function ProfileContent() {
                   whileTap={{ scale: 0.98 }} 
                   className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
                 >
-                  {/* Atmospheric Light Effect for Light Mode - Blue light from bottom-left corner */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
-                  
-                  {/* Blue light effect from bottom center of the card */}
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none block dark:hidden" />
-
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite</span>
@@ -346,7 +356,6 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="elite" />
-                     
                      <div className="p-6 rounded-[32px] bg-muted border border-border space-y-4">
                         <div className="flex justify-between text-xs text-muted-foreground">
                            <span>Base Amount</span>
@@ -361,7 +370,6 @@ function ProfileContent() {
                            <span className="text-xl font-black text-primary">{formatPrice(99, true)}</span>
                         </div>
                      </div>
-
                      <Button onClick={() => handlePurchase('Elite', 99)} disabled={effectivePlan === 'elite'} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg">
                         {effectivePlan === 'elite' ? "Active" : `Upgrade — ${formatPrice(99, true)}`}
                      </Button>
@@ -377,12 +385,8 @@ function ProfileContent() {
                   whileTap={{ scale: 0.98 }} 
                   className="flex-shrink-0 w-[280px] snap-center p-6 rounded-[32px] bg-gradient-to-br from-blue-50/50 via-white to-white dark:premium-gradient text-foreground dark:text-white border-2 border-primary text-left relative overflow-hidden group shadow-xl shadow-blue-500/10"
                 >
-                  {/* Atmospheric Light Effect for Light Mode - Blue light from top-right corner */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16 block dark:hidden" />
-                  
-                  {/* Blue light effect from bottom center of the card */}
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none block dark:hidden" />
-
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                        <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary dark:bg-white/20 dark:text-white px-2 py-0.5 rounded-md">Elite Plus</span>
@@ -404,7 +408,6 @@ function ProfileContent() {
                   </header>
                   <div className="flex-1 overflow-y-auto px-8 py-8 space-y-10 scrollbar-hide">
                      <ComparisonTable mode="eliteplus" />
-                     
                      <div className="p-6 rounded-[32px] bg-muted border border-border space-y-4">
                         <div className="flex justify-between text-xs text-muted-foreground">
                            <span>Base Amount</span>
@@ -419,7 +422,6 @@ function ProfileContent() {
                            <span className="text-xl font-black text-primary">{formatPrice(199, true)}</span>
                         </div>
                      </div>
-
                      <Button onClick={() => handlePurchase('ElitePlus', 199)} disabled={effectivePlan === 'elite_plus'} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow">
                         {effectivePlan === 'elite_plus' ? "Active" : `Upgrade — ${formatPrice(199, true)}`}
                      </Button>
@@ -464,7 +466,6 @@ function ProfileContent() {
                         <p className="text-sm text-muted-foreground font-light px-4">Boost your profile to the top for 7 full days.</p>
                       </div>
                     </div>
-
                     <div className="p-6 rounded-[32px] bg-muted border border-border space-y-4">
                         <div className="flex justify-between text-xs text-muted-foreground">
                            <span>Base Amount</span>
@@ -479,11 +480,9 @@ function ProfileContent() {
                            <span className="text-xl font-black text-primary">{formatPrice(30, true)}</span>
                         </div>
                      </div>
-
                     <Button onClick={() => handlePurchase('Spotlight', 30)} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg neon-glow">
                       Activate — {formatPrice(30, true)}
                     </Button>
-
                     <div className="space-y-3">
                       {[
                         { icon: Zap, title: "Instant Visibility", desc: "Be the first person everyone sees in their Discovery feed." },
@@ -502,14 +501,6 @@ function ProfileContent() {
                         </div>
                       ))}
                     </div>
-
-                    <section className="space-y-4 pt-6 border-t border-border">
-                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Spotlight Protocol</h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed font-light italic">
-                        Spotlight is Aura's priority discovery protocol. When activated, your identity node is prioritized within the global synchronization queue for 7 days. This increases your Aura's visibility to nearby members, leading to a higher rate of connection requests and profile engagements.
-                      </p>
-                    </section>
-
                     <div className="h-10" />
                   </div>
                 </div>
@@ -545,7 +536,6 @@ function ProfileContent() {
                        <span className="text-4xl font-bold tabular-nums text-foreground">{superLikeQty}</span>
                        <button onClick={() => setSuperLikeQty(superLikeQty + 1)} className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground"><Plus size={24} /></button>
                     </div>
-
                     <div className="p-6 rounded-[32px] bg-muted border border-border space-y-4">
                         <div className="flex justify-between text-xs text-muted-foreground">
                            <span>Base Amount</span>
@@ -560,36 +550,9 @@ function ProfileContent() {
                            <span className="text-xl font-black text-primary">{formatPrice(3 * superLikeQty, true)}</span>
                         </div>
                      </div>
-
                     <Button onClick={() => handlePurchase('SuperLike', 3 * superLikeQty, superLikeQty)} className="w-full h-16 rounded-[24px] premium-gradient text-white font-bold text-lg">
                         Get {superLikeQty} — {formatPrice(3 * superLikeQty, true)}
                     </Button>
-
-                    <div className="space-y-3">
-                      {[
-                        { icon: Zap, title: "Priority Delivery", desc: "Your profile jumps to the front of their Discovery queue." },
-                        { icon: Star, title: "High-Fidelity Presence", desc: "Stand out with a signature blue aura highlight on your profile." },
-                        { icon: Heart, title: "3x Match Probability", desc: "Members who Super Like have a 3x higher synchronization rate." }
-                      ].map((benefit, i) => (
-                        <div key={`super-benefit-${i}`} className="p-4 rounded-2xl bg-muted border border-border flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <benefit.icon size={18} />
-                          </div>
-                          <div className="space-y-0.5">
-                            <h4 className="text-sm font-bold text-foreground">{benefit.title}</h4>
-                            <p className="text-xs text-muted-foreground font-light leading-relaxed">{benefit.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <section className="space-y-4 pt-6 border-t border-border">
-                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Engagement Protocol</h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed font-light italic">
-                        Super Likes are high-fidelity synchronization signals. Unlike standard likes, a Super Like immediately notifies the recipient and places your profile at the front of their interaction queue with a signature blue highlight. This definitively increases the probability of a mutual match within your proximity radius.
-                      </p>
-                    </section>
-
                     <div className="h-10" />
                   </div>
                 </div>
@@ -612,7 +575,6 @@ function ProfileContent() {
                 </Dialog>
             </div>
             <p className="text-lg leading-relaxed text-foreground font-light">{profile.bio || "No bio added yet."}</p>
-
             <div className="grid grid-cols-2 gap-y-6 gap-x-4 border-t border-border pt-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Chat USAGE</label>
@@ -633,6 +595,26 @@ function ProfileContent() {
         )}
 
         <div className="space-y-3 pb-20">
+          <button 
+            onClick={() => router.push('/updates')} 
+            className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between hover:bg-primary/5 transition-colors relative"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Megaphone size={18} />
+              </div>
+              <span className="font-medium text-foreground">Updates</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {unreadUpdatesCount > 0 && (
+                <div className="h-5 px-2 rounded-full premium-gradient flex items-center justify-center">
+                  <span className="text-[10px] font-black text-white">{unreadUpdatesCount}</span>
+                </div>
+              )}
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </div>
+          </button>
+
           <Sheet open={activeSheet === 'history'} onOpenChange={(o) => setActiveSheet(o ? 'history' : null)}>
             <SheetTrigger asChild>
                <button className="w-full h-16 rounded-3xl bg-muted border border-border px-8 flex items-center justify-between hover:bg-primary/5 transition-colors">
