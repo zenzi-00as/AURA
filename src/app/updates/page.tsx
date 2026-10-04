@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -105,7 +106,7 @@ export default function UpdatesPage() {
                 className={cn(
                   "px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border shrink-0",
                   selectedCategory === cat.id 
-                    ? "premium-gradient text-white border-transparent shadow-lg shadow-primary/20" 
+                    ? "premium-gradient text-white border-primary shadow-lg shadow-primary/20" 
                     : "bg-muted border-border text-muted-foreground hover:border-primary/40"
                 )}
               >
